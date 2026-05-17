@@ -18,11 +18,57 @@ description: >-
   command mappings use **AskQuestion** (not freeform guessing). Use when the user
   says `start dep <N>`, `dep <N> done [: <note>]`, `dep <N> skip: <reason>`,
   `dep <N> block: <reason>`, `dep deployed [: <note>]`, or `dep status`.
+timeoutMs: 1800000
+warmUpRules:
+  - ".sedea/centers/sedea-centers--development/rules/planning-target-resolution.mdc"
+inputs:
+  targetPlanPath:
+    type: string
+    description: Absolute PR plan path containing the deploy test plan.
+    required: true
+  targetPlanSlug:
+    type: string
+    description: PR plan slug.
+    required: true
+  prUrl:
+    type: string
+    description: GitHub PR URL that was merged.
+    required: false
+  prNumber:
+    type: number
+    description: GitHub PR number that was merged.
+    required: false
+  repoUrl:
+    type: string
+    description: Git repository URL.
+    required: false
+  branchName:
+    type: string
+    description: Branch that produced the PR.
+    required: false
+  mergeSha:
+    type: string
+    description: Merge commit SHA for deployment verification.
+    required: false
+  mergedAt:
+    type: string
+    description: Timestamp when the PR merged.
+    required: false
+  ledgerParent:
+    type: string
+    description: Ledger parent slug/path copied from create-pr.
+    required: false
+  upstreamSkill:
+    type: string
+    description: Skill that spawned deploy verification, usually create-pr.
+    required: false
 ---
 
 # Deploy walk-through
 
 This skill drives the **per-step deploy verification loop** for a PR plan's `## N. Deploy test plan` section (the per-PR template's § 7, or § 6 in legacy 7-section per-PR plans). Each numbered step in `### Before deploy` and `### After deploy` is a **GFM task list checkbox** (`1. [ ] ...`); the **developer** works through the list one box at a time, **a coding agent** provides the per-step context, the **developer** reports the outcome, the agent flips the box and appends a dated resolution note.
+
+When spawned by **`create-pr`**, this skill is the **deploy-walk agent** for a merged PR. It owns deploy verification status and reports it upstream; it does not run implementation, PR review, or plan reconciliation.
 
 The skill is **loose mode by design**. Between `start dep <N>` (which presents step N) and `dep <N> done` / `skip` / `block` (which closes step N), the chat is **normal collaboration** — the **developer** can ask any question, request the agent run a command, paste log output, debug, take a break, switch tasks. The bracketing tokens (`start dep <N>` / `dep <N> done`) are the only signals this skill cares about; everything in between is whatever the **developer** needs.
 
@@ -112,7 +158,12 @@ If `{note}` is omitted in `dep <N> done`, append `*(YYYY-MM-DD: done.)*` (litera
 After the edit, **check whether step N was the last `[ ]` in the active sub-section**:
 
 - If `### Before deploy` is now fully `[x]` and Status is `drafted`, the confirmation reply ends with: *"All Before-deploy steps complete. When you've actually deployed, reply `dep deployed` (or `dep deployed: {note}`) to flip status and unlock After-deploy steps."*
-- If `### After deploy` is now fully `[x]` and Status is `deployed`, **also** auto-flip Status `deployed → done` (one extra `StrReplace` on the Status line — append `*(YYYY-MM-DD: All deploy steps verified.)*` and replace `deployed` with `done`). **Then** run the **Frontmatter capstone** `StrReplace` (§ *Frontmatter capstone — `pending` → `done`*) so todo `deploy-test-plan-verified` flips to `done` in the same turn. Confirmation reply: *"Marked After-deploy step N done. **All deploy steps verified.** Status flipped: `deployed → done`. Frontmatter todo `deploy-test-plan-verified` → `done`. Deploy checklist is closed — invoke **plan-reconcile** when you want merge-driven reconcile/archive (not auto-run; independent of merge timing)."*
+- If `### After deploy` is now fully `[x]` and Status is `deployed`, stop after marking the step and ask the developer for explicit closure approval with **AskQuestion**. Required options:
+  - **Approve deploy checklist closure**
+  - **Review deploy checklist first**
+  - **Leave status deployed**
+  - **More details for option _**
+  Only **Approve deploy checklist closure** authorizes the Status `deployed → done` flip and the **Frontmatter capstone** `deploy-test-plan-verified` `pending → done` mutation. Do not treat the final step's `done` command as approval for the larger deploy lifecycle closeout.
 - Otherwise, append the next-step hint: *"Marked {Before or After}-deploy step N done. Next: step N+1 — \"{verbatim next unchecked step line}\". Reply `start dep <N+1>` when ready."*
 
 ### `dep <N> skip: <reason>` — strike + flip
@@ -142,7 +193,12 @@ Confirmation: *"Marked {Before or After}-deploy step N blocked: \"{reason}\". Bo
 Pre-conditions:
 
 - Status must currently be `drafted`. If `deployed` or `done`, reply: *"Status is already `{current}`. To override, reply `dep deployed force` (**developer** escape hatch — only use if the plan's lifecycle drifted from reality)."* (Skill's `force` branch is identical to the normal branch; the gate is the **developer**'s confirmation.)
-- If any `[ ]` boxes remain in `### Before deploy`, surface them as a flag **after** applying the edit (don't block on this — the **developer** is in control). The flag form: *"Note: Before-deploy steps {list of unchecked indexes} are still `[ ]`. They were not run, or the box-flip didn't apply. If those checks were genuinely deferred, that's fine; if it's an oversight, run `start dep before <N>` to verify. Leaving them `[ ]` records silent omissions."*
+- If any `[ ]` boxes remain in `### Before deploy`, do **not** flip status yet. Use **AskQuestion** to confirm whether the developer wants to deploy with unchecked Before-deploy steps. Required options:
+  - **Proceed to deployed with unchecked Before-deploy steps**
+  - **Review Before-deploy steps first**
+  - **Block deploy transition**
+  - **More details for option _**
+  Only **Proceed to deployed with unchecked Before-deploy steps** authorizes the status mutation. If approved, include a note listing unchecked indexes in the confirmation so the omission is auditable.
 
 `StrReplace` on the Status line:
 
@@ -151,7 +207,7 @@ Pre-conditions:
 
 Confirmation reply also previews the first After-deploy step: *"Status flipped: `drafted → deployed` at {YYYY-MM-DD HH:MM}. After-deploy now active. First step: \"{verbatim first step line}\". Reply `start dep 1` when ready."*
 
-If `### After deploy` has no `[ ]` items at all (it's empty by design or already all `[x]` — unusual), reply: *"Status flipped: `drafted → deployed`. No `### After deploy` steps remain. Auto-flipping `deployed → done`. PR plan fully closed out."* and chain into the same Status + **Frontmatter capstone** sequence as the last After-deploy `done` branch.
+If `### After deploy` has no `[ ]` items at all (it's empty by design or already all `[x]` — unusual), reply: *"Status flipped: `drafted → deployed`. No `### After deploy` steps remain. Deploy checklist closure still requires approval."* Then run the same **Approve deploy checklist closure** gate used by the last After-deploy `done` branch before flipping `deployed → done` or changing `deploy-test-plan-verified` to `done`.
 
 ### `dep status` — read-only summary
 
@@ -236,7 +292,7 @@ History is **append-only**. Never overwrite or compact prior `*(YYYY-MM-DD: ...)
 
 PR plans carry a YAML todo whose `id` is **`deploy-test-plan-verified`** (see [`development-process.md`](../../../../docs/development-process.md) § *Per-PR plan template* § 7 — Frontmatter capstone). It stays `pending` until every Before-deploy and After-deploy checkbox is `[x]` **and** the deploy section's `**Status:**` reads `done`.
 
-Whenever a command in this skill sets `**Status:**` from `deployed` → `done` (last After-deploy checkbox, or the empty-After-deploy chain from `dep deployed`), **immediately** apply a second `StrReplace` on frontmatter using this **exact** `old_string` / `new_string` pair (byte-identical to [`pr-plan`](../pr-plan/SKILL.md) § 4a-bis and on-disk plans — do not paraphrase the `content: >-` body):
+Only after the developer approves **Approve deploy checklist closure**, when this skill sets `**Status:**` from `deployed` → `done` (last After-deploy checkbox, or the empty-After-deploy chain from `dep deployed`), **immediately** apply a second `StrReplace` on frontmatter using this **exact** `old_string` / `new_string` pair (byte-identical to [`pr-plan`](../pr-plan/SKILL.md) § 4a-bis and on-disk plans — do not paraphrase the `content: >-` body):
 
 ```
 old_string:
@@ -300,8 +356,35 @@ This skill walks **one PR plan's `## N. Deploy test plan` section at a time**. I
 - **`git commit`**, **`git push`**, or any other write to the **hosting** git tree on behalf of the **developer** unless they explicitly ask in the same message. Plan body edits are normal **`StrReplace`** on the **`.plan.md`** file; syncing **`.sedea/operations/`** (or the hosting repo) to version control follows the **developer**'s workflow and product docs — this skill does **not** prescribe a monorepo-specific plan-commit command.
 - Reconcile / archive the plan when it reaches `done`, or auto-run **`plan-reconcile`**. **`plan-reconcile`** is never auto-invoked from this skill. The `done` flip + frontmatter `deploy-test-plan-verified` → `done` close the **deploy checklist only**; archival still depends on merge + explicit **plan-reconcile** (see **development-process** cadence).
 - Spawn child plans, edit other plans, or modify the parent plan's PR list / scope. Those are **`master-plan`**, **`pr-breakdown`**, **`phase-plan`**, etc.
-- Run **`coding-session`**, **`pre-pr-review-emit`**, **`pr-review`**, or any other protocol branch from inside this one. If the **developer** wants those, they invoke them via mission dispatch or natural language.
+- Run **`coding-session`**, **`pre-pr-review`**, **`pr-review`**, or any other protocol branch from inside this one. If the **developer** wants those, they invoke them via mission dispatch or natural language.
 - Apply to plans without the GFM task list contract (`1. [ ] ...`). Pre-skill plans must be swept first; the skill stops with a clear message instead of guessing.
 - Walk "all PR plans in flight" in batch. Cross-plan dashboards can come later as a one-line script over **`.sedea/operations/.../plans/`**; the skill is per-plan.
+
+## Spawned result contract
+
+When spawned by `create-pr`, end each substantive turn with deploy status outputs so upstream can keep the ledger accurate:
+
+- `outputs.targetPlanPath`
+- `outputs.targetPlanSlug`
+- `outputs.prUrl`
+- `outputs.prNumber`
+- `outputs.mergeSha`
+- `outputs.deployStatus` (`drafted` | `deployed` | `done` | `blocked` | `unknown`)
+- `outputs.beforeDeployStatus` (`complete` | `incomplete` | `blocked` | `unknown`)
+- `outputs.afterDeployStatus` (`complete` | `incomplete` | `blocked` | `unknown`)
+- `outputs.deployTodoStatus` (`pending` | `done` | `missing` | `unknown`)
+- `outputs.blockedStep`
+- `outputs.remainingTasks`
+- `outputs.activeLanes`
+- `outputs.openLedgerEntries`
+- `outputs.continuationOwner: "deploy-walk-agent"`
+- `outputs.continuationStatus`
+
+Set `continuationStatus`:
+
+- `terminal` only when `deployStatus: "done"` and `deployTodoStatus: "done"`.
+- `active` while Before-deploy steps, deployed transition, After-deploy steps, or capstone todo remain.
+- `active` when any deploy step is blocked; include the blocked step and reason.
+- `partial` status with `continuationStatus: "active"` when plan format prevents reliable verification.
 
 Stop after each command's confirmation reply. Do not auto-advance, do not auto-invoke other skills, do not commit.

@@ -7,6 +7,44 @@ description: >-
   before archiving user-selected slugs. Use under mission dispatch, natural
   language ("plan reconcile"), or when the developer wants merge-driven archive
   cadence — not legacy two-letter chat tokens.
+timeoutMs: 1800000
+inputs:
+  targetPlanPath:
+    type: string
+    description: Absolute PR plan path that may be reconciled after PR merge and deploy verification.
+    required: false
+  targetPlanSlug:
+    type: string
+    description: PR plan slug that may be reconciled after PR merge and deploy verification.
+    required: false
+  prUrl:
+    type: string
+    description: Merged PR URL associated with the plan.
+    required: false
+  prNumber:
+    type: number
+    description: Merged PR number associated with the plan.
+    required: false
+  prState:
+    type: string
+    description: PR state from create-pr; must be merged for spawned reconcile.
+    required: false
+  deployStatus:
+    type: string
+    description: Deploy status from deploy-walk; must be done for spawned reconcile.
+    required: false
+  deployTodoStatus:
+    type: string
+    description: deploy-test-plan-verified todo status; must be done for spawned reconcile.
+    required: false
+  ledgerParent:
+    type: string
+    description: Ledger parent slug/path copied from create-pr.
+    required: false
+  upstreamSkill:
+    type: string
+    description: Skill that spawned reconcile, usually create-pr.
+    required: false
 ---
 
 # Plan reconcile
@@ -17,7 +55,19 @@ Script-backed flow: **`plan-state.mjs`** owns YAML and file moves; the agent dec
 
 - **Mission dispatch**, natural language (**plan reconcile**, **reconcile plans**, archive pass after merges), or an explicit user request in that vein.
 - Do **not** trigger on **`plan`** alone — too generic.
-- Do **not** auto-run this protocol when a PR plan’s **`deploy-walk`** finishes or when frontmatter todo **`deploy-test-plan-verified`** flips to **`done`**. That closure means every deploy checklist box is **`[x]`** and the plan status lifecycle reads **`done`** — it does **not** mean the GitHub PR merged or that sidecar **`prs[]`** is ready for reconcile. **Plan reconcile** is merge-driven archival + **`list-candidates`** + follow-ups triage; the developer runs it when they want that pass (often after merge, not the same moment as the last staging smoke).
+- Spawned by **`create-pr`** only after both PR merge and deploy verification are complete **and the developer explicitly chooses to run reconcile**. A `deploy-walk` completion by itself is not enough; spawned reconcile requires `prState: "merged"`, `deployStatus: "done"`, and `deployTodoStatus: "done"`.
+- Standalone natural-language reconcile remains available for developer-initiated archive passes.
+
+## Spawned reconcile gate
+
+When spawned by `create-pr`, verify:
+
+1. `targetPlanPath` or `targetPlanSlug` is present.
+2. `prState` is `merged`.
+3. `deployStatus` is `done`.
+4. `deployTodoStatus` is `done`.
+
+If any gate fails, stop with `partial`, keep `continuationStatus: "active"`, and report the missing status. Do not archive plans before merge and deploy verification are both complete.
 
 ## Script CLI (hosting repo)
 
@@ -31,19 +81,37 @@ Plans and sidecars live only under the **`.sedea/operations/`** union — **`.se
 
 ## Flow
 
-### 1. Run reconcile (PR-tracked path)
+### 1. Preview reconcile (PR-tracked path)
+
+```bash
+node .sedea/centers/sedea-centers--development/missions/plan-and-deliver/scripts/plan-state.mjs reconcile --dry-run
+```
+
+This queries **`gh pr view`** for every sidecar **`prs[]`** entry without moving files or appending parent bullets. The printed report has three buckets:
+
+- **`archived`** — every PR for that plan is **`MERGED`**; in dry-run this means **`plan-state`** would move the plan + sidecar and append a bullet under **`## Child plans`** on the parent (when applicable). No mutation has happened yet.
+- **`flagged`** — at least one PR closed without merge, mixed merged/open, unknown repo, or **`gh`** error. Needs judgement (step 3).
+- **`skipped`** — still-open PRs, or no **`prs[]`** (the script’s way of saying “not this path”). Step 2 covers the no-**`prs[]`** subset via **`list-candidates`**.
+
+Optional flags: **`--prune-worktrees`** is only allowed after the developer approves the mutation pass below (see script **`--help`**).
+
+### 1b. Approve PR-tracked reconcile mutations
+
+Present the dry-run report to the developer and use **AskQuestion** before running non-dry-run reconcile. Required options:
+
+1. **Approve PR-tracked reconcile mutations**
+2. **Skip PR-tracked reconcile this pass**
+3. **Review flagged entries first**
+4. **Abort reconcile**
+5. **More details for option _**
+
+Only **Approve PR-tracked reconcile mutations** authorizes:
 
 ```bash
 node .sedea/centers/sedea-centers--development/missions/plan-and-deliver/scripts/plan-state.mjs reconcile
 ```
 
-This queries **`gh pr view`** for every sidecar **`prs[]`** entry. The printed report has three buckets:
-
-- **`archived`** — every PR for that plan is **`MERGED`**; **`plan-state`** moved the plan + sidecar and appended a bullet under **`## Child plans`** on the parent (when applicable). Nothing more for these in step 1.
-- **`flagged`** — at least one PR closed without merge, mixed merged/open, unknown repo, or **`gh`** error. Needs judgement (step 3).
-- **`skipped`** — still-open PRs, or no **`prs[]`** (the script’s way of saying “not this path”). Step 2 covers the no-**`prs[]`** subset via **`list-candidates`**.
-
-Optional flags: **`--dry-run`**, **`--prune-worktrees`** (see script **`--help`**).
+If the developer skips PR-tracked reconcile, do not run non-dry-run `reconcile`; continue only to read-only `list-candidates` and developer-selected archive work. If the developer aborts, stop with `continuationStatus: "active"` and no archive mutations.
 
 ### 2. Run list-candidates (non-PR path)
 
@@ -96,7 +164,7 @@ Per **`.sedea/centers/sedea-centers--development/docs/development-process.md`** 
 **Scope**
 
 - **User-selected plans** from step 3 (candidates the user picked + flagged plans they opted to archive). Files are still at their **active** **`.sedea/operations/.../plans/`** paths for this pass (not yet archived here).
-- **Reconcile-auto-archived plans** from step 1 (**`archived`** list). **`plan-state`** **`reconcile`** may have moved each **`.plan.md`** within the same operations scope — **do not** assume its former path. **Re-resolve** each slug’s **`.plan.md`** under **`.sedea/operations/`** (for example **`plan-state resolve`** or a search for **`<slug>.plan.md`** under that scope) after step 1. For this set, **Postpone** below is **not** offered — the plan is already archived; only **Integrate** and **Drop** apply.
+- **Reconcile-auto-archived plans** from approved step 1b (**`archived`** list). **`plan-state`** **`reconcile`** may have moved each **`.plan.md`** within the same operations scope — **do not** assume its former path. **Re-resolve** each slug’s **`.plan.md`** under **`.sedea/operations/`** (for example **`plan-state resolve`** or a search for **`<slug>.plan.md`** under that scope) after the approved mutation run. For this set, **Postpone** below is **not** offered — the plan is already archived; only **Integrate** and **Drop** apply.
 
 If a plan in scope has no **`## Follow-ups`** section, or the section is empty, skip it silently.
 
@@ -167,6 +235,35 @@ Mutations are under **`.sedea/operations/`** (and possibly center git elsewhere)
 - Editing plan frontmatter or sidecar YAML directly — **`plan-state.mjs`** is the sole writer for those; step 3.5 only edits **`## Follow-ups`** markdown bodies.
 - Promoting routed bullets into **Changes** / **Caveats** / **Delivery phases** — planning work the user does later.
 - Pushing fixes to individual PRs. If a flagged plan needs an amend, tell the user; do not silently **`gh`**-mutate from here.
+
+## Spawned result contract
+
+When spawned by `create-pr`, end with a child result containing:
+
+- `outputs.targetPlanPath`
+- `outputs.targetPlanSlug`
+- `outputs.prUrl`
+- `outputs.prNumber`
+- `outputs.prState`
+- `outputs.deployStatus`
+- `outputs.deployTodoStatus`
+- `outputs.archivedSlugs`
+- `outputs.flaggedSlugs`
+- `outputs.postponedSlugs`
+- `outputs.followUpsIntegrated`
+- `outputs.followUpsDropped`
+- `outputs.manualFollowUps`
+- `outputs.remainingTasks`
+- `outputs.activeLanes`
+- `outputs.openLedgerEntries`
+- `outputs.continuationOwner: "plan-reconcile-agent"`
+- `outputs.continuationStatus`
+
+Set `continuationStatus`:
+
+- `terminal` when the target plan is archived or explicitly not archive-eligible with no remaining follow-up triage.
+- `active` when flagged plans, postponed follow-ups, manual routing, or developer choices remain.
+- `partial` status with `continuationStatus: "active"` when script errors or missing merge/deploy gates block reconcile.
 
 ## Extensions
 
