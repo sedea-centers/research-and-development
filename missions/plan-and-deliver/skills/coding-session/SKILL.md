@@ -223,7 +223,30 @@ When **`pre-pr-review`** returns `recommendation: "go"`:
 3. Inputs must include `targetPlanPath`, `targetPlanSlug`, `worktreePath`, `branchName`, `baseRef`, `repoUrl`, `diffSummary`, `prePrReviewRecommendation: "go"`, `prePrReviewFlags`, `followUpsAppended`, `ledgerParent`, and `upstreamSkill: "coding-session"`.
 4. Announce that **coding-session** is waiting for the PR-creating agent result and stop. Do not continue to `pr-review` or deploy until `create-pr` reports a PR URL/number or a blocking failure.
 
-When Mission Control delivers the **`create-pr`** result, copy `prUrl`, `prNumber`, `branchName`, `remainingTasks`, `activeLanes`, and `openLedgerEntries` into the coding-session result. If the PR was created, keep the mission lane active for `pr-review` and deploy verification.
+When Mission Control delivers the **`create-pr`** result, copy `prUrl`, `prNumber`, `branchName`, `remainingTasks`, `activeLanes`, and `openLedgerEntries` into the coding-session result. If the PR was created, keep the mission lane active for inline `pr-review` and deploy verification.
+
+### Inline PR review after PR creation
+
+After `create-pr` reports a PR URL/number, the active **coding-session agent** executes `.sedea/centers/sedea-centers--development/missions/plan-and-deliver/skills/pr-review/SKILL.md` inline. Do not spawn a `pr-review` agent.
+
+Inline `pr-review` inputs come from coding-session state:
+
+- `prUrl` / `prNumber`
+- `repoUrl`
+- `worktreePath`
+- `branchName`
+- `targetPlanPath` / `targetPlanSlug`
+- `ledgerParent`
+
+The inline procedure:
+
+1. Collects PR review comments.
+2. Classifies each as `Must fix`, `Should fix`, `Skipped`, or `Skipped → follow-up`.
+3. Uses **AskQuestion** for developer approval before any code, plan, GitHub, commit, or push action.
+4. Applies only the approved fix scope.
+5. Requires developer review before commit/push.
+6. Runs GitHub reconciliation only after approved fixes are committed/pushed, or immediately for skipped-only triage.
+7. Keeps coding-session `continuationStatus: "active"` until all PR comments are resolved, followed up, skipped with rationale, or explicitly deferred.
 
 ## Implementation handoff result
 
@@ -244,6 +267,11 @@ When this skill runs as a spawned child, end with a child result containing at l
 - `outputs.createPrStatus`
 - `outputs.prUrl`
 - `outputs.prNumber`
+- `outputs.prReviewStatus`
+- `outputs.prReviewComments`
+- `outputs.prReviewDispositions`
+- `outputs.prReviewBlockers`
+- `outputs.githubReconciliationStatus`
 - `outputs.activeLanes`
 - `outputs.openLedgerEntries`
 - `outputs.remainingTasks`
@@ -255,6 +283,7 @@ Set `outputs.continuationStatus` as follows:
 - `active` when worktrees are created and prompts emitted; implementation is now waiting on the coding agent lane.
 - `active` when pre-pr-review returns blockers and developer approval for fixes is pending.
 - `active` when approved review fixes, a new committed cut point, or re-review remains.
+- `active` when PR review comments, developer approval, fixes, commit/push, or GitHub reconciliation remain.
 - `active` when worktrees exist but Mission Control attach or prompt emission still needs repair.
 - `terminal` only when this branch is explicitly scoped to worktree/prompt setup and those setup tasks are complete with no active coding lane tracked by this dispatch.
 - `partial` status with `continuationStatus: "active"` when readiness, repo selection, dirty tree, base branch, sidecar write, or MCP attach blocks setup.

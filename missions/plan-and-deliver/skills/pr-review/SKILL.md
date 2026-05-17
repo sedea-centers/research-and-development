@@ -1,11 +1,16 @@
 ---
 name: pr-review
 description: >-
-  Review and fix GitHub PR comments. Use when the user says 'pr', 'pr <URL>',
-  provides a pull request link, or asks to triage/address PR review comments.
+  Inline coding-session procedure for GitHub PR comment triage and fix loops.
+  Executed by the coding-session agent after create-pr reports a PR URL/number;
+  not spawned as a separate agent. Resolves comments only after developer approval.
 ---
 
 # PR Review Workflow
+
+**Execution owner:** the active **coding-session agent** runs this skill inline. Do not spawn a separate `pr-review` agent. The coding-session lane has the implementation context, worktree, branch, PR plan, prior pre-PR review findings, and developer approvals needed to evaluate and fix PR comments safely.
+
+**Required upstream context:** `prUrl` or `prNumber`, repository identity, worktree path, branch name, linked PR plan when available, and coding-session ledger state. If this context is missing, return to `coding-session` to recover it before running PR review.
 
 ## Helper script
 
@@ -56,7 +61,7 @@ Supported `command` values: `threads`, `reply`, `resolve`, `minimize`, `pr-for-b
 
 Do **not** call **`user-github`** (or any other GitHub MCP) to list reviews, comments, or threads. That duplicates the script, stresses the agent UI with huge payloads, and is forbidden here. **All** GitHub reads and writes for this workflow go through **`cd <implementation-repo-root> && PR_REVIEW_INPUT="<absolute-path-from-step-1>" python3 .sedea/centers/sedea-centers--development/missions/plan-and-deliver/scripts/pr-review.py`** (plus `git` / `gh` in Step 0 only if you already use them for branch or URL resolution — optional; `pr-for-branch` in the script is preferred when resolving the PR from the current branch).
 
-## When the user selects `pr-review`
+## When coding-session executes `pr-review`
 
 Optionally followed by a URL (e.g. `pr https://...`).
 
@@ -125,15 +130,30 @@ Plain REST list endpoints do **not** expose `isResolved` or `isMinimized` for th
 
 From the **`issue-comments`** line in the Step 1 script output, scan for prior *PR comments addressed* summaries from this workflow. Skip items already marked fixed or skipped in a previous round even if the thread was never resolved.
 
-### Step 3 — Validate and fix
+### Step 3 — Validate and classify
 
-For each **new** (not filtered in Step 2) comment, verify it against the **current** codebase and assign one of three dispositions:
+For each **new** (not filtered in Step 2) comment, verify it against the **current** codebase and assign one of four dispositions:
 
-- **Fixed** — issue is valid and actionable in the scope of this PR; apply the fix locally.
+- **Must fix** — issue is valid, actionable, and blocks the PR before merge.
+- **Should fix** — issue is valid and worth addressing in this PR if the developer approves the extra fix pass.
 - **Skipped (no follow-up)** — issue is already fixed in the working tree, factually wrong, or pure noise (e.g. linter chatter the project doesn't enforce). Nothing to track.
 - **Skipped → follow-up** — issue is *valid* but *out of scope* for this PR's single concern. Strategy #6 forbids silently expanding the PR; capture as a `## Follow-ups` bullet in Step 3a so the item isn't lost.
 
-Do **not** commit or push. Wait for the user to review.
+Do **not** apply fixes yet. First report the classification and wait for explicit developer approval through `coding-session`.
+
+### Step 3b — Developer approval gate
+
+Before applying any code, plan, or GitHub changes, **coding-session** must ask the developer with **AskQuestion**. Required options:
+
+1. **Apply Must fixes** — edit only PR-blocking comments.
+2. **Apply Must + Should fixes** — edit blockers and approved non-blocking fixes.
+3. **Follow-ups only** — append out-of-scope follow-ups, no source edits.
+4. **Skip / reject selected comments** — developer provides rationale before GitHub replies.
+5. **More details for option _**
+
+No source edits, plan edits, commits, pushes, GitHub replies, resolves, minimizes, or review re-requests may happen until the developer chooses an approval option.
+
+After approved fixes are applied, stop for developer review before commit/push. Do not commit or push silently.
 
 ### Step 3a — Capture out-of-scope flags as follow-ups
 
@@ -147,7 +167,7 @@ Otherwise, for every comment marked **Skipped → follow-up** in Step 3, append 
 - Carries an optional `(target: <hint>)` suffix when routing is obvious — `Master Plan`, `current phase plan`, `sibling plan`, `new plan`, `drop`.
 - Lives at the bottom of the file. If the PR plan has no `## Follow-ups` section yet, **add one** at the bottom (after § 7 Caveats, or after § 6 if § 7 is omitted) using a single `StrReplace` that inserts the header + the new bullets in one shot — same shape as `pre-pr-review` step 6.
 
-Do **not** include `Fixed` or `Skipped (no follow-up)` items here — those don't survive the PR (`Fixed` lands in the diff; `Skipped (no follow-up)` is noise by definition).
+Do **not** include `Must fix`, `Should fix`, or `Skipped (no follow-up)` items here — those don't survive the PR as follow-up planning items (`Must` / `Should` land in the diff after approval; `Skipped (no follow-up)` is noise by definition).
 
 Acknowledge: *"Appended <K> Code Review Follow-ups to `<slug>.plan.md` § Follow-ups."*
 
@@ -155,9 +175,10 @@ Plan files live under **`.sedea/operations/`** on the hosting checkout. In the S
 
 ### Step 4 — Report
 
-Print **every** comment in its original form (quote the body). For each one, state one of three dispositions:
+Print **every** comment in its original form (quote the body). For each one, state one of four dispositions:
 
-- **Fixed** — what you changed and why.
+- **Must fix** — why it blocks and what edit is proposed or applied after approval.
+- **Should fix** — why it is useful and what edit is proposed or applied after approval.
 - **Skipped (no follow-up)** — why it doesn't apply (already fixed, factually wrong, pure noise).
 - **Skipped → follow-up** — paraphrase the planning concern + the `(target: …)` hint (if any) that was appended to the plan in Step 3a. Reference the slug so the user can audit: *"Captured to `<slug>.plan.md` § Follow-ups."*
 
@@ -177,7 +198,7 @@ Tell the user explicitly: after local fixes look good, say **`cp`** — `efficie
 
 **GitHub only** (two-step `PR_REVIEW_INPUT` + `python3 .sedea/centers/sedea-centers--development/missions/plan-and-deliver/scripts/pr-review.py` per § *Input file and script* — never chain write + script):
 
-1. **Reply + resolve** each inline thread using dispositions from Step 4 — **Fixed**, **Skipped (no follow-up)**, or **Skipped → follow-up** (same paraphrase + `(target: …)` as Step 3a) plus short reasoning, then resolve the thread.
+1. **Reply + resolve** each inline thread using approved dispositions from Step 4 — **Must fix**, **Should fix**, **Skipped (no follow-up)**, or **Skipped → follow-up** (same paraphrase + `(target: …)` as Step 3a) plus short reasoning, then resolve the thread.
 
 2. **Minimize** every top-level review (`PRR_` node) from **every** reviewer (CodeRabbit, Brin, humans) with `{"command":"minimize",...,"node_id":"PRR_...","classifier":"RESOLVED"}`. Use GraphQL `reviews` + REST `pull-reviews` from Step 1. One JSON **array** of `minimize` objects; one script invocation.
 
@@ -197,3 +218,18 @@ Tell the user explicitly: after local fixes look good, say **`cp`** — `efficie
 The `[~]` marker plus the explicit "captured to … § Follow-ups" pointer lets reviewers cross-reference what was deferred without leaving the GitHub comment thread. Use one bullet per comment, mirroring the dispositions assigned in Step 4. Replace `abc1234` with `git rev-parse --short HEAD` after **`cp`**’s push (or the commit you just pushed).
 
 If Step 1 payloads are **missing or stale** in context (new comments since fetch, fresh chat), re-run **Step 1**’s `pr-review.py` array for the same `owner` / `repo` / `pr`, then run **GitHub only** above — do **not** ask the user for a second **`pr`** unless you truly cannot resolve the PR identity.
+
+## Inline result for coding-session
+
+Return results through the active coding-session lane, not as a child-agent result. Coding-session must include these fields in its own result contract:
+
+- `outputs.prReviewStatus`
+- `outputs.prReviewComments`
+- `outputs.prReviewDispositions`
+- `outputs.prReviewBlockers`
+- `outputs.prReviewFollowUps`
+- `outputs.githubReconciliationStatus`
+- `outputs.remainingTasks`
+- `outputs.continuationStatus`
+
+Keep `continuationStatus: "active"` until every PR review comment is fixed, skipped with rationale, converted to follow-up, or explicitly deferred by the developer, and GitHub reconciliation has run when required.
