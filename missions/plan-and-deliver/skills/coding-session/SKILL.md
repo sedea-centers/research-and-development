@@ -4,10 +4,11 @@ description: >-
   **Coding session** protocol branch: create a git worktree + branch from origin/main,
   record worktrees and session focus in the plan sidecar via plan-state.mjs, attach the
   worktree in the same Sedea workbench (Mission Control sedea_add_worktree_folder per
-  efficient-pr-shipping.mdc), and emit a copy/paste-safe two-phase session prompt for
-  **a coding agent**. Plan-anchored runs validate per-PR plans with plan-ws-completeness.mjs
-  (_TBD_ in body requires completion or explicit override incomplete plan). Use under
-  mission dispatch, natural language, or after planning when handing off implementation.
+  efficient-pr-shipping.mdc), emit a copy/paste-safe two-phase session prompt for
+  **a coding agent**, and after the implementation cut point spawn **pre-pr-review**.
+  Plan-anchored runs validate per-PR plans with plan-ws-completeness.mjs (_TBD_ in body
+  requires completion or explicit override incomplete plan). Use under mission dispatch,
+  natural language, or after planning when handing off implementation.
 timeoutMs: 1800000
 warmUpRules:
   - ".sedea/centers/sedea-centers--development/rules/planning-target-resolution.mdc"
@@ -61,7 +62,7 @@ Hand off a unit of work from the **initiating** session to **a coding agent** in
 
 **Out of scope:** implementing product code in this chat; opening PRs; **`plan-reconcile`** archive cadence except where this skill references it for cleanup narrative.
 
-After emitting the session prompt(s), **stop** — do not `cd` into the worktree to implement.
+After emitting the implementation session prompt(s), **stop** — do not `cd` into the worktree to implement. When invoked later from the coding agent lane after a committed cut point, this same skill owns spawning **`pre-pr-review`**.
 
 ## Spawned implementation handoff gate
 
@@ -157,6 +158,47 @@ When the plan’s **Worktree setup** lists two or more repos, or the user asks f
 
 Cleanup when PRs merge: **`sedea_remove_worktree_folder`**, **`git worktree remove`**, **`plan-state.mjs prune-sessions`**, and **`plan-reconcile`** per **development-process** and **efficient-pr-shipping** — not repeated here.
 
+## Pre-PR review handoff
+
+This branch owns the pre-PR review handoff. After implementation reaches an explicit committed cut point, **the coding agent** invokes this `coding-session` branch again to spawn **`pre-pr-review`** directly.
+
+### Review handoff preconditions
+
+Before spawning **`pre-pr-review`**:
+
+1. The developer has reviewed the IDE diff and explicitly authorized the review cut point, or the coding agent already has committed changes under an explicit user instruction.
+2. `git status --short` in the worktree is empty. Uncommitted edits are invisible to the committed review diff, so do not spawn the reviewer while dirty.
+3. `git log --oneline <baseRef>..HEAD` shows at least one commit.
+4. `git diff <baseRef>...HEAD` is non-empty.
+5. For plan-anchored runs, `plan-state.mjs resolve --cwd "<worktreePath>"` or supplied inputs identify the PR plan.
+
+If any precondition fails, stop with `partial`, keep `continuationStatus: "active"`, and report the missing cut-point task. Do not silently commit, push, or spawn review.
+
+### Review handoff inputs
+
+Compile the **`pre-pr-review`** child inputs:
+
+- `anchorType`: `plan` when a PR plan path is known, otherwise `free-form`.
+- `targetPlanPath` / `targetPlanSlug`: required for `plan`.
+- `worktreePath`
+- `branchName`
+- `baseRef`
+- `projectRules`: absolute worktree `.cursor/rules/*.mdc` paths curated the same way as the implementation prompt.
+- `diffSummary`: commits/files/line counts from the committed diff.
+- `ledgerParent`
+- `upstreamSkill: "coding-session"`
+
+Spawn `.sedea/centers/sedea-centers--development/missions/plan-and-deliver/skills/pre-pr-review/SKILL.md`, announce that **coding-session** is waiting for the pre-PR review result, and stop. Do not open a PR before the reviewer returns `recommendation: "go"`.
+
+### Review result aggregation
+
+When Mission Control delivers the **`pre-pr-review`** result:
+
+1. Copy `blockers`, `flags`, `followUpsAppended`, `remainingTasks`, `activeLanes`, and `openLedgerEntries` into the coding-session result.
+2. If recommendation is `go`, mark review handoff complete and surface **`create-pr`** as the next protocol branch.
+3. If recommendation is `no-go`, keep the implementation lane active and route back to coding-session fix work; do not proceed to PR creation.
+4. If review failed, was aborted, or was abandoned, keep the ledger entry blocked until the developer retries, defers, or abandons the review.
+
 ## Implementation handoff result
 
 When this skill runs as a spawned child, end with a child result containing at least:
@@ -168,6 +210,9 @@ When this skill runs as a spawned child, end with a child result containing at l
 - `outputs.worktrees` (array of `{repo, path, branch, attached}`)
 - `outputs.branchName`
 - `outputs.sessionPromptEmitted`
+- `outputs.prePrReviewStatus`
+- `outputs.prePrReviewRecommendation`
+- `outputs.reviewBlockers`
 - `outputs.activeLanes`
 - `outputs.openLedgerEntries`
 - `outputs.remainingTasks`
@@ -222,7 +267,7 @@ Phrase a hard gate, e.g. `Warm-up first — do not read the task body below --- 
 
 1. **Workspace readiness** — **Read** the worktree **`README`** and **`CONTRIBUTING`** when present. For **readiness or pre-task checks**, follow **only** what those files say, what the **plan** explicitly links for setup, and what **`.cursor/rules/*.mdc`** files prescribe **when they describe pre-work or environment gates** (do not invent extra checks). If nothing prescribes a check, one line **Readiness: no checks in README / CONTRIBUTING / cited rules** — continue. If a prescribed check fails, **stop** and ask the user.
 2. **Verify branch:** `git branch --show-current` matches the expected branch.
-3. **Process handback** — the **developer** continues via **AskQuestion** / **numbered** options or mission dispatch per **development-process**; do **not** rely on legacy typed shortcut tokens as the control surface. Name next moves with protocol branches (**`plan-reconcile`**, **`pre-pr-review-emit`**, **`pr-review`**, commit cadence per **efficient-pr-shipping**).
+3. **Process handback** — the **developer** continues via **AskQuestion** / **numbered** options or mission dispatch per **development-process**; do **not** rely on legacy typed shortcut tokens as the control surface. Name next moves with protocol branches (**`plan-reconcile`**, **`pre-pr-review`**, **`pr-review`**, commit cadence per **efficient-pr-shipping**).
 4. **Load project rules:** `Read` every path under **Project rules**; acknowledge before continuing.
 5. **Plan file + sidecar** *(plan-anchored only)*: Plans live under **`.sedea/operations/.../plans/`**; runtime fields (`worktrees`, `prs`, `session`, `parent`, todos via scripts) follow the **`.sedea/operations/`** plan union and **`plan-state.mjs`** contracts — flip todo status only through **`plan-state.mjs`** subcommands (`set-todo-status`, `todo-start`, `todo-done`); do not hand-edit `.state.yaml` except to repair a bad state. After substantive progress on a scoped todo, update status so the Plan Board stays accurate. PR linkage after push follows **efficient-pr-shipping** and **`plan-state.mjs upsert-pr`**.
 
@@ -233,7 +278,7 @@ Include:
 - Which PR to implement (scope, behaviour, files).
 - **Plan link:** absolute path to the `.plan.md` (e.g. `@/…/.sedea/operations/…/plans/<slug>.plan.md`). When present, the emitter must have used the **five-step** warm-up.
 - **Follow-ups** — per **development-process** *Coding session* / *Feedback collection*: maintain **`## Follow-ups`** on the PR plan; append bullets for out-of-scope ideas with optional `(target: …)` hints.
-- **Review cadence** — after implementation, **a coding agent** runs **`pre-pr-review-emit`** so a **new** session can execute as **a pre-PR reviewer agent** (**`pre-pr-review-run`**) before treating the change as merge-ready; coordinate **`pr-review`** and commit/push steps per **efficient-pr-shipping** (describe by **protocol branch** name, not legacy tokens).
+- **Review cadence** — after implementation and an explicit committed cut point, **a coding agent** invokes **`coding-session`** review handoff so Mission Control spawns **`pre-pr-review`** in a fresh reviewer lane before treating the change as merge-ready; coordinate **`pr-review`** and commit/push steps per **efficient-pr-shipping** (describe by **protocol branch** name, not legacy tokens).
 - **Multi-repo only:** scope guard line per repo.
 
 ## Verbatim override
@@ -267,5 +312,5 @@ Implement the scoped change described in `@<absolute-hosting-repo-root>/.sedea/o
 
 **Follow-ups discipline.** Append to `## Follow-ups` on that plan when you discover scope-adjacent items.
 
-Stop after implementation; then **a coding agent** runs **`pre-pr-review-emit`** so **a pre-PR reviewer agent** can run in a **fresh** session per **development-process**.
+Stop after implementation; after an explicit committed cut point, invoke **`coding-session`** review handoff so Mission Control spawns **`pre-pr-review`** in a fresh reviewer lane per **development-process**.
 ```

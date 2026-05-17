@@ -49,7 +49,7 @@ flowchart TB
 
 4. **Implementation** — Plan-anchored coding sessions: completeness gate, worktrees, sidecar state, Sedea workbench attach, copy-safe agent prompts (`coding-session`).
 
-5. **PR and review closure** — Open PRs with reviewer-complete context (`create-pr`); triage and resolve review threads (`pr-review`, pre-pr-review skills).
+5. **PR and review closure** — Open PRs with reviewer-complete context (`create-pr`); run pre-PR review (`pre-pr-review`); triage and resolve review threads (`pr-review`).
 
 6. **Deploy verification** — Walk deploy-test plan checklists; record status and capstone todos in the plan file (`deploy-walk`).
 

@@ -43,7 +43,7 @@ After implementing changes, **stop**. Do not `git add`, `git commit`, or `git pu
 
 - Present a summary of what changed and ask for next steps using `AskQuestion`. 
 - This applies to **all** workflows: feature PRs, PR comment fixes, and any other code changes.
-- The exceptions are creating branches and worktrees (fine without confirmation), and `pre-pr-review` confirmation (which is itself an explicit commit-confirmation — it commits pending changes as a review cut point before emitting the seed; see `pre-pr-review` protocol branch § *Emitter Step 2*).
+- The exceptions are creating branches and worktrees (fine without confirmation), and explicit `pre-pr-review` cut-point confirmation. The coding agent must not silently commit; after an explicit committed cut point, `coding-session` spawns the `pre-pr-review` reviewer lane.
 
 ## Never open PRs yourself — use **a PR-creating agent**
 
@@ -87,7 +87,7 @@ How to perform `commit-push`:
 
 **Hosting repo cwd for scripts.** The `node …/plan-state.mjs` and `python3 …/pr-review.py` invocations use paths relative to the **hosting repository root** (the checkout whose root contains `.sedea/`). A sibling git worktree often does **not** contain `.sedea/`; run these commands after `cd` to the hosting root, or pass an absolute path to the script.
 
-1. `commit-push`. **Skip this step if `git status --short` is empty** — typical right after `pre-pr-review`, which commits any pending changes as a review cut point (see `pre-pr-review` protocol branch § *Emitter Step 2*). Do not amend the previous commit and do not pass `--allow-empty`; just proceed to step 2.
+1. `commit-push`. **Skip this step if `git status --short` is empty** — typical after the committed cut point reviewed by `pre-pr-review`. Do not amend the previous commit and do not pass `--allow-empty`; just proceed to step 2.
 2. Push to remote.
 3. **PR comment reconciliation (`pr-review` → `commit-push`).** When this coding session already ran [`pr-review`](.sedea/centers/sedea-centers--development/missions/plan-and-deliver/skills/pr-review/SKILL.md) Steps 1–4 (per-comment dispositions in the Step 4 report) and **GitHub** reply / resolve / minimize / summary from **Step 5** has **not** run yet, **`commit-push` is incomplete** until Step 5 runs — **same agent turn**, immediately after the push succeeds (so the summary can cite `git rev-parse --short HEAD`). Load `pr-review` **Step 5 — GitHub only** and execute it via `python3 .sedea/centers/sedea-centers--development/missions/plan-and-deliver/scripts/pr-review.py` (two-step `PR_REVIEW_INPUT` per that skill). If thread IDs or PR identity are missing from context, re-run that skill’s **Step 1** script array for the same PR, then Step 5. If there was no `pr-review` triage in this chat, skip this step entirely.
 4. **Link the PR to its plan sidecar.** After push (and after step 3 when applicable), attempt to upsert the PR number into the Plan Board sidecar so `plan-reconcile` can later archive the plan when all linked PRs merge. Run:
