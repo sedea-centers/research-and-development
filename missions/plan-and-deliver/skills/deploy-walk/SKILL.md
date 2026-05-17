@@ -18,11 +18,57 @@ description: >-
   command mappings use **AskQuestion** (not freeform guessing). Use when the user
   says `start dep <N>`, `dep <N> done [: <note>]`, `dep <N> skip: <reason>`,
   `dep <N> block: <reason>`, `dep deployed [: <note>]`, or `dep status`.
+timeoutMs: 1800000
+warmUpRules:
+  - ".sedea/centers/sedea-centers--development/rules/planning-target-resolution.mdc"
+inputs:
+  targetPlanPath:
+    type: string
+    description: Absolute PR plan path containing the deploy test plan.
+    required: true
+  targetPlanSlug:
+    type: string
+    description: PR plan slug.
+    required: true
+  prUrl:
+    type: string
+    description: GitHub PR URL that was merged.
+    required: false
+  prNumber:
+    type: number
+    description: GitHub PR number that was merged.
+    required: false
+  repoUrl:
+    type: string
+    description: Git repository URL.
+    required: false
+  branchName:
+    type: string
+    description: Branch that produced the PR.
+    required: false
+  mergeSha:
+    type: string
+    description: Merge commit SHA for deployment verification.
+    required: false
+  mergedAt:
+    type: string
+    description: Timestamp when the PR merged.
+    required: false
+  ledgerParent:
+    type: string
+    description: Ledger parent slug/path copied from create-pr.
+    required: false
+  upstreamSkill:
+    type: string
+    description: Skill that spawned deploy verification, usually create-pr.
+    required: false
 ---
 
 # Deploy walk-through
 
 This skill drives the **per-step deploy verification loop** for a PR plan's `## N. Deploy test plan` section (the per-PR template's § 7, or § 6 in legacy 7-section per-PR plans). Each numbered step in `### Before deploy` and `### After deploy` is a **GFM task list checkbox** (`1. [ ] ...`); the **developer** works through the list one box at a time, **a coding agent** provides the per-step context, the **developer** reports the outcome, the agent flips the box and appends a dated resolution note.
+
+When spawned by **`create-pr`**, this skill is the **deploy-walk agent** for a merged PR. It owns deploy verification status and reports it upstream; it does not run implementation, PR review, or plan reconciliation.
 
 The skill is **loose mode by design**. Between `start dep <N>` (which presents step N) and `dep <N> done` / `skip` / `block` (which closes step N), the chat is **normal collaboration** — the **developer** can ask any question, request the agent run a command, paste log output, debug, take a break, switch tasks. The bracketing tokens (`start dep <N>` / `dep <N> done`) are the only signals this skill cares about; everything in between is whatever the **developer** needs.
 
@@ -303,5 +349,32 @@ This skill walks **one PR plan's `## N. Deploy test plan` section at a time**. I
 - Run **`coding-session`**, **`pre-pr-review`**, **`pr-review`**, or any other protocol branch from inside this one. If the **developer** wants those, they invoke them via mission dispatch or natural language.
 - Apply to plans without the GFM task list contract (`1. [ ] ...`). Pre-skill plans must be swept first; the skill stops with a clear message instead of guessing.
 - Walk "all PR plans in flight" in batch. Cross-plan dashboards can come later as a one-line script over **`.sedea/operations/.../plans/`**; the skill is per-plan.
+
+## Spawned result contract
+
+When spawned by `create-pr`, end each substantive turn with deploy status outputs so upstream can keep the ledger accurate:
+
+- `outputs.targetPlanPath`
+- `outputs.targetPlanSlug`
+- `outputs.prUrl`
+- `outputs.prNumber`
+- `outputs.mergeSha`
+- `outputs.deployStatus` (`drafted` | `deployed` | `done` | `blocked` | `unknown`)
+- `outputs.beforeDeployStatus` (`complete` | `incomplete` | `blocked` | `unknown`)
+- `outputs.afterDeployStatus` (`complete` | `incomplete` | `blocked` | `unknown`)
+- `outputs.deployTodoStatus` (`pending` | `done` | `missing` | `unknown`)
+- `outputs.blockedStep`
+- `outputs.remainingTasks`
+- `outputs.activeLanes`
+- `outputs.openLedgerEntries`
+- `outputs.continuationOwner: "deploy-walk-agent"`
+- `outputs.continuationStatus`
+
+Set `continuationStatus`:
+
+- `terminal` only when `deployStatus: "done"` and `deployTodoStatus: "done"`.
+- `active` while Before-deploy steps, deployed transition, After-deploy steps, or capstone todo remain.
+- `active` when any deploy step is blocked; include the blocked step and reason.
+- `partial` status with `continuationStatus: "active"` when plan format prevents reliable verification.
 
 Stop after each command's confirmation reply. Do not auto-advance, do not auto-invoke other skills, do not commit.

@@ -223,7 +223,7 @@ When **`pre-pr-review`** returns `recommendation: "go"`:
 3. Inputs must include `targetPlanPath`, `targetPlanSlug`, `worktreePath`, `branchName`, `baseRef`, `repoUrl`, `diffSummary`, `prePrReviewRecommendation: "go"`, `prePrReviewFlags`, `followUpsAppended`, `ledgerParent`, and `upstreamSkill: "coding-session"`.
 4. Announce that **coding-session** is waiting for the PR-creating agent result and stop. Do not continue to `pr-review` or deploy until `create-pr` reports a PR URL/number or a blocking failure.
 
-When Mission Control delivers the **`create-pr`** result, copy `prUrl`, `prNumber`, `branchName`, `remainingTasks`, `activeLanes`, and `openLedgerEntries` into the coding-session result. If the PR was created, keep the mission lane active for inline `pr-review` and deploy verification.
+When Mission Control delivers the **`create-pr`** result, copy `prUrl`, `prNumber`, `branchName`, `prState`, `reviewState`, `mergeSha`, `mergedAt`, `deployStatus`, `deployTodoStatus`, `remainingTasks`, `activeLanes`, and `openLedgerEntries` into the coding-session result. If the PR was created, keep the mission lane active for inline `pr-review`, merge tracking, and deploy verification. If `create-pr` reports deploy-walk active or blocked, propagate that status upstream without closing the coding-session ledger entry.
 
 ### Inline PR review after PR creation
 
@@ -267,6 +267,12 @@ When this skill runs as a spawned child, end with a child result containing at l
 - `outputs.createPrStatus`
 - `outputs.prUrl`
 - `outputs.prNumber`
+- `outputs.prState`
+- `outputs.reviewState`
+- `outputs.mergeSha`
+- `outputs.mergedAt`
+- `outputs.deployStatus`
+- `outputs.deployTodoStatus`
 - `outputs.prReviewStatus`
 - `outputs.prReviewComments`
 - `outputs.prReviewDispositions`
@@ -284,6 +290,7 @@ Set `outputs.continuationStatus` as follows:
 - `active` when pre-pr-review returns blockers and developer approval for fixes is pending.
 - `active` when approved review fixes, a new committed cut point, or re-review remains.
 - `active` when PR review comments, developer approval, fixes, commit/push, or GitHub reconciliation remain.
+- `active` when PR merge, deploy-walk, deploy checklist, or deploy capstone todo remains.
 - `active` when worktrees exist but Mission Control attach or prompt emission still needs repair.
 - `terminal` only when this branch is explicitly scoped to worktree/prompt setup and those setup tasks are complete with no active coding lane tracked by this dispatch.
 - `partial` status with `continuationStatus: "active"` when readiness, repo selection, dirty tree, base branch, sidecar write, or MCP attach blocks setup.

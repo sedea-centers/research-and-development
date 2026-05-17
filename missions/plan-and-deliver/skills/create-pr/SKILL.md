@@ -55,6 +55,11 @@ inputs:
     type: string
     description: Skill that spawned this PR creation, usually coding-session.
     required: false
+  autoDeployAfterMerge:
+    type: boolean
+    description: When true, wait for merge status and spawn deploy-walk after the PR is merged.
+    required: false
+    default: true
 ---
 
 # Create PR
@@ -122,6 +127,71 @@ When spawned, end with a child result containing:
 
 Set `continuationStatus`:
 
-- `terminal` when a PR URL/number is created and reported.
+- `active` when a PR URL/number is created and reported but merge/deploy verification remains.
 - `active` when a PR prompt was emitted but the developer/PR-creating agent still must create the PR.
 - `active` when push or PR creation is blocked by missing authorization.
+
+## PR lifecycle ownership
+
+After a PR URL/number exists, this **create-pr agent** owns the PR lifecycle until deploy verification is spawned or explicitly deferred.
+
+### Merge status checks
+
+Check PR status when:
+
+1. The PR is created.
+2. The upstream coding-session reports inline `pr-review` complete.
+3. The developer says the PR was approved or merged.
+4. The Squad Leader asks for current PR status.
+
+Use the repository's approved GitHub access path (prefer existing repo tooling / `gh` where available, or the `pr-review.py` helper when it supports the needed PR status). Record:
+
+- `prState` (`open` | `merged` | `closed` | `unknown`)
+- `reviewState` (`pending` | `approved` | `changes_requested` | `unknown`)
+- `mergeSha`
+- `mergedAt`
+
+If PR status is `open`, keep `continuationStatus: "active"` and report the next missing gate: review approval, requested changes, merge pending, or unknown status.
+
+If PR status is `closed` without merge, return `partial` or `abandoned` according to developer intent; do not spawn deploy.
+
+### Spawn deploy-walk after merge
+
+When `autoDeployAfterMerge` is not `false` and PR status is `merged`, emit exactly one child-spawn request for:
+
+`.sedea/centers/sedea-centers--development/missions/plan-and-deliver/skills/deploy-walk/SKILL.md`
+
+Inputs must include:
+
+- `targetPlanPath`
+- `targetPlanSlug`
+- `prUrl`
+- `prNumber`
+- `repoUrl`
+- `branchName`
+- `mergeSha`
+- `mergedAt`
+- `ledgerParent`
+- `upstreamSkill: "create-pr"`
+
+Announce that **create-pr** is waiting for the deploy-walk result and stop. Do not propose plan reconciliation until deploy-walk reports terminal completion or the developer explicitly defers deploy verification.
+
+### Deploy result aggregation
+
+When Mission Control delivers the **`deploy-walk`** result:
+
+1. Copy `deployStatus`, `beforeDeployStatus`, `afterDeployStatus`, `deployTodoStatus`, `remainingTasks`, `activeLanes`, and `openLedgerEntries` into this skill's result.
+2. If deploy status is `done`, report `continuationStatus: "terminal"` for the PR lifecycle and surface `plan-reconcile` as the next branch.
+3. If deploy is blocked, skipped, partial, or active, keep this lane active and propagate the blocking status upstream.
+4. Silence or missing deploy metadata is not completion; return `partial` with `continuationStatus: "active"`.
+
+Extend spawned result outputs with:
+
+- `outputs.prState`
+- `outputs.reviewState`
+- `outputs.mergeSha`
+- `outputs.mergedAt`
+- `outputs.deployStatus`
+- `outputs.beforeDeployStatus`
+- `outputs.afterDeployStatus`
+- `outputs.deployTodoStatus`
