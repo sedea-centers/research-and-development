@@ -8,6 +8,49 @@ description: >-
   **a coding agent**. Plan-anchored runs validate per-PR plans with plan-ws-completeness.mjs
   (_TBD_ in body requires completion or explicit override incomplete plan). Use under
   mission dispatch, natural language, or after planning when handing off implementation.
+timeoutMs: 1800000
+warmUpRules:
+  - ".sedea/centers/sedea-centers--development/rules/planning-target-resolution.mdc"
+  - ".sedea/centers/sedea-centers--development/rules/efficient-pr-shipping.mdc"
+inputs:
+  targetPlanPath:
+    type: string
+    description: Absolute or workspace-relative path to the PR plan to implement.
+    required: false
+  targetPlanSlug:
+    type: string
+    description: Slug for the PR plan to implement.
+    required: false
+  readyForImplementation:
+    type: boolean
+    description: Readiness signal from pr-plan. Required for spawned implementation handoff.
+    required: false
+  repoPath:
+    type: string
+    description: Absolute path to the product repo primary checkout for a single-repo coding session.
+    required: false
+  repoPaths:
+    type: array
+    description: Absolute paths to product repo primary checkouts for a multi-repo coding session.
+    required: false
+    default: []
+  baseBranch:
+    type: string
+    description: Remote base branch to branch from; default origin/main unless repo rules say otherwise.
+    required: false
+    default: origin/main
+  branchName:
+    type: string
+    description: Optional explicit branch name; otherwise derive from plan slug and local branch conventions.
+    required: false
+  ledgerParent:
+    type: string
+    description: Ledger parent slug/path copied from the upstream planning agent.
+    required: false
+  upstreamSkill:
+    type: string
+    description: Skill that requested implementation handoff, usually pr-plan.
+    required: false
 ---
 
 # Coding session
@@ -19,6 +62,18 @@ Hand off a unit of work from the **initiating** session to **a coding agent** in
 **Out of scope:** implementing product code in this chat; opening PRs; **`plan-reconcile`** archive cadence except where this skill references it for cleanup narrative.
 
 After emitting the session prompt(s), **stop** — do not `cd` into the worktree to implement.
+
+## Spawned implementation handoff gate
+
+When this skill is spawned from `pr-plan`, treat implementation handoff as plan-anchored and require:
+
+1. `targetPlanPath` and `targetPlanSlug`.
+2. `readyForImplementation: true`.
+3. At least one repo target (`repoPath` or `repoPaths`).
+
+If `readyForImplementation` is false or missing, stop before worktree creation and return `partial` with `remainingTasks` copied from the upstream PR plan readiness reasons. Do not create worktrees, attach folders, or emit a coding prompt from an unready PR plan.
+
+If repo targets are missing, stop and ask the developer with **AskQuestion** to choose or provide the implementation repo(s). Do not infer from focused files alone.
 
 ## Plan completeness gate (before any worktree)
 
@@ -63,6 +118,8 @@ Run only **after** the [Plan completeness gate](#plan-completeness-gate-before-a
    - Prefix sibling paths with the repo directory basename (see **Worktree setup** in `.sedea/centers/sedea-centers--development/rules/efficient-pr-shipping.mdc`).
    - Always branch from **`origin/main`**, not **`main`** (same failure mode as in **efficient-pr-shipping**).
    - Branch naming: follow **stacked-pr-branch-prefix** for this monorepo (`feat/NN-…`) and **efficient-pr-shipping** otherwise.
+   - Refuse dirty primary checkouts before creating a worktree: run `git status --porcelain` in each repo and stop on any output. Do not stash, commit, discard, or clean the user's WIP.
+   - If `baseBranch` input is supplied, it must be a remote branch ref such as `origin/main`; do not accept a local-only branch for spawned implementation.
 
 2. **Record the session on the plan** (see [Sidecar state](#sidecar-state)). From the **hosting repo root**:
    ```bash
@@ -77,6 +134,8 @@ Run only **after** the [Plan completeness gate](#plan-completeness-gate-before-a
 
 3. **Attach the worktree in Sedea** (same workbench): in Mission Control, invoke MCP **`sedea_add_worktree_folder`** with JSON `{ "path": "<absolute-worktree-root>" }` (optional `"name"` for the explorer label). See **efficient-pr-shipping.mdc** — *Squad Leader on the main branch vs. agent sessions on worktree* and *Attach the worktree in Sedea*.
 
+   This MCP attach is mandatory before emitting the coding-agent prompt. If the MCP call fails, stop with `partial`; report the worktree path and the attach error, and keep `continuationStatus: "active"` so the Squad Leader does not close the implementation lane.
+
 4. Emit a **session prompt** (see [Session prompt structure](#session-prompt-structure)).
 
 5. **Stop.**
@@ -86,6 +145,7 @@ Run only **after** the [Plan completeness gate](#plan-completeness-gate-before-a
 When the plan’s **Worktree setup** lists two or more repos, or the user asks for a cross-repo session:
 
 1. For **each** repo, `git worktree add` with the **same branch name** (unless the plan says otherwise).
+   - Validate every repo before creating any worktree. If one repo is dirty or missing the requested base branch, stop before creating a partial multi-repo session.
 
 2. Optionally create a **`.code-workspace`** file listing each worktree folder with absolute `path` values — use only if your team uses that layout; otherwise attach **each** worktree root with **`sedea_add_worktree_folder`** in turn.
 
@@ -96,6 +156,32 @@ When the plan’s **Worktree setup** lists two or more repos, or the user asks f
 5. **Stop.**
 
 Cleanup when PRs merge: **`sedea_remove_worktree_folder`**, **`git worktree remove`**, **`plan-state.mjs prune-sessions`**, and **`plan-reconcile`** per **development-process** and **efficient-pr-shipping** — not repeated here.
+
+## Implementation handoff result
+
+When this skill runs as a spawned child, end with a child result containing at least:
+
+- `outputs.targetPlanPath`
+- `outputs.targetPlanSlug`
+- `outputs.readyForImplementation`
+- `outputs.repoPaths`
+- `outputs.worktrees` (array of `{repo, path, branch, attached}`)
+- `outputs.branchName`
+- `outputs.sessionPromptEmitted`
+- `outputs.activeLanes`
+- `outputs.openLedgerEntries`
+- `outputs.remainingTasks`
+- `outputs.continuationOwner: "coding-session-agent"`
+- `outputs.continuationStatus`
+
+Set `outputs.continuationStatus` as follows:
+
+- `active` when worktrees are created and prompts emitted; implementation is now waiting on the coding agent lane.
+- `active` when worktrees exist but Mission Control attach or prompt emission still needs repair.
+- `terminal` only when this branch is explicitly scoped to worktree/prompt setup and those setup tasks are complete with no active coding lane tracked by this dispatch.
+- `partial` status with `continuationStatus: "active"` when readiness, repo selection, dirty tree, base branch, sidecar write, or MCP attach blocks setup.
+
+Do not propose dispatch resolution from this skill; the Squad Leader closes the ledger after coding, review, PR, and deploy verification report terminal status.
 
 ## Sidecar state
 
