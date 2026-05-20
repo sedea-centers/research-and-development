@@ -371,6 +371,17 @@ Pick up the next phase to ship from the active plan's dual-title section (Master
 
 For a plan decided to be PR-ready (its dual-title section is titled `PR breakdown`), this stage produces the per-PR plans. See **§ 3 PR breakdown** above and its set-level + per-PR templates.
 
+#### Planning readiness vs worktree completeness
+
+Two independent gates apply before a worktree opens. Do not treat **`pr-plan`** “ready” as automatic permission to skip plan-body validation.
+
+| Layer | Mechanism | Pass criteria | `_TBD_` in per-PR §§5–8 |
+|-------|-----------|---------------|-------------------------|
+| **Planning handoff** | **`pr-plan`** → `readyForImplementation` | §§1–4, deploy capstone todo, parent link | **Allowed** at handoff |
+| **Worktree gate** | **`plan-ws-completeness.mjs`** in **`coding-session`** | No `_TBD_` in per-PR body (outside fenced code) | **Blocks** until filled or overridden |
+
+When **`readyForImplementation`** is true but §§5–8 still contain `_TBD_`, the script prints **`INCOMPLETE`** — expected, not a bug. Proceed only after the developer finishes those sections, uses **`pr-plan`** pre-fill sketches, or explicitly overrides via **`coding-session`** (**AskQuestion** executive override or **`override incomplete plan`** in the message). See **`.sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc`** § *PR-plan completeness before coding-session*.
+
 #### Coding Session
 
 Each PR is delivered in a newly spun-off agent driven by the **`coding-session`** protocol branch (see **Development tools** § *Protocol branches*). The protocol branch spins up a worktree, starts a new **coding agent**, and hands it the per-PR plan.

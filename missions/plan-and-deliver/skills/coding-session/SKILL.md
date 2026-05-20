@@ -75,6 +75,8 @@ When this skill is spawned from `pr-plan`, treat implementation handoff as plan-
 
 If `readyForImplementation` is false or missing, stop before worktree creation and return `partial` with `remainingTasks` copied from the upstream PR plan readiness reasons. Do not create worktrees, attach folders, or emit a coding prompt from an unready PR plan.
 
+**`readyForImplementation: true` does not bypass the plan completeness gate below.** **`pr-plan`** may set ready when §§ 1–4 are drafted while §§ 5–8 remain `_TBD_`; **`plan-ws-completeness.mjs`** still exits **`INCOMPLETE`** until those placeholders are gone or the developer explicitly overrides.
+
 If `developerApprovedImplementation` is false or missing, stop before worktree creation and ask the developer with **AskQuestion**. Required options:
 
 - **Approve implementation handoff now**
@@ -88,6 +90,8 @@ Only **Approve implementation handoff now** authorizes worktree creation, sideca
 If repo targets are missing, stop and ask the developer with **AskQuestion** to choose or provide the implementation repo(s). Do not infer from focused files alone.
 
 ## Plan completeness gate (before any worktree)
+
+**Worktree layer** of implementation readiness (see **`pr-plan`** §5b *Two-layer readiness* and **`.sedea/centers/research-and-development/docs/development-process.md`** § *Planning readiness vs worktree completeness*). Independent of upstream **`readyForImplementation`**.
 
 When this run anchors Phase 2 to a Plan Board **`.plan.md`** under the **`.sedea/operations/`** union (absolute path from the user message, an `@` path, or `node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-state.mjs resolve --cwd "$PWD"` from the **hosting repo** when already linked), **validate the plan** before `git worktree add`, Mission Control attach, or emitting the session prompt.
 

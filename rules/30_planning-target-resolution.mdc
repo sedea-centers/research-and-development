@@ -71,11 +71,11 @@ Below the table, repeat the same options as **`AskQuestion`** choices or a **num
 
 ### PR-plan completeness before coding-session
 
-Snapshots should respect the **coding-session** completeness gate when a PR plan would anchor a worktree session:
+Snapshots should respect the **coding-session** completeness gate when a PR plan would anchor a worktree session. **`readyForImplementation: true`** from **`pr-plan`** does **not** bypass this gate — see **`.sedea/centers/research-and-development/docs/development-process.md`** § *Planning readiness vs worktree completeness*.
 
 1. For each in-scope **PR plan** row, detect `_TBD_` outside fenced code in §§5–8 / deploy where applicable, or run (from hosting repo):  
    `node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-ws-completeness.mjs --file "<absolute path>"`  
-   Exit **1** means incomplete for worktree handoff.
+   Exit **1** (`INCOMPLETE`) means incomplete for worktree handoff even when the plan was marked planning-ready.
 
 2. **Anchor plan** for **coding-session** matches **`plan-state.mjs resolve`**: `node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-state.mjs resolve --cwd "$PWD"` when in a linked worktree, else the PR plan explicitly in play.
 

@@ -293,7 +293,18 @@ Set `readyForImplementation: false` when any of those checks fail. Add each miss
 
 ### 5b — Planning completeness
 
-§§ 5–8 may remain `_TBD_` after this skill. That does **not** block implementation readiness by itself, because `coding-session` owns repo rules impact, tests, deploy plan details, and caveats once code paths are concrete. However:
+§§ 5–8 may remain `_TBD_` after this skill. That does **not** block **`readyForImplementation`** by itself, because **`coding-session`** owns repo rules impact, tests, deploy plan details, and caveats once code paths are concrete.
+
+**Two-layer readiness (do not conflate):**
+
+| Layer | Where | What passes |
+|-------|--------|-------------|
+| **Planning handoff** | This skill → `outputs.readyForImplementation` | §§ 1–4 drafted, capstone todo, parent link (§5a). §§ 5–8 may stay `_TBD_`. |
+| **Worktree gate** | **`coding-session`** runs **`plan-ws-completeness.mjs`** | Per-PR body has **no** `_TBD_` outside fenced code, unless the developer uses **AskQuestion** executive override or **`override incomplete plan`** in the message. |
+
+`readyForImplementation: true` does **not** bypass the script. Agents that report “ready” here may still hit **`INCOMPLETE`** at worktree open — that is expected; point the developer to finish §§ 5–8, pre-fill sketches (option 2), or the **`coding-session`** override path.
+
+However:
 
 - If § 4 **Considered & rejected** is `_TBD_`, add a non-blocking `remainingTasks` note for `coding-session`.
 - If parent link is blocked, keep `continuationStatus: "active"` until **`plan-reconcile`** repairs it or the upstream agent explicitly accepts the partial state.
@@ -310,7 +321,7 @@ End with:
    1. **Revise § *N*** — The **developer** names the section and feedback; one focused `StrReplace`; echo.
    2. **Pre-fill § 5 / § 6 / § 7 / § 8 (sketch)** — Draft a *starting* sketch from parent + § 3 context; label it speculative; § 7 must use numbered GFM **`1. [ ]`** lists and **`**Status:** drafted`** opener; apply **`.sedea/centers/research-and-development/docs/development-process.md`** § 7 *What NOT to include* and the italic fallback when empty. After accepting a § 7 sketch, run **4a-bis** if the capstone todo is still missing.
    3. **Commit when ready** — Remind the **developer** to commit; this skill does **not** run `git`.
-   4. **Approve for implementation and continue in `coding-session`** — This is the developer approval gate for implementation handoff. Implementation fills §§ 5–7 before merge cadence per **`development-process.md`**; **`deploy-walk`** drives § 7 checkbox lifecycle.
+   4. **Approve for implementation and continue in `coding-session`** — Developer approval gate for implementation handoff. **`readyForImplementation`** authorizes the **planning** handoff only; **`coding-session`** still runs **`plan-ws-completeness.mjs`** — remaining `_TBD_` in §§ 5–8 blocks worktrees until sections are filled, or the developer chooses executive override / **`override incomplete plan`** (see **`coding-session`** § *Plan completeness gate*). Implementation fills §§ 5–7 before merge cadence per **`development-process.md`**; **`deploy-walk`** drives § 7 checkbox lifecycle.
 
 **Stop** after this block — do not run **`coding-session`** inside this turn.
 
