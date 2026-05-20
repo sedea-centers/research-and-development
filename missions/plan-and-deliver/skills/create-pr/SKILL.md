@@ -259,8 +259,16 @@ Extend spawned result outputs with:
 
 ## Completion (spawned)
 
-End every spawned run (including after nested **`deploy-walk`** or **`plan-reconcile`** results are merged) with exactly one terminal line:
+Required `outputs` per **## Result contract** and any **Extend spawned result outputs** bullets above (including after nested **`deploy-walk`** or **`plan-reconcile`** results are merged). Re-emit an **updated** terminal result after user-requested follow-up on this lane (same `correlationId`).
 
-`AGENT_RESULT_RESPONSE_V1` — same `correlationId` as the originating `AGENT_RUN_REQUEST_V1`; `status`: `success` | `partial` | `failure` | `aborted` | `abandoned`; 1–3 sentence `summary`; `outputs` per **## Result contract** and any **Extend spawned result outputs** bullets above; optional `errors`. Re-emit an **updated** result after user-requested follow-up on this lane (same `correlationId`).
+### Host protocol line (required)
 
-Stop after the terminal line.
+Emit **exactly one** line on its own: `AGENT_RESULT_RESPONSE_V1` immediately followed by a single JSON object on the **same** line. Required keys: `version` (1), `correlationId` (from the spawn request), `status`, `summary`, `outputs`, `errors` (use `[]` when none). Populate `outputs` from the sections above. The emitted line must be **valid JSON** (no `{...}` placeholders in the actual output). See **`.sedea/centers/sedea/skills/README.md`** § *Spawned terminal line*.
+
+Stop after this line.
+
+## Completion (inline)
+
+Report the fields below in prose to the invoker on the **same lane**. Do **not** emit `AGENT_RUN_REQUEST_V1`, `AGENT_RESULT_RESPONSE_V1`, or `MC_DISPATCH_RESOLVED_V1`. Do **not** add a **Host protocol line** under this section (see **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Inline completion* and **`.sedea/centers/sedea/skills/README.md`** § *Completion (inline)*).
+
+Normally spawned from **`coding-session`**. If run inline, use the same `outputs` semantics as **## Result contract** and **`## Completion (spawned)`** in prose only.

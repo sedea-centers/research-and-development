@@ -228,7 +228,9 @@ If Step 1 payloads are **missing or stale** in context (new comments since fetch
 
 ## Inline result for coding-session
 
-Return results through the active coding-session lane, not as a child-agent result. Coding-session must include these fields in its own result contract:
+**Inline-only** — no **`## Completion (spawned)`**, no **Host protocol line**, no **`AGENT_RESULT_RESPONSE_V1`** on this lane (see **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Inline completion* and **`missions/plan-and-deliver/skills/README.md`** § *Inline-only*).
+
+Return results through the active **`coding-session`** lane, not as a child-agent result. **`coding-session`** must include these fields in its spawned handoff or inline completion:
 
 - `outputs.prReviewStatus`
 - `outputs.prReviewComments`

@@ -408,9 +408,9 @@ Stop after the handoff block in step 5, or after spawning the next decomposition
 
 ## Completion (spawned)
 
-End every spawned run with exactly one terminal line:
+### Host protocol line (required)
 
-`AGENT_RESULT_RESPONSE_V1` — same `correlationId` as the originating `AGENT_RUN_REQUEST_V1`; `status`: `success` | `partial` | `failure` | `aborted` | `abandoned`; 1–3 sentence `summary`; `outputs` (below); optional `errors`.
+Emit **exactly one** line on its own: `AGENT_RESULT_RESPONSE_V1` immediately followed by a single JSON object on the **same** line. Required keys: `version` (1), `correlationId` (from the spawn request), `status`, `summary`, `outputs`, `errors` (use `[]` when none). Populate `outputs` from the list below. The emitted line must be **valid JSON** (no `{...}` placeholders in the actual output). Re-emit an **updated** line after user-requested follow-up on this lane (same `correlationId`). See **`.sedea/centers/sedea/skills/README.md`** § *Spawned terminal line*.
 
 Required `outputs` fields:
 
@@ -425,4 +425,6 @@ Required `outputs` fields:
 
 ## Completion (inline)
 
-Spawned from **`new-plan`** or decomposition paths only. Inline: same `outputs` in prose without `AGENT_RESULT_RESPONSE_V1`.
+Report the fields below in prose to the invoker on the **same lane**. Do **not** emit `AGENT_RUN_REQUEST_V1`, `AGENT_RESULT_RESPONSE_V1`, or `MC_DISPATCH_RESOLVED_V1`. Do **not** add a **Host protocol line** under this section (see **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Inline completion* and **`.sedea/centers/sedea/skills/README.md`** § *Completion (inline)*).
+
+Spawned from **`new-plan`** or decomposition paths in normal flow. If run inline, use the same `outputs` semantics as **`## Completion (spawned)`** in prose only.

@@ -525,7 +525,11 @@ This skill writes the Master Plan file (`<slug>.plan.md` + `<slug>.state.yaml`) 
 
 End every spawned run (initial draft and each follow-up turn that finishes skill scope) with exactly one terminal line:
 
-`AGENT_RESULT_RESPONSE_V1` — same `correlationId` as the originating `AGENT_RUN_REQUEST_V1`; `status`: `success` | `partial` | `failure` | `aborted` | `abandoned`; 1–3 sentence `summary`; `outputs` (below); optional `errors`. Re-emit an **updated** result after user-requested follow-up on this lane (same `correlationId`).
+Required `outputs` fields (populate the JSON `outputs` object on the terminal line):
+
+### Host protocol line (required)
+
+Emit **exactly one** line on its own: `AGENT_RESULT_RESPONSE_V1` immediately followed by a single JSON object on the **same** line. Required keys: `version` (1), `correlationId` (from the spawn request), `status`, `summary`, `outputs`, `errors` (use `[]` when none). The emitted line must be **valid JSON** (no `{...}` placeholders in the actual output). Re-emit an **updated** line after user-requested follow-up on this lane (same `correlationId`). See **`.sedea/centers/sedea/skills/README.md`** § *Spawned terminal line*.
 
 Required `outputs` fields:
 
@@ -544,4 +548,6 @@ Stop after the handoff line and terminal result. While `continuationStatus` is `
 
 ## Completion (inline)
 
-**plan and deliver** runs this skill **spawned only** (Squad Leader §5). If another invoker runs inline, report the same `outputs` semantics in prose without `AGENT_RESULT_RESPONSE_V1`.
+Report the fields below in prose to the invoker on the **same lane**. Do **not** emit `AGENT_RUN_REQUEST_V1`, `AGENT_RESULT_RESPONSE_V1`, or `MC_DISPATCH_RESOLVED_V1`. Do **not** add a **Host protocol line** under this section (see **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Inline completion* and **`.sedea/centers/sedea/skills/README.md`** § *Completion (inline)*).
+
+**plan and deliver** runs this skill **spawned only** (Squad Leader §5). If another invoker runs inline, use the same `outputs` semantics as **`## Completion (spawned)`** in prose only.
