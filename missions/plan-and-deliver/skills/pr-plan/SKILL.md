@@ -44,6 +44,9 @@ inputs:
     description: When true, report implementation readiness after PR planning; this skill still does not start coding.
     required: false
     default: true
+warmUpRules:
+  - ".sedea/centers/research-and-development/docs/development-process.md"
+  - ".sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc"
 ---
 
 # PR plan: §§ 1–4 from the parent plan
@@ -329,10 +332,26 @@ Perform exactly what was chosen. List short **numbered observations** for gaps (
 
 Stop after the step 5 handoff block.
 
-When spawned, end with a child result containing `outputs.targetPlanPath`, `outputs.targetPlanSlug`, `outputs.parentPlanPath`, `outputs.parentPlanSlug`, `outputs.parentIndex`, `outputs.parentPlanLinkStatus` (`linked` | `blocked` | `unknown`), `outputs.readyForImplementation`, `outputs.implementationReadinessReasons`, `outputs.implementationApprovalStatus` (`pending` until the developer explicitly chooses implementation handoff), `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.remainingTasks`, `outputs.continuationOwner: "pr-plan-agent"`, and `outputs.continuationStatus`.
+## Completion (spawned)
 
-Set `outputs.continuationStatus` as follows:
+End every spawned run with exactly one terminal line:
 
-- `terminal` when `readyForImplementation: true`, parent link is trusted, implementation approval is explicitly granted or out of scope for this run, and no blocking `remainingTasks` remain.
-- `active` when the plan is drafted but parent link repair, explicit fill sketches, or implementation handoff decision remains.
-- `terminal` with `readyForImplementation: false` only when the upstream agent or developer explicitly marks the PR plan deferred, abandoned, or out of scope.
+`AGENT_RESULT_RESPONSE_V1` — same `correlationId` as the originating `AGENT_RUN_REQUEST_V1`; `status`: `success` | `partial` | `failure` | `aborted` | `abandoned`; 1–3 sentence `summary`; `outputs` (below); optional `errors`.
+
+Required `outputs` fields:
+
+- `outputs.targetPlanPath`, `outputs.targetPlanSlug`
+- `outputs.parentPlanPath`, `outputs.parentPlanSlug`, `outputs.parentIndex`
+- `outputs.parentPlanLinkStatus` — `linked` | `blocked` | `unknown`
+- `outputs.readyForImplementation`, `outputs.implementationReadinessReasons`
+- `outputs.implementationApprovalStatus` — `pending` until developer explicitly chooses implementation handoff
+- `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.remainingTasks`
+- `outputs.continuationOwner`: `"pr-plan-agent"`
+- `outputs.continuationStatus`:
+  - `terminal` when `readyForImplementation: true`, parent link is trusted, implementation approval is granted or out of scope, and no blocking `remainingTasks`
+  - `active` when parent link repair, fill sketches, or implementation handoff decision remains
+  - `terminal` with `readyForImplementation: false` only when upstream or developer marks the PR plan deferred, abandoned, or out of scope
+
+## Completion (inline)
+
+Spawned from **`new-plan`** or decomposition paths only. Inline: same `outputs` in prose without `AGENT_RESULT_RESPONSE_V1`.

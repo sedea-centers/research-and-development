@@ -158,6 +158,40 @@ flowchart TD
 - **§6** — **not** decomposition routing (that lives on the **Master Plan agent** lane — **AskQuestion** + spawn in `master-plan/SKILL.md` Step 7).
 - **§7** — register downstream lanes/plans from child `outputs`; do not infer completion from silence.
 
+### Spawn, wait, and parent resume
+
+This subsection is the **Squad Leader** contract for §§3, 5, 6, and 7. Sedea host behavior is defined in **`.sedea/centers/sedea/rules/4_mission.mdc`** (spawn invocation, agent session closure). Each planning skill’s **`## Completion (spawned)`** is the child-lane contract; see **`missions/plan-and-deliver/skills/README.md`** for the index.
+
+**Host vs “wait.”** Mission Control does **not** block the parent turn while a child runs. **Wait** means: announce that you are waiting for a child result, emit **`AGENT_RUN_REQUEST_V1`**, then **stop** further protocol work on the leader lane until Mission Control delivers a silent UserSend that begins with **`Mission Control: agent-result-response delivered.`** Follow the response-protocol footer in that message before §6, §7, or another spawn.
+
+**§3 resume (Ad-Hoc PRD agent).** After the first `AGENT_RESULT_RESPONSE_V1` for §3:
+
+| Check | Action |
+|-------|--------|
+| `outputs.prdRef` present | Present to developer for approval (§3 procedure); do not treat success as approval |
+| `outputs.continuationStatus: terminal` | Continue to §4 after developer approval |
+| `status: partial` / missing `prdRef` | Stop; collect missing fields or retry per **`ad-hoc-prd`** **`## Completion (spawned)`** |
+
+**§5 resume (Master Plan agent).** Before §6, validate the child result against **`master-plan`** **`## Completion (spawned)`**:
+
+| Required `outputs` | §6 / §7 use |
+|--------------------|-------------|
+| `masterPlanPath`, `masterPlanSlug` | Ledger seed; status ack |
+| `complexityBand`, `complexityScore` | High-complexity messaging only on leader lane |
+| `continuationOwner`, `continuationStatus` | §6: if `continuationOwner` is `master-plan-agent` and `continuationStatus` is `active`, ack only — no route menu on leader |
+| `activeLanes`, `openLedgerEntries`, `spawnedPlans`, `remainingTasks` | §7 ledger initialization and updates |
+
+**§6 (acknowledge only).** One status line on the leader lane. Do **not** re-run Master Plan routing, §6 decomposition **AskQuestion**, or child spawns from the Squad Leader.
+
+**§7 (ledger).** On every later `agent-result-response delivered` that reports a planning child:
+
+1. Match by `correlationId`, then `outputs.targetPlanPath` / slug / ledger fields per the skill **`## Completion (spawned)`**.
+2. Merge `activeLanes`, `spawnedPlans`, `openLedgerEntries`, `remainingTasks` from the child result.
+3. Acknowledge without presenting planning route choices on the leader lane.
+4. Propose **`MC_DISPATCH_RESOLVED_V1`** only when the ledger rules in §7 prose are satisfied.
+
+**Nested spawns.** The **Master Plan agent** (and decomposition agents) may emit further **`AGENT_RUN_REQUEST_V1`** lines on child lanes. The Squad Leader does **not** duplicate those spawns; it only consumes **terminal or updated** child results that bubble up through §7.
+
 ### 1. Establish PRD source
 
 - **Type:** Branching logic

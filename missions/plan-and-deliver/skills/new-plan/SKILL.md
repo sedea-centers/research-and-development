@@ -48,6 +48,9 @@ inputs:
     type: string
     description: Skill that requested this child creation.
     required: false
+warmUpRules:
+  - ".sedea/centers/research-and-development/docs/development-process.md"
+  - ".sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc"
 ---
 
 # New plan
@@ -239,6 +242,25 @@ Always write the sidecar. `parent:` required; use YAML `null` unquoted for a **t
 
 This skill writes `.plan.md` + `.state.yaml`, optionally updates one `Plan:` line under the parent’s dual-title list (indexed spawn), and may spawn the requested **`phase-plan`** / **`pr-plan`** populator. Worktree creation, PR prompts, archive bullets, and expanding the dual-title list beyond the chosen item **N** sit in **`coding-session`**, **`plan-reconcile`**, **`delivery-phases`**, and **`pr-breakdown`** as applicable.
 
-When spawned, end with a child result containing `outputs.planPath`, `outputs.planSlug`, `outputs.parentPlanPath`, `outputs.parentPlanSlug`, `outputs.parentIndex`, `outputs.childKind`, `outputs.decompositionKind`, `outputs.parentPlanLinkStatus` (`linked` | `already_linked` | `blocked`), `outputs.populatorSkill`, `outputs.populatorApprovalStatus`, `outputs.populatorStatus`, `outputs.spawnedPlans`, `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.remainingTasks`, `outputs.continuationOwner: "new-plan-agent"`, and `outputs.continuationStatus` (`active` while populator approval, a populator lane, or row repair remains, `terminal` when the child stub, parent link, and optional populator handoff are complete).
+## Completion (spawned)
+
+End every spawned run with exactly one terminal line:
+
+`AGENT_RESULT_RESPONSE_V1` — same `correlationId` as the originating `AGENT_RUN_REQUEST_V1`; `status`: `success` | `partial` | `failure` | `aborted` | `abandoned`; 1–3 sentence `summary`; `outputs` (below); optional `errors`.
+
+Required `outputs` fields:
+
+- `outputs.planPath`, `outputs.planSlug`
+- `outputs.parentPlanPath`, `outputs.parentPlanSlug`, `outputs.parentIndex` (indexed mode)
+- `outputs.childKind`, `outputs.decompositionKind`
+- `outputs.parentPlanLinkStatus` — `linked` | `already_linked` | `blocked`
+- `outputs.populatorSkill`, `outputs.populatorApprovalStatus`, `outputs.populatorStatus`
+- `outputs.spawnedPlans`, `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.remainingTasks`
+- `outputs.continuationOwner`: `"new-plan-agent"`
+- `outputs.continuationStatus` — `active` while populator approval, a populator lane, or row repair remains; `terminal` when stub, parent link, and optional populator handoff are complete
 
 Stop after write + parent confirmation (when required) + parent `Plan:` update (indexed) + optional populator spawn / wait state when downstream skills exist.
+
+## Completion (inline)
+
+Spawned from decomposition agents (**`delivery-phases`**, **`pr-breakdown`**) or indexed child expansion only. Inline: same `outputs` in prose without `AGENT_RESULT_RESPONSE_V1`.

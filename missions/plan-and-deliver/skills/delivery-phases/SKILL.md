@@ -42,6 +42,9 @@ inputs:
     type: string
     description: Optional upstream-selected route. When set to delivery-phases, skip the decision gate.
     required: false
+warmUpRules:
+  - ".sedea/centers/research-and-development/docs/development-process.md"
+  - ".sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc"
 ---
 
 # Delivery phases — mode #2 decomposition
@@ -220,6 +223,24 @@ Match the discipline in **`master-plan`** and **`phase-plan`**: perform exactly 
 
 **Out of scope:** renaming child plans after **`new-plan`** creates them; filling phase bodies inline (**`phase-plan`** owns the body); PR breakdown content (**`pr-breakdown`**); edits outside the dual-title section; extra H2 phase headings in the parent; `git` / commit automation; roadmap topics and PR plans (step 1 stops).
 
-**Result contract when spawned:** end with a child result containing `outputs.targetPlanPath`, `outputs.targetPlanSlug`, `outputs.decompositionKind: "delivery-phases"`, `outputs.childCount`, `outputs.developerApprovalStatus`, `outputs.childRows` (array of `{index, title, status, planPath?, planSlug?, correlationId?, remainingTasks?}`), `outputs.spawnedPlans`, `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.remainingTasks`, `outputs.continuationOwner: "delivery-phases-agent"`, and `outputs.continuationStatus` (`active` while approval, child creation, or population remains, `terminal` when all child rows are closed, deferred, abandoned, or out of scope).
+## Completion (spawned)
+
+End every spawned run with exactly one terminal line:
+
+`AGENT_RESULT_RESPONSE_V1` — same `correlationId` as the originating `AGENT_RUN_REQUEST_V1`; `status`: `success` | `partial` | `failure` | `aborted` | `abandoned`; 1–3 sentence `summary`; `outputs` (below); optional `errors`.
+
+Required `outputs` fields:
+
+- `outputs.targetPlanPath`, `outputs.targetPlanSlug`
+- `outputs.decompositionKind`: `"delivery-phases"`
+- `outputs.childCount`, `outputs.developerApprovalStatus`
+- `outputs.childRows` — `{index, title, status, planPath?, planSlug?, correlationId?, remainingTasks?}`
+- `outputs.spawnedPlans`, `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.remainingTasks`
+- `outputs.continuationOwner`: `"delivery-phases-agent"`
+- `outputs.continuationStatus` — `active` while approval, child creation, or population remains; `terminal` when all child rows are `completed`, `deferred`, `abandoned`, or `out_of_scope` and no active populator lanes remain
 
 Stop after the step 6 handoff block or after spawning and announcing the wait state.
+
+## Completion (inline)
+
+Spawned from the **Master Plan agent** or **plan and deliver** decomposition paths only. Inline: same `outputs` in prose without `AGENT_RESULT_RESPONSE_V1`.

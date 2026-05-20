@@ -44,6 +44,9 @@ inputs:
     description: When true, spawn the next decomposition branch after population if parent hint and assessment agree.
     required: false
     default: true
+warmUpRules:
+  - ".sedea/centers/research-and-development/docs/development-process.md"
+  - ".sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc"
 ---
 
 # Phase plan: §§ 1–4 from the parent plan
@@ -403,4 +406,23 @@ Wrong template stops live in step 1a — use **`master-plan`** or **`pr-plan`** 
 
 Stop after the handoff block in step 5, or after spawning the next decomposition branch and announcing the wait state.
 
-When spawned, end with a child result containing `outputs.targetPlanPath`, `outputs.targetPlanSlug`, `outputs.parentPlanPath`, `outputs.parentPlanSlug`, `outputs.parentIndex`, `outputs.decompositionAssessment`, `outputs.routeDecision` (`delivery-phases` | `pr-breakdown` | `needs-user-decision`), `outputs.routeApprovalStatus`, `outputs.prBreakdownShape` (`single` | `multi` | `unknown`), `outputs.spawnedPlans`, `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.remainingTasks`, `outputs.continuationOwner: "phase-plan-agent"`, and `outputs.continuationStatus` (`active` while route approval, downstream decomposition, or route choice remains unresolved, `terminal` when the phase plan has no remaining planning work).
+## Completion (spawned)
+
+End every spawned run with exactly one terminal line:
+
+`AGENT_RESULT_RESPONSE_V1` — same `correlationId` as the originating `AGENT_RUN_REQUEST_V1`; `status`: `success` | `partial` | `failure` | `aborted` | `abandoned`; 1–3 sentence `summary`; `outputs` (below); optional `errors`.
+
+Required `outputs` fields:
+
+- `outputs.targetPlanPath`, `outputs.targetPlanSlug`
+- `outputs.parentPlanPath`, `outputs.parentPlanSlug`, `outputs.parentIndex`
+- `outputs.decompositionAssessment`
+- `outputs.routeDecision` — `delivery-phases` | `pr-breakdown` | `needs-user-decision`
+- `outputs.routeApprovalStatus`, `outputs.prBreakdownShape` — `single` | `multi` | `unknown`
+- `outputs.spawnedPlans`, `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.remainingTasks`
+- `outputs.continuationOwner`: `"phase-plan-agent"`
+- `outputs.continuationStatus` — `active` while route approval, downstream decomposition, or route choice remains; `terminal` when no remaining planning work on this phase plan
+
+## Completion (inline)
+
+Spawned from **`new-plan`** or decomposition paths only. Inline: same `outputs` in prose without `AGENT_RESULT_RESPONSE_V1`.

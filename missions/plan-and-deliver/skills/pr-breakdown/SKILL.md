@@ -47,6 +47,9 @@ inputs:
     type: string
     description: Optional upstream route detail for PR breakdown, single or multi.
     required: false
+warmUpRules:
+  - ".sedea/centers/research-and-development/docs/development-process.md"
+  - ".sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc"
 ---
 
 # PR breakdown — mode #3 decomposition
@@ -281,6 +284,24 @@ Match the discipline in **`master-plan`**, **`delivery-phases`**, and **`phase-p
 
 **Out of scope:** renaming child plans after **`new-plan`** creates them; per-PR §§ 1–4 inline (**`pr-plan`** owns the body); later per-PR sections and worktrees (**`coding-session`**, **`plan-reconcile`** per **`development-process.md`**); edits outside the dual-title block (except the assessment insert in **3.5**); `git` / commit automation; **`Delivery phases`** list body (**`delivery-phases`**); roadmap topics and PR plans (step 1 stops).
 
-**Result contract when spawned:** end with a child result containing `outputs.targetPlanPath`, `outputs.targetPlanSlug`, `outputs.decompositionKind: "pr-breakdown"`, `outputs.childCount`, `outputs.developerApprovalStatus`, `outputs.childRows` (array of `{index, title, status, planPath?, planSlug?, correlationId?, remainingTasks?}`), `outputs.spawnedPlans`, `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.remainingTasks`, `outputs.continuationOwner: "pr-breakdown-agent"`, and `outputs.continuationStatus` (`active` while approval, child creation, or population remains, `terminal` when all PR rows are closed, deferred, abandoned, or out of scope).
+## Completion (spawned)
+
+End every spawned run with exactly one terminal line:
+
+`AGENT_RESULT_RESPONSE_V1` — same `correlationId` as the originating `AGENT_RUN_REQUEST_V1`; `status`: `success` | `partial` | `failure` | `aborted` | `abandoned`; 1–3 sentence `summary`; `outputs` (below); optional `errors`.
+
+Required `outputs` fields:
+
+- `outputs.targetPlanPath`, `outputs.targetPlanSlug`
+- `outputs.decompositionKind`: `"pr-breakdown"`
+- `outputs.childCount`, `outputs.developerApprovalStatus`
+- `outputs.childRows` — `{index, title, status, planPath?, planSlug?, correlationId?, remainingTasks?}`
+- `outputs.spawnedPlans`, `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.remainingTasks`
+- `outputs.continuationOwner`: `"pr-breakdown-agent"`
+- `outputs.continuationStatus` — `active` while approval, child creation, or population remains; `terminal` when all PR rows are closed, deferred, abandoned, or out of scope
 
 Stop after the step 6 handoff block or after spawning and announcing the wait state.
+
+## Completion (inline)
+
+Spawned from the **Master Plan agent** or decomposition paths only. Inline: same `outputs` in prose without `AGENT_RESULT_RESPONSE_V1`.

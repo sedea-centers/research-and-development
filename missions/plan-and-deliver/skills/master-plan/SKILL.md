@@ -33,6 +33,9 @@ inputs:
     description: Optional related document entries with role and link/path.
     required: false
     default: []
+warmUpRules:
+  - ".sedea/centers/research-and-development/docs/development-process.md"
+  - ".sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc"
 ---
 
 # Master plan: §§ 1–5 from the PRD
@@ -518,17 +521,27 @@ This skill writes the Master Plan file (`<slug>.plan.md` + `<slug>.state.yaml`) 
 - Draft section 6 (`Delivery phases | PR breakdown`) inline — that section is owned by the spawned **Delivery phases** and **PR breakdown** agents.
 - Spawn child phase or PR plan stubs itself after § 6 lands. The downstream § 6 agent reports the child list and may coordinate further child-spawn requests per its own contract.
 
-When running as a spawned child, end with `AGENT_RESULT_RESPONSE_V1` containing at least:
+## Completion (spawned)
+
+End every spawned run (initial draft and each follow-up turn that finishes skill scope) with exactly one terminal line:
+
+`AGENT_RESULT_RESPONSE_V1` — same `correlationId` as the originating `AGENT_RUN_REQUEST_V1`; `status`: `success` | `partial` | `failure` | `aborted` | `abandoned`; 1–3 sentence `summary`; `outputs` (below); optional `errors`. Re-emit an **updated** result after user-requested follow-up on this lane (same `correlationId`).
+
+Required `outputs` fields:
 
 - `outputs.masterPlanPath`
 - `outputs.masterPlanSlug`
 - `outputs.complexityBand`
 - `outputs.complexityScore`
-- `outputs.continuationOwner` (`master-plan-agent` while this lane owns follow-up)
-- `outputs.continuationStatus` (`active` while follow-up choices remain, `terminal` when no remaining tasks exist)
-- `outputs.activeLanes` (array of downstream lane records with correlation id, skill, target path, and status)
-- `outputs.openLedgerEntries` (array of phase/PR plan or downstream-lane entries the **Squad Leader** must keep open)
-- `outputs.spawnedPlans` (array of plan paths/slugs created or reported by downstream agents)
-- `outputs.remainingTasks` (array of pending user or agent actions, empty only when terminal)
+- `outputs.continuationOwner` — `master-plan-agent` while this lane owns follow-up (Step 7)
+- `outputs.continuationStatus` — `active` while follow-up choices remain; `terminal` when no remaining tasks
+- `outputs.activeLanes` — downstream lane records (`correlationId`, skill, target path, status)
+- `outputs.openLedgerEntries` — phase/PR plan or lane entries the **Squad Leader** tracks (§7)
+- `outputs.spawnedPlans` — plan paths/slugs created or reported by downstream agents
+- `outputs.remainingTasks` — pending user or agent actions; empty only when `continuationStatus` is `terminal`
 
-Stop after the handoff line and terminal result.
+Stop after the handoff line and terminal result. While `continuationStatus` is `active`, the **Squad Leader** acknowledges only (mission **`plan.mdc`** §6); this lane owns **AskQuestion** + downstream spawns (Step 7).
+
+## Completion (inline)
+
+**plan and deliver** runs this skill **spawned only** (Squad Leader §5). If another invoker runs inline, report the same `outputs` semantics in prose without `AGENT_RESULT_RESPONSE_V1`.

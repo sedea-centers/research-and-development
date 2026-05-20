@@ -34,6 +34,8 @@ inputs:
     description: Optional roadmap, related slug, or worktree hints from the upstream protocol.
     required: false
     default: []
+warmUpRules:
+  - ".sedea/centers/research-and-development/docs/development-process.md"
 ---
 
 # Ad-Hoc PRD
@@ -92,9 +94,13 @@ Create **`docs/`** under that segment if missing.
    - **`## 1–3`** sections filled from handoff details; `_TBD_` where unavoidable + say what is missing.
 5. **Reply / result** with workspace / `file://` link to the new file and return `prdRef` for the Squad Leader to pass into **`master-plan`**. Mention optional **manual move** to **`joint/docs/`** only if **the developer** wants shared visibility.
 
-## Result contract
+## Completion (spawned)
 
-When running as a spawned child, end with a child result containing:
+End every spawned run with exactly one terminal line:
+
+`AGENT_RESULT_RESPONSE_V1` — same `correlationId` as the originating `AGENT_RUN_REQUEST_V1`; `status`: `success` | `partial` | `failure` | `aborted` | `abandoned`; 1–3 sentence `summary`; `outputs` (below); optional `errors`.
+
+Required `outputs` fields:
 
 - `outputs.prdPath`
 - `outputs.prdRef`
@@ -129,6 +135,12 @@ Error states:
 - Missing `operationsUserId` → `status: "partial"`, no file write, `missingFields: ["operationsUserId"]`.
 - File already exists at the generated path → generate a different 8-hex suffix once; if still blocked, return `failure`.
 - Write failure → `status: "failure"` or `partial` if recoverable, with `errors[].message` and `remainingTasks`.
+
+Stop after the terminal result. Do not spawn **`master-plan`**.
+
+## Completion (inline)
+
+**plan and deliver** runs this skill **spawned only** (Squad Leader §3). If another invoker runs inline, report the same `outputs` semantics in prose without `AGENT_RESULT_RESPONSE_V1`.
 
 ## Ad-Hoc PRD file shape (template)
 
