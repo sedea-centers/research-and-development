@@ -335,6 +335,22 @@ Set `outputs.continuationStatus` as follows:
 
 Do not propose dispatch resolution from this skill; the Squad Leader closes the ledger after coding, review, PR, and deploy verification report terminal status.
 
+## Squad Leader bubble-up (detached lanes)
+
+This skill usually runs **off** the **plan and deliver** leader lane. The Squad Leader §8 ledger often does **not** receive your `AGENT_RESULT_RESPONSE_V1`. After each milestone below, nudge the developer to paste the **Ship recap — plan and deliver** block on the **leader dispatch** (template in **`../plan.mdc`** §8 *Leader-lane ship recap*).
+
+| Milestone in this skill | Suggested `shipPhase` | Copy from `outputs` |
+|-------------------------|----------------------|---------------------|
+| Worktrees attached + prompt emitted | `worktree` | `targetPlanPath`, `worktrees`, `remainingTasks` |
+| Implementation / review loop in progress | `implementing` | `targetPlanPath`, `prePrReviewRecommendation`, `prReviewStatus` |
+| Pre-PR **go** | `pre-pr-review` | `targetPlanPath`, `prePrReviewRecommendation: go` |
+| PR opened | `pr-open` | `targetPlanPath`, `prUrl`, `prNumber` |
+| PR comment triage complete | `pr-review` | `targetPlanPath`, `prReviewStatus`, `githubReconciliationStatus` |
+| Deploy walk finished | `deploy-walk` | `targetPlanPath`, `deployStatus`, `deployTodoStatus` |
+| Reconcile / archive done | `done` or `reconcile` | `targetPlanPath`, `remainingTasks` (empty) |
+
+Set `rowStatus: blocked` when `prePrReviewRecommendation` is not **go**, review blockers remain, or `remainingTasks` is non-empty with no forward path. Parent **coding-session** agents should forward the same fields when they **do** bubble results to a squad parent.
+
 ## Sidecar state
 
 Writes go through **`plan-state.mjs`** into **`<slug>.state.yaml`** next to **`<slug>.plan.md`** under **`.sedea/operations/.../plans/`** — never plan frontmatter for `worktrees` / `session`.

@@ -418,8 +418,9 @@ Maintain one row per in-scope **PR plan** path under `.sedea/operations/.../plan
 | Child skill | Advance `phase` when `outputs` include |
 |-------------|----------------------------------------|
 | `coding-session` | `developerApprovedImplementation` + `targetPlanPath` → at least `implementing`; worktree ready → `worktree` |
-| `pre-pr-review` | `recommendation: go` → `pre-pr-review` |
+| `pre-pr-review` | `recommendation: go` (or `no-go` + blockers → `blocked`) → `pre-pr-review` |
 | `create-pr` | `prUrl` / `prNumber` → `pr-open` |
+| `pr-review` (inline in **coding-session**) | `prReviewStatus` terminal + `githubReconciliationStatus` when required → `pr-review` |
 | `deploy-walk` | `deployStatus: done` and `deployTodoStatus: done` → `deploy-walk` (then `done` when reconcile complete) |
 | `plan-reconcile` | terminal reconcile with target archived → `reconcile` or `done` |
 
@@ -429,9 +430,50 @@ Maintain one row per in-scope **PR plan** path under `.sedea/operations/.../plan
 2. The developer on the **leader lane** names a PR plan and starts **`coding-session`** (or reports worktree/implementation started).
 3. The developer reports a milestone on the leader lane (e.g. “PR #123 open”, “deploy walk done”, “merged and reconciled”) — set `lastReportedBy: developer-message`.
 
-**Updating rows without child results on the leader lane**
+**Leader-lane ship recap (minimal bubble-up)**
 
-Detached lanes may not deliver `AGENT_RESULT_RESPONSE_V1` to the Squad Leader. When the developer returns to the **leader lane**, ask for a one-line status per open PR plan or accept their recap, then advance `phase` / `remainingTasks`. Do **not** treat silence on detached lanes as ship complete.
+Ship skills usually run on **detached** lanes; the Squad Leader often receives **no** child `AGENT_RESULT_RESPONSE_V1`. Progress reaches §8 via **`lastReportedBy: developer-message`** (preferred) or **`child-output`** when a parent lane forwards results.
+
+When the developer returns to the **plan and deliver** leader dispatch and any ship row is `open` or `blocked`, collect a **minimal recap** per PR plan (use **AskQuestion** once if they give only vague chat). Do **not** advance `phase` from **`inferred`** unless unavoidable — ask for the fields below.
+
+| Field | Required | Purpose |
+|-------|----------|---------|
+| `targetPlanPath` | yes | Anchor `.sedea/operations/…/plans/<slug>.plan.md` |
+| `shipPhase` | yes | Latest value from the phase enum |
+| `rowStatus` | yes | `open` while work continues; `closed` when `shipPhase: done`; `blocked` / `deferred` / `abandoned` when stated |
+| `remainingTasks` | when not `done` | One short line (or copy from skill `outputs.remainingTasks`) |
+| `prUrl` / `prNumber` | when phase ≥ `pr-open` | From **create-pr** or GitHub |
+| `blockedReason` | when `rowStatus: blocked` | e.g. pre-PR no-go, deploy gate, reconcile failure |
+
+**Natural-language → `shipPhase` (examples)**
+
+| Developer milestone (paraphrase OK) | Set `phase` |
+|-------------------------------------|-------------|
+| Worktree / session prompt ready | `worktree` |
+| Coding in progress on worktree | `implementing` |
+| Pre-PR review finished (go) | `pre-pr-review` |
+| PR opened (URL or number) | `pr-open` |
+| Open PR comments triaged / reconciliation done | `pr-review` |
+| Deploy checklist walked / capstone done | `deploy-walk` |
+| Merged + reconcile / plan archived | `reconcile` or `done` |
+| Nothing left on this PR | `done`, `rowStatus: closed` |
+
+**Copy-paste template** (developer or detached-lane agent may emit verbatim on the leader dispatch):
+
+```text
+Ship recap — plan and deliver
+targetPlanPath: <path to .plan.md>
+shipPhase: <not-started | worktree | implementing | pre-pr-review | pr-open | pr-review | deploy-walk | reconcile | done>
+rowStatus: <open | closed | blocked | deferred | abandoned>
+remainingTasks: <none | short list>
+prUrl: <optional>
+prNumber: <optional>
+blockedReason: <optional>
+```
+
+Detached ship skills end with a nudge to post this recap when the **plan and deliver** dispatch is still active — see each skill § *Squad Leader bubble-up* and **`skills/README.md`** § *Leader-lane ship recap*.
+
+Do **not** treat silence on detached lanes as ship complete.
 
 **Dispatch resolution gates (Squad Leader only)**
 
@@ -449,6 +491,7 @@ Detached lanes may not deliver `AGENT_RESULT_RESPONSE_V1` to the Squad Leader. W
 **Procedure**
 
 1. After §7 reports planning complete, scan for PR plans with implementation handoff signals; open a ship row for each (or confirm none — then run AskQuestion for planning-only vs active ship).
-2. On each leader-lane turn that touches ship, update rows before other protocol work.
-3. When the developer signals done on **this dispatch**, re-check all rows against the gates table; choose `resolved` / `partial` / `abandoned` accordingly.
-4. Put the recap in `MC_DISPATCH_RESOLVED_V1` **`summary`**; list open PR plans or deferred ship work when status is **`partial`**.
+2. On each leader-lane turn that touches ship, update rows before other protocol work — parse **leader-lane ship recap** blocks or child `outputs` per the tables above.
+3. When recap is missing for an `open` row, ask once using the template fields (or offer **AskQuestion**: paste recap vs no ship progress yet).
+4. When the developer signals done on **this dispatch**, re-check all rows against the gates table; choose `resolved` / `partial` / `abandoned` accordingly.
+5. Put the recap in `MC_DISPATCH_RESOLVED_V1` **`summary`**; list open PR plans or deferred ship work when status is **`partial`**.

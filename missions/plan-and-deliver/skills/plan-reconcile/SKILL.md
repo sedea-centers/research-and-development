@@ -264,6 +264,16 @@ Set `continuationStatus`:
 - `active` when flagged plans, postponed follow-ups, manual routing, or developer choices remain.
 - `partial` status with `continuationStatus: "active"` when script errors or missing merge/deploy gates block reconcile.
 
+## Squad Leader bubble-up (detached lanes)
+
+Runs on a **detached** reconcile lane. When reconcile reaches terminal success for the target PR plan, nudge the developer to post **Ship recap — plan and deliver** on the leader dispatch (**`../plan.mdc`** §8).
+
+| Outcome | `shipPhase` | `rowStatus` | Key `outputs` for recap |
+|---------|-------------|-------------|-------------------------|
+| Target archived / ship complete | `done` | `closed` | `targetPlanPath`, `archivedSlugs`, `remainingTasks` |
+| Flagged / postponed follow-ups | `reconcile` | `open` | `targetPlanPath`, `flaggedSlugs`, `postponedSlugs`, `remainingTasks` |
+| Script or gate blocked | `reconcile` | `blocked` | `targetPlanPath`, `remainingTasks`, `blockedReason` |
+
 ## Completion (spawned)
 
 Required `outputs` per **## Spawned result contract** above. Re-emit an **updated** terminal result after user-requested follow-up on this lane (same `correlationId`).

@@ -182,6 +182,15 @@ Set `continuationStatus`:
 
 Stop after the report. Do not run `git`, `gh`, source edits, commits, pushes, or PR creation.
 
+## Squad Leader bubble-up (detached lanes)
+
+Runs on a **detached** reviewer lane; the **plan and deliver** Squad Leader may not see this result. When the review finishes, ask the developer to post **Ship recap — plan and deliver** on the leader dispatch (**`../plan.mdc`** §8).
+
+| Outcome | `shipPhase` | `rowStatus` | Key `outputs` |
+|---------|-------------|-------------|---------------|
+| `recommendation: go` | `pre-pr-review` | `open` | `targetPlanPath`, `remainingTasks` |
+| `no-go` / blockers | `pre-pr-review` | `blocked` | `targetPlanPath`, `blockers`, `blockedReason` in recap |
+
 ## Completion (spawned)
 
 Required `outputs` per **Step 8 — Report and result** above. Re-emit an **updated** terminal result after user-requested follow-up on this lane (same `correlationId`).

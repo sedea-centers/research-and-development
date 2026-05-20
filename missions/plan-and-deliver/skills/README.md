@@ -42,6 +42,10 @@ These skills run on **detached** or **nested** lanes (often **not** the Squad Le
 
 The Squad Leader **§8** ship ledger may update from **developer-message** when detached lanes do not bubble `AGENT_RESULT_RESPONSE_V1` to the leader — see **`../plan.mdc`** §8.
 
+### Leader-lane ship recap
+
+When a ship skill finishes a milestone on a **detached** lane, nudge the developer to paste the **Ship recap — plan and deliver** block on the **plan and deliver** Squad Leader dispatch (fields: `targetPlanPath`, `shipPhase`, `rowStatus`, optional `remainingTasks`, `prUrl`, `prNumber`). Full enum, natural-language mapping, and template: **`../plan.mdc`** §8 *Leader-lane ship recap*. Per-skill field hints: § *Squad Leader bubble-up* in each ship `SKILL.md` below.
+
 ## Inline-only (no spawn)
 
 | Skill | Invoker | Result section |

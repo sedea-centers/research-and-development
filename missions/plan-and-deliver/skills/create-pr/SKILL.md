@@ -257,6 +257,15 @@ Extend spawned result outputs with:
 - `outputs.flaggedSlugs`
 - `outputs.postponedSlugs`
 
+## Squad Leader bubble-up (detached lanes)
+
+Runs on a **detached** PR-creator lane. After PR open (or a blocked handoff), nudge the developer to post **Ship recap — plan and deliver** on the leader dispatch (**`../plan.mdc`** §8).
+
+| Outcome | `shipPhase` | Key `outputs` for recap |
+|---------|-------------|-------------------------|
+| PR created | `pr-open` | `targetPlanPath`, `prUrl`, `prNumber` |
+| Blocked / deferred | `implementing` or `blocked` | `targetPlanPath`, `remainingTasks`, `blockedReason` |
+
 ## Completion (spawned)
 
 Required `outputs` per **## Result contract** and any **Extend spawned result outputs** bullets above (including after nested **`deploy-walk`** or **`plan-reconcile`** results are merged). Re-emit an **updated** terminal result after user-requested follow-up on this lane (same `correlationId`).

@@ -386,6 +386,15 @@ Set `continuationStatus`:
 
 Stop after each command's confirmation reply. Do not auto-advance, do not auto-invoke other skills, do not commit.
 
+## Squad Leader bubble-up (detached lanes)
+
+Runs on a **detached** deploy lane. When `deployStatus` and `deployTodoStatus` are **done** (or deploy is blocked), nudge the developer to post **Ship recap — plan and deliver** on the leader dispatch (**`../plan.mdc`** §8).
+
+| Outcome | `shipPhase` | Key `outputs` for recap |
+|---------|-------------|-------------------------|
+| Checklist complete | `deploy-walk` | `targetPlanPath`, `deployStatus`, `deployTodoStatus` |
+| Blocked step | `deploy-walk` | `targetPlanPath`, `rowStatus: blocked`, blocked step in `remainingTasks` |
+
 ## Completion (spawned)
 
 Required `outputs` per **## Spawned result contract** above. Re-emit an **updated** terminal result after user-requested follow-up on this lane (same `correlationId`).

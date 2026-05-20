@@ -394,6 +394,12 @@ Each PR is delivered in a newly spun-off agent driven by the **`coding-session`*
 4. **`deploy-walk`** — walk the PR plan's deploy-test checklist after merge when applicable.
 5. **`plan-reconcile`** — merge-driven archive and follow-ups triage (separate cadence; not auto-run from deploy-walk).
 
+#### Leader-lane ship recap (detached lanes)
+
+Ship protocol branches usually run **off** the **plan and deliver** Squad Leader lane. The leader §8 ship ledger still advances from **developer messages** on the leader dispatch (or bubbled child `outputs` when available). Canonical checklist, phase enum, and copy-paste template: **`.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`** §8 *Leader-lane ship recap*.
+
+After a detached milestone (worktree ready, pre-PR go, PR open, deploy walk done, reconcile done), the developer should post the minimal recap block on the **plan and deliver** leader dispatch so `phase` does not stall at `implementing` or `worktree`. Each ship skill § *Squad Leader bubble-up* lists which `outputs` fields map to which `shipPhase`.
+
 **Pre-PR reviewer agent** pass happens **after** implementation and **before** **`create-pr`**: **a coding agent** opens a **new agent session** and re-reads the PR plan / diff / description as an unbiased reviewer — see **Development tools** § *Pre-PR reviewer agent*. Only then does **`create-pr`** open (or prepare) the GitHub PR so **a reviewer agent** and the rest of the PR pipeline run on a level playing field.
 
 This stage is *also* where in-loop feedback gets captured: **a coding agent** maintains a `## Follow-ups` section on the PR plan and appends to it whenever they notice an improvement opportunity, code-review item, or risk that would expand scope (Strategy #6 forbids the expansion; the follow-up is the safe escape valve). **`pre-pr-review`** returns **proposed** follow-ups only; **`coding-session`** appends after explicit developer approval. Follow-ups from **a reviewer agent** on the PR surface land in the same section during the **`pr-review`** protocol branch flow (again after developer approval when required). Each bullet may carry an optional `(target: …)` hint — Master Plan, current phase plan, sibling plan, new plan, or `drop` — to feed the next-step triage. Capture is wired through **`coding-session`**, **`pre-pr-review`** handback, and **`pr-review`**; § *Plan Updates* below describes how those bullets get drained.
