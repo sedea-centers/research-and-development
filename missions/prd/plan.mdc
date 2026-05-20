@@ -71,22 +71,23 @@ flowchart TD
 ### 3. Author PRD via agent
 
 - `type`: Agent engagement and handover.
+- `execution`: spawned.
 - `intent`: Delegate evidence gathering, section policy, drafting, updating, and completeness review to a focused Author PRD agent while the Squad Leader owns routing and final approval.
 - `target agent role`: Author PRD agent.
 - `assigned skill`: `.sedea/centers/research-and-development/missions/prd/skills/author-prd/SKILL.md`.
 - `required rule context`: Sedea center always-apply rules, this mission plan, `.sedea/centers/research-and-development/docs/development-process.md`, and the `author-prd` skill.
 - `inputs`: Resolved PRD target, initial source references or notes from step 2, existing PRD body when updating, current Sedea user context, and requested output path.
-- `expected output`: Child agent result with `status`, `outputs.prdPath`, `outputs.prdTitle`, `outputs.sectionPolicy`, `outputs.completedSections`, `outputs.missingMandatorySections`, `outputs.missingImportantSections`, `outputs.openQuestions`, `outputs.sourceLedger`, `outputs.planningReadiness`, and `outputs.recommendedNextAction`.
+- `expected output`: One parseable **`AGENT_RESULT_RESPONSE_V1`** line (sentinel + JSON on the same line; `version`: 1; same `correlationId` as the spawn request). Top-level `status` plus `outputs` per the skill **`## Completion (spawned)`**: `outputs.prdPath`, `outputs.prdTitle`, `outputs.sectionPolicy`, `outputs.completedSections`, `outputs.missingMandatorySections`, `outputs.missingImportantSections`, `outputs.openQuestions`, `outputs.sourceLedger`, `outputs.planningReadiness`, `outputs.recommendedNextAction`. See **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Agent session closure*.
 - `next-step resolution`:
   - Child result `success` with readable PRD path -> continue to step 4.
   - Child result `partial` with readable PRD path and listed gaps -> continue to step 4 for review.
   - Child result `partial` without a usable PRD -> ask whether to retry the Author PRD agent with revised inputs, switch target, or abandon.
   - Child result `failure`, `aborted`, or `abandoned` -> stop and ask whether to retry, revise inputs, or abandon this PRD.
 - `handover procedure`:
-  1. Compile the child input from step 2.
-  2. Emit exactly one `AGENT_RUN_REQUEST_V1` request for the Author PRD agent.
+  1. Compile the child `inputs` from step 2 (`prdTitle`, `operation`, `targetPath`, `sourceMaterials`, `sectionPolicy`, `existingPrdBody`, `operationsUserId`).
+  2. Emit exactly one **`AGENT_RUN_REQUEST_V1`** line for **author-prd** (include `warmUpRules` for this mission plan and **development-process** when not already on the skill).
   3. Announce that the Squad Leader is waiting because the Author PRD agent owns the intake loop and review requires its generated or updated PRD artifact.
-  4. Stop protocol execution until Mission Control delivers `AGENT_RESULT_RESPONSE_V1` for the same `correlationId`.
+  4. Stop protocol execution until Mission Control delivers **`AGENT_RESULT_RESPONSE_V1`** for the same `correlationId`; parse `status`, `summary`, and `outputs` per **author-prd** **`## Completion (spawned)`** before step 4.
 
 ### 4. Review PRD completeness
 

@@ -92,7 +92,7 @@ Gather evidence, calibrate section policy, and draft or update a Product or Feat
    - important gaps are reported but do not always block planning.
    - optional gaps do not block planning.
 8. Write the document when an output path is resolved, then re-read it and verify the required sections.
-9. Return the output contract.
+9. End the skill run per **`## Completion (spawned)`** (spawned lane) or **`## Completion (inline)`** (same-lane run). Do not emit **`MC_DISPATCH_RESOLVED_V1`** — dispatch closure is the PRD Squad Leader only.
 
 ## Default section policy
 
@@ -219,21 +219,45 @@ Use this template as a starting point. Remove optional sections that do not appl
 - Optional sections should be omitted rather than padded with filler.
 - `TBD` markers are allowed only when paired with either an explicit approver or a clear explanation of how implementation can proceed without that section.
 
-## Output contract
+## Completion (spawned)
 
-Return:
+The **prd** mission Squad Leader spawns this skill on a child lane (mission **`plan.mdc`** §3). A successful child result is **not** developer approval to continue the PRD mission — the Squad Leader still runs review (step 4).
 
-- `status`: `success`, `partial`, `failure`, `aborted`, or `abandoned`
-- `prdPath`
-- `prdTitle`
-- `sectionPolicy`
-- `completedSections`
-- `missingMandatorySections`
-- `missingImportantSections`
-- `openQuestions`
-- `sourceLedger`
-- `planningReadiness`: `ready`, `partial`, or `blocked`
-- `recommendedNextAction` — when `planningReadiness` is `ready` or accepted `partial`, tell the developer to start a **new** Mission Control dispatch: center **research-and-development**, mission **`plan and deliver`**, command phrase **`plan and deliver`** (supply PRD `@path` or link in the opening message).
+### Host protocol line (required)
+
+Emit **exactly one** line on its own: `AGENT_RESULT_RESPONSE_V1` immediately followed by a single JSON object on the **same** line. Required keys: `version` (1), `correlationId` (from the spawn request), `status`, `summary`, `outputs`, `errors` (use `[]` when none). Populate `outputs` from the list below. The emitted line must be **valid JSON** (no `{...}` placeholders in the actual output). Re-emit an **updated** line after user-requested follow-up on this lane (same `correlationId`). See **`.sedea/centers/sedea/skills/README.md`** § *Spawned terminal line* and **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Agent session closure*.
+
+Top-level `status`: `success`, `partial`, `failure`, `aborted`, or `abandoned`.
+
+`summary`: 1–3 sentences — PRD path, `planningReadiness`, and whether mandatory gaps remain.
+
+Required `outputs` fields:
+
+- `outputs.prdPath` — workspace-relative or absolute path to the written or updated PRD (omit or empty when no usable file)
+- `outputs.prdTitle`
+- `outputs.sectionPolicy` — map of section → `mandatory` | `important` | `optional` | `not applicable`
+- `outputs.completedSections` — list of section ids or headings populated
+- `outputs.missingMandatorySections` — list blocking `planningReadiness: ready`
+- `outputs.missingImportantSections` — list of visible gaps (may be non-empty when `status` is `success` or `partial`)
+- `outputs.openQuestions` — unresolved decisions or contradictions
+- `outputs.sourceLedger` — attributed sources used in the draft
+- `outputs.planningReadiness` — `ready`, `partial`, or `blocked`
+- `outputs.recommendedNextAction` — when `planningReadiness` is `ready` or user-accepted `partial`, tell the developer to start a **new** Mission Control dispatch: center **research-and-development**, mission **`plan and deliver`**, command phrase **`plan and deliver`** (supply PRD `@path` or link in the opening message)
+
+Status guidance:
+
+- `success` — PRD written or updated; mandatory sections satisfied; `planningReadiness` is `ready` (important gaps may remain if surfaced).
+- `partial` — usable PRD path but mandatory gaps, thin content, or `planningReadiness` is `partial` or `blocked`; include recovery steps in `summary` and `openQuestions`.
+- `failure` — no usable PRD artifact (write blocked, invalid inputs after retries); populate `errors`.
+- `aborted` / `abandoned` — user or agent stopped before a deliverable PRD.
+
+Stop after the terminal line. Do not spawn downstream planning agents from this skill.
+
+## Completion (inline)
+
+Report the fields below in prose to the invoker on the **same lane**. Do **not** emit `AGENT_RUN_REQUEST_V1`, `AGENT_RESULT_RESPONSE_V1`, or `MC_DISPATCH_RESOLVED_V1`. Do **not** add a **Host protocol line** under this section (see **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Inline completion* and **`.sedea/centers/sedea/skills/README.md`** § *Completion (inline)*).
+
+The **prd** mission normally spawns this skill (Squad Leader §3). If another invoker runs inline, use the same field semantics as **`## Completion (spawned)`** `outputs` in prose only.
 
 ## Safety constraints
 
