@@ -292,7 +292,7 @@ Mandatory **in the same turn** as §§ 1–4 (or step 4g-only for legacy bodies 
 
 Include these bullets (labels may vary; content must cover each dimension):
 
-- **Kinds of change (count):** distinct *kinds* (not files, not lines) — see **`development-process.md`** mode #3 *PR sizing* and [**`20_efficient-pr-shipping.mdc`**](../../../../rules/20_efficient-pr-shipping.mdc) § *Keep PRs small and focused*.
+- **Kinds of change (count):** distinct *kinds* (not files, not lines) — per **`.sedea/centers/research-and-development/docs/development-process.md`** § *PR sizing — test cases and kinds of changes* (canonical); [**`20_efficient-pr-shipping.mdc`**](../../../../rules/20_efficient-pr-shipping.mdc) § *Keep PRs small and focused* summarizes for ship lanes.
 - **PR count band:** one of `single` | `few (2–5)` | `many (6+)`.
 - **Sequencing / coupling:** one line — migrations, feature flags, cross-repo, contract order, or `low` if none.
 - **Routing recommendation:** one of `Delivery phases` (needs sub-phases first) | `PR breakdown` multi-PR | `PR breakdown` single-PR — state **why** in the same bullet or the next short bullet.

@@ -166,6 +166,8 @@ If a PR depends on an unmerged predecessor, **wait** for that predecessor to mer
 
 ## Keep PRs small and focused
 
+**Normative definition:** [`.sedea/centers/research-and-development/docs/development-process.md`](../docs/development-process.md) § *PR sizing — test cases and kinds of changes* (center sync contract). This section is the ship-lane summary; **`pr-breakdown`** step 5a applies the full contract during breakdown.
+
 Minimize **two dimensions** independently:
 
 1. **Number of concerns** — a PR should address **one concern** (or as few as possible). A "concern" is a single logical change: one new feature, one improvement, one bug fix. A rename of a single construct touching 500 files is still one concern. Mixing a rename with a behavior change is two concerns and should be two PRs.
@@ -185,6 +187,8 @@ Raw changed-line count is **not** a size signal in this process. The intuition b
 - A 50-line PR that mixes two concerns is still a split candidate (Dimension 1 above).
 
 When estimating PR size for breakdown decisions, count **kinds** first, then enumerate test cases per kind to bucket the PR. If a candidate PR has many instances of the same kind, do **not** split it just to reduce instance count — that produces redundant review work and a half-shipped feature, not a lighter PR.
+
+**Sync:** bucket thresholds and kinds-vs-lines rules must match **development-process.md** § *PR sizing — test cases and kinds of changes* — edit that subsection first when changing metrics.
 
 ### Recursive breakdown to PR leaves
 

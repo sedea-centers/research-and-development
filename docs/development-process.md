@@ -190,12 +190,20 @@ The set-level content fills the PR-ready plan's dual-title section (Master Plan 
 
 #### PR sizing — test cases and kinds of changes
 
+**Canonical source (center sync contract).** This subsection is the **authoritative** definition of PR sizing for the **research-and-development** center. When buckets, kinds-of-change rules, or test-case counting change, edit **here first**, then align:
+
+- **`.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`** § *Keep PRs small and focused* (ship-lane summary)
+- **`.sedea/centers/research-and-development/missions/plan-and-deliver/skills/pr-breakdown/SKILL.md`** § *Step 5a — Infer PR boundaries from the parent plan* (operational application)
+- **`master-plan`** / **`phase-plan`** § *Decomposition assessment* (routing bands `single` | `few (2–5)` | `many (6+)` only — sizing metrics reference this subsection)
+
+Do **not** change thresholds (**≤ 10** / **11–20** / **21+**) or the kinds-vs-lines rule in a single downstream file alone.
+
 Two metrics support the breakdown decision — which PRs to carve out, and how heavy each candidate ends up:
 
 1. **Test-case count.** Estimate the test cases each candidate PR introduces or meaningfully changes — unit + integration / snapshot + exploratory recordings, each enumerated case counted once. Buckets: **≤ 10** simple, **11–20** mid-sized, **21+** heavy. A heavy PR is a *signal to investigate* splitting — it is not automatically wrong. Do not split if the only available split runs within one kind of change (instance batching), or if the result is a half-shipped feature (Strategy #4 trumps size).
 2. **Kinds of changes.** Count *distinct kinds* of changes — not raw lines and not raw files. N instances of the same kind (the same shape applied to N similar files) is **one kind**, not N kinds. Threading the same prompt fragment into 8 generators is one kind with 8 instances; **a reviewer agent** reads the first instance carefully and skims the rest, and **a pre-PR reviewer agent** does the same. Splitting by call-path or by file is rarely justified when the kinds across both halves are identical.
 
-Raw changed-line count is **not** a size signal in this process. The canonical buckets and "kinds vs lines" reasoning live in **`.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`** § *Keep PRs small and focused*; the operational application during breakdown lives in **`.sedea/centers/research-and-development/missions/plan-and-deliver/skills/pr-breakdown/SKILL.md`** § *Step 5a — Infer PR boundaries from the parent plan*. Both must stay in sync with this section.
+Raw changed-line count is **not** a size signal in this process. Downstream copies must stay aligned with this subsection per the sync contract above.
 
 **When to run sizing.** **`### Decomposition assessment`** is authored at the end of **`master-plan`** § 5 and **`phase-plan`** § 4 (same metrics as this subsection), *before* the dual-title section is populated — so **developer** and **`pr-breakdown`** together choose `delivery-phases`, a multi-item **`pr-breakdown`**, or a **one-item `### PR list`** with full context. If a plan predates that block, **`pr-breakdown`** inserts it before the decision gate.
 
