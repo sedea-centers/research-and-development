@@ -457,7 +457,7 @@ Ship skills usually run on **detached** lanes; the Squad Leader often receives *
 
 ### Mission Control host sync (section 8)
 
-When Mission Control hosts a **`plan and deliver`** dispatch, the extension may **auto-sync** §8 from detached ship child terminals (product behavior in the hosting repo Mission Control extension — not defined in this center repo alone).
+When Mission Control hosts a **`plan and deliver`** dispatch, the extension may **auto-sync** §8 from detached ship child terminals (product behavior in the hosting repo Mission Control extension — not defined in this center repo alone). Host implementation contract: **`extensions/mission-control/docs/plan-and-deliver-section-8-ship-ledger.md`**; manifest: **`center.yaml`** `governance.hostSync`.
 
 | Step | Behavior |
 |------|----------|

@@ -581,7 +581,7 @@ Full checklist and *Pre-resolution checklist* live in **`.sedea/centers/research
 | **`pr-review`** finished on coding lane | No detached child terminal — post recap with `shipPhase: pr-review` |
 | Developer wants **`resolved`** but rows still `open` | Run *Pre-resolution checklist* **AskQuestion** — recap, planning-only close, or **`partial`** |
 
-**Host sync scope:** **`coding-session`**, **`pre-pr-review`**, **`create-pr`**, **`deploy-walk`**, **`plan-reconcile`** terminals only — not inline **`pr-review`**. Behavior is implemented in the **hosting repo Mission Control extension**, not in this center repository alone.
+**Host sync scope:** **`coding-session`**, **`pre-pr-review`**, **`create-pr`**, **`deploy-walk`**, **`plan-reconcile`** terminals only — not inline **`pr-review`**. Behavior is implemented in the **hosting repo Mission Control extension**, not in this center repository alone. Implementation contract: **`extensions/mission-control/docs/plan-and-deliver-section-8-ship-ledger.md`** (from monorepo root); manifest pointer: **`center.yaml`** `governance.hostSync`.
 
 - **Dispatch closure gate:** On the **plan and deliver** leader lane, do **not** propose **`MC_DISPATCH_RESOLVED_V1`** with **`resolved`** while any §8 ship row is **`open`** or **`blocked`** unless a **Ship recap** block for that row was parsed on the leader dispatch in this session (including host-sync messages), or the developer explicitly chose **planning-only** dispatch closure via **AskQuestion** (see **`plan.mdc`** §8 *Pre-resolution checklist*).
 
