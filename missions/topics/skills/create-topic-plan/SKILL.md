@@ -25,13 +25,14 @@ inputs:
     required: true
 warmUpRules:
   - ".sedea/centers/research-and-development/missions/topics/plan.mdc"
+  - ".sedea/centers/research-and-development/missions/topics/skills/README.md"
   - ".sedea/centers/research-and-development/docs/development-process.md"
   - ".sedea/centers/research-and-development/rules/10_plan-naming-convention.mdc"
 ---
 
 # Create Topic Plan
 
-Create one root-level topic plan and its sidecar under the selected Sedea operations plan tree. The **topics** mission runs this skill **inline** on the Squad Leader lane (**`.sedea/centers/research-and-development/missions/topics/plan.mdc`** §3). This skill writes planning metadata only; it does not draft delivery phases, PR breakdowns, worktrees, or implementation tasks.
+Create one root-level topic plan and its sidecar under the selected Sedea operations plan tree. The **topics** mission runs this skill **inline** on the Squad Leader lane (**`.sedea/centers/research-and-development/missions/topics/plan.mdc`** §3; inline closure in **`../README.md`**). This skill writes planning metadata only; it does not draft delivery phases, PR breakdowns, worktrees, or implementation tasks.
 
 ## Inputs
 

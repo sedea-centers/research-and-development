@@ -120,8 +120,22 @@ Every **spawned** plan-and-deliver skill lists the paths below in frontmatter **
 
 **`pr-review`** is inline-only — **no** frontmatter **`warmUpRules`**; it runs **only** on the active **`coding-session`** lane (which includes this README and rule **20**). Do not dispatch **`pr-review`** as a standalone skill session.
 
+### Adding or removing a skill
+
+When you add, rename, or remove a protocol branch under `missions/plan-and-deliver/skills/<name>/SKILL.md` (or under **`prd`** / **`topics`** missions), update the same change set:
+
+1. **`center.yaml`** — add or remove the repo-relative path under that mission's **`skillEntries`** (and **`development-process.md`** § *Protocol branches* when the branch is user-facing).
+2. **Verify** from the hosting repo root:
+
+   ```bash
+   node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/verify-skill-manifest.mjs
+   ```
+
+3. **plan-and-deliver only** — if the skill is **spawned**, ensure **`warmUpRules`** includes `missions/plan-and-deliver/plan.mdc`, this README, and the usual rules per § *Default warm-up* above; add **`## Completion (spawned)`** + host protocol line when applicable.
+
 ### Scripts (`plan-state.mjs`, `pr-review.py`)
 
 - **Location:** `missions/plan-and-deliver/scripts/` (paths in skills and rule **20** are relative to the **hosting repo root** that contains **`.sedea/`**).
 - **Runtime:** use the **Node / Python runtime bundled with Sedea / VS Code** — not **fnm**, **nvm**, or other host managers (see **`plan-reconcile`** § *Script CLI*).
 - **`node_modules/`:** a local **`yaml`** dependency may exist under `scripts/node_modules/` for development; it is **not** part of center governance and is **not** tracked in the center git checkout. Agents should not treat vendor trees under `scripts/` as protocol docs.
+- **`verify-skill-manifest.mjs`** — compares **`center.yaml`** `skillEntries` to on-disk `SKILL.md` files for all missions in this center (exit 0 = match).

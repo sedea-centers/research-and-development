@@ -63,6 +63,13 @@ centerSkills:
   readme: missions/plan-and-deliver/skills/README.md
   note: Spawn contracts and normative terminal stop for plan-and-deliver; not a runnable skill.
 
+manifest:
+  verify: missions/plan-and-deliver/scripts/verify-skill-manifest.mjs
+  sync: >-
+    After adding or removing any `missions/<slug>/skills/*/SKILL.md`, update this file's
+    `skillEntries` for that mission and run the verify script from the hosting repo root
+    (see development-process.md § Center and mission governance).
+
 governance:
   missionScopedRules: false
   note: >-

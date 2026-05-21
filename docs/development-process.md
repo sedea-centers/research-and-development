@@ -43,6 +43,14 @@ R&D delivery agents are governed by:
 
 **Audits and gap reports** must **not** flag missing mission-level rule files under this center. To change **center** process or rules, use **`improve center rules`** on **sedea** `center-maintenance`. To change **repo** agent guidance in a product or hosting checkout, use **`.cursor/rules/*.mdc`** per **`.sedea/centers/research-and-development/rules/40_maintain-rules.mdc`** and per-PR plan **§ 5. Repo rules impact**.
 
+**`center.yaml` `skillEntries` sync (manifest hygiene).** Mission Control discovers skills on disk; **`skillEntries`** in **`.sedea/centers/research-and-development/center.yaml`** is for audits and maintenance. When you **add, rename, or remove** a `SKILL.md` under any mission `skills/` tree, update that mission's `skillEntries` list in the same change. From the **hosting repo root**:
+
+```bash
+node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/verify-skill-manifest.mjs
+```
+
+Exit **0** when manifest and disk match; **1** prints paths only on disk or only in YAML. Plan-and-deliver authors also see **`.sedea/centers/research-and-development/missions/plan-and-deliver/skills/README.md`** § *Adding or removing a skill*.
+
 ### Agents and roles
 
 **Coding agent.** Delivers deliverables defined in a PR plan.

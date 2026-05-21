@@ -305,7 +305,7 @@ History is **append-only**. Never overwrite or compact prior `*(YYYY-MM-DD: ...)
 
 ## Frontmatter capstone — `deploy-test-plan-verified` (`pending` → `done`)
 
-PR plans carry a YAML todo whose `id` is **`deploy-test-plan-verified`** (see [`development-process.md`](../../../../docs/development-process.md) § *Per-PR plan template* § 7 — Frontmatter capstone). It stays `pending` until every Before-deploy and After-deploy checkbox is `[x]` **and** the deploy section's `**Status:**` reads `done`.
+PR plans carry a YAML todo whose `id` is **`deploy-test-plan-verified`** (see [`development-process.md`](.sedea/centers/research-and-development/docs/development-process.md) § *Per-PR plan template* § 7 — Frontmatter capstone). It stays `pending` until every Before-deploy and After-deploy checkbox is `[x]` **and** the deploy section's `**Status:**` reads `done`.
 
 Only after the developer approves **Approve deploy checklist closure**, when this skill sets `**Status:**` from `deployed` → `done` (last After-deploy checkbox, or the empty-After-deploy chain from `deploy-walk deployed`), **immediately** apply a second `StrReplace` on frontmatter using this **exact** `old_string` / `new_string` pair (byte-identical to [`pr-plan`](../pr-plan/SKILL.md) § 4a-bis and on-disk plans — do not paraphrase the `content: >-` body):
 

@@ -161,7 +161,7 @@ After approved fixes are applied, stop for developer review before commit/push. 
 
 ### Step 3a — Propose out-of-scope flags as follow-ups
 
-Per [`development-process.md`](../../../../docs/development-process.md) § *Cadence — Feedback Collection*, items surfaced by **a reviewer-agent (Slink or Code Rabbit)** during PR review that aren't worth blocking the PR on land in the PR plan's `## Follow-ups` section as **Code Review Follow-ups** (Strategy #6 forbids the silent scope expansion; the follow-up is the safe escape valve). This step mirrors `pre-pr-review` runner Step 6 — same section, same bullet shape, same routing semantics — so **`plan-reconcile`** can drain both sources at archive time without distinguishing.
+Per [`development-process.md`](.sedea/centers/research-and-development/docs/development-process.md) § *Cadence — Feedback Collection*, items surfaced by **a reviewer-agent (Slink or Code Rabbit)** during PR review that aren't worth blocking the PR on land in the PR plan's `## Follow-ups` section as **Code Review Follow-ups** (Strategy #6 forbids the silent scope expansion; the follow-up is the safe escape valve). This step mirrors `pre-pr-review` runner Step 6 — same section, same bullet shape, same routing semantics — so **`plan-reconcile`** can drain both sources at archive time without distinguishing.
 
 **Skip this step entirely** when Step 0's sub-step returned no slug (`resolve` exited non-zero, or no PR plan is linked yet). Acknowledge once: *"No plan linked to this PR; skipping follow-ups capture. Out-of-scope flags surface in the Step 4 report only — copy anything actionable into a new plan or follow-up issue if needed."*
 
