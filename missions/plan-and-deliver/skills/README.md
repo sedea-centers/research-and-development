@@ -49,7 +49,7 @@ These skills run on **detached** or **nested** lanes (often **not** the Squad Le
 | `deploy-walk` | Developer phrase, **`create-pr`** after merge, or detached dispatch | `## Spawned result contract` | `deploy-walk`; entry points in **development-process.md** § *Ship chain* |
 | `plan-reconcile` | Developer / `create-pr` after deploy | `## Spawned result contract` | `reconcile` → `done`; `archivedSlugs` |
 
-The Squad Leader **§8** ship ledger may update from **developer-message** when detached lanes do not bubble `AGENT_RESULT_RESPONSE_V1` to the leader — see **`../plan.mdc`** §8.
+The Squad Leader **§8** ship ledger does **not** auto-update when detached ship work finishes — post **Ship recap — plan and deliver** on the leader dispatch (or forward `AGENT_RESULT_RESPONSE_V1` as `child-output`). See **`../plan.mdc`** §8 and **development-process.md** § *Leader-lane ship recap*.
 
 ### Leader-lane ship recap
 
@@ -73,7 +73,30 @@ Populate `outputs` from the skill’s **`## Completion (spawned)`** and any refe
 
 **Host protocol:** emit **exactly one** line — sentinel and **valid JSON on the same line** (no fence, no text after the JSON). Required keys: `version` (1), `correlationId` (spawn UUID), `status`, `summary`, `outputs`, `errors` (`[]` when none). Full format: **`.sedea/centers/sedea/skills/README.md`** § *Spawned terminal line* and **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Agent session closure*.
 
-Stop after the terminal line.
+### Terminal stop (normative for every spawned skill)
+
+**This section is the canonical stop rule** for all **`## Completion (spawned)`** blocks in this mission, even when an individual `SKILL.md` ends that section after the host-protocol paragraph without repeating the sentence below.
+
+After emitting **`AGENT_RESULT_RESPONSE_V1`**, **stop on that lane** for the current skill turn:
+
+1. Do **not** emit another **`AGENT_RUN_REQUEST_V1`** unless a later user message on the same lane explicitly continues the skill (then re-emit an **updated** terminal line with the same `correlationId`).
+2. Do **not** emit **`MC_DISPATCH_RESOLVED_V1`** — only the **plan and deliver** Squad Leader closes the dispatch.
+3. Do **not** run the next protocol step in the same turn after the terminal line (including “wait for child” announcements — the stop applies **after** the sentinel is emitted).
+
+**Canonical closing sentence** (optional in skill prose; meaning is required either way):
+
+> Stop after the terminal line.
+
+**Per-skill procedure stops** (e.g. “Stop after the step 5 handoff block”, “Stop after spawning and announce wait”) apply **before** the terminal line — they gate mid-skill work, not replace this rule. When both appear, order is: complete the gated step → emit **`AGENT_RESULT_RESPONSE_V1`** → **stop**.
+
+| Skill | Explicit “Stop after the terminal line” in `## Completion (spawned)`? | Notes |
+|-------|------------------------------------------------------------------------|--------|
+| `author-prd` (prd mission) | Yes | Also forbids downstream planning spawns |
+| `pr-plan` | Yes | Also forbids **`coding-session`** spawn |
+| `master-plan` | Variant | “Stop after the handoff line and terminal result” when `continuationStatus: active` |
+| `delivery-phases`, `pr-breakdown`, `phase-plan`, `new-plan`, `ad-hoc-prd`, ship chain | Often **no** in spawned section | Rely on this README + **Host protocol line** in each skill |
+
+When authoring or reviewing a skill, duplicating the canonical sentence under **`## Completion (spawned)`** is encouraged but **not** required if this README is in **`warmUpRules`** or the spawn request passes it.
 
 ## Default warm-up
 

@@ -465,7 +465,11 @@ Archive candidates, follow-ups triage, merge/deploy gates. Often developer-trigg
 
 ##### Leader-lane ship recap (detached lanes)
 
-On a **`plan and deliver`** Mission Control dispatch, the Squad Leader **§8** ship ledger may **not** receive child **`AGENT_RESULT_RESPONSE_V1`** from detached lanes. After each ship milestone, post the **Ship recap — plan and deliver** block on the **leader dispatch** (template and phase enum: **`.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`** §8 *Leader-lane ship recap*). Each ship skill § *Squad Leader bubble-up* maps **`outputs`** → **`shipPhase`**. **`pr-review`** is inline on the **`coding-session`** lane — use the same recap with `shipPhase: pr-review` (**`pr-review/SKILL.md`** § *Leader §8 recap*).
+On a **`plan and deliver`** Mission Control dispatch, the Squad Leader **§8** ship ledger may **not** receive child **`AGENT_RESULT_RESPONSE_V1`** from detached lanes.
+
+- **§8 does not auto-update from detached work.** Finishing **`pre-pr-review`**, **`create-pr`**, **`deploy-walk`**, or **`plan-reconcile`** on a detached or nested lane does **not** refresh the leader §8 table by itself. Advance or register a row when the developer posts **Ship recap — plan and deliver** on the **leader dispatch** (`lastReportedBy: developer-message`), or when a parent lane forwards a child result the leader can parse (`lastReportedBy: child-output`). Until then, §8 rows stay stale even if the PR plan file or GitHub already moved on.
+
+After each ship milestone, post the **Ship recap — plan and deliver** block on the **leader dispatch** (template and phase enum: **`.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`** §8 *Leader-lane ship recap*). Each ship skill § *Squad Leader bubble-up* maps **`outputs`** → **`shipPhase`**. **`pr-review`** is inline on the **`coding-session`** lane — use the same recap with `shipPhase: pr-review` (**`pr-review/SKILL.md`** § *Leader §8 recap*).
 
 #### Feedback Collection
 
