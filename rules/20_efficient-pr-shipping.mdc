@@ -47,20 +47,21 @@ After implementing changes, **stop**. Do not `git add`, `git commit`, or `git pu
 
 **Sedea git gate (same message):** This section is a **workflow** pause — it does **not** replace [`.sedea/centers/sedea/rules/6_git-commit-push-gate.mdc`](../../sedea/rules/6_git-commit-push-gate.mdc). Agents must satisfy **both**: (1) review and next-step confirmation here (often via **AskQuestion**), and (2) **`git commit`** / **`git push`** only when the user **same message** explicitly asks (e.g. *commit*, *push*). Approving the next stage without *commit* / *push* in that message is **not** permission to run commit or push.
 
-## Never open PRs yourself — use **a PR-creating agent**
+## PR creation — only **`create-pr`** on a PR-creating agent
 
-Developers always open pull requests themselves. On **coding, planning, review, and Squad Leader lanes**, you must **never** call `gh pr create` (or any equivalent GitHub API/MCP call that creates, drafts, or reopens a PR), and must never instruct a subagent to do so — **except** by spawning the dedicated **`create-pr`** protocol branch on a **PR-creating agent** child lane (see below).
+**Rule (read first).** The **only** lane that may call `gh pr create` (or any equivalent GitHub API/MCP call that creates, drafts, or reopens a PR) is **a PR-creating agent** executing [`create-pr/SKILL.md`](../missions/plan-and-deliver/skills/create-pr/SKILL.md) after **`pre-pr-review`** returns `go` and that skill's gates pass. That child lane opens the PR **on the developer's behalf** after they approve PR creation — not from coding, planning, review, or Squad Leader lanes.
 
-**Who may run `gh pr create`:** only **a PR-creating agent** executing [`create-pr/SKILL.md`](../missions/plan-and-deliver/skills/create-pr/SKILL.md) after **`pre-pr-review`** returns `go` and this skill's gates pass. That lane may create the PR on the developer's behalf. **Coding-session**, **pre-pr-review**, **pr-review**, **master-plan**, and other planning or implementation agents may **not** call `gh pr create` even when the user says "open a PR".
+| Lane | May call `gh pr create`? | Handoff |
+|------|--------------------------|---------|
+| **PR-creating agent** (`create-pr` spawned child) | **Yes** — sole supported opener | Run `create-pr` procedure; terminal `AGENT_RESULT_RESPONSE_V1` |
+| **`coding-session`** (active ship chain) | **No** | After pre-PR **go** + developer approves PR creation → **`AGENT_RUN_REQUEST_V1`** for `create-pr`; wait for child result (§ *Create-PR handoff after go* in [`coding-session/SKILL.md`](../missions/plan-and-deliver/skills/coding-session/SKILL.md)) |
+| **Other lanes** (Squad Leader, planning, `pre-pr-review`, `pr-review`, `master-plan`, …) | **No** | Prepare branch/context; spawn **`create-pr`** or emit **`create-pr`** copy-paste prompt for the developer to start **a PR-creating agent** session — never open from the current lane |
 
-This holds on non–PR-creating lanes even when a task description explicitly says "open a PR", "push and open a PR", or "create a pull request". Interpret those as: prepare the branch and hand off to **`create-pr`** — on an active **`coding-session`** lane, **spawn** **a PR-creating agent** via **`AGENT_RUN_REQUEST_V1`** (see that skill § *Create-PR handoff after go*); on other lanes, generate the skill's PR prompt for the developer to start a PR-creating agent session — do not open the PR from the current lane.
+**All other lanes:** do **not** call `gh pr create` and do **not** instruct a subagent to do so except by spawning **`create-pr`** via **`AGENT_RUN_REQUEST_V1`** on the path above.
 
-This prohibition covers **chat output**, not just tool calls. After `git push`, do **not** surface or paraphrase GitHub's remote hint (the `Create a pull request for '<branch>' on GitHub by visiting: https://github.com/<org>/<repo>/pull/new/<branch>` line) in the response. That URL links directly to the GitHub UI PR-creation form and nudges toward the wrong handoff. The only PR-creation artifact the assistant ever presents is **a PR-creating agent** prompt from the `create-pr` protocol branch.
+When the user or task says "open a PR", "push and open a PR", or "create a pull request" on a **non–PR-creating** lane, interpret it as **hand off to `create-pr`** — not as permission to run `gh pr create` on this lane.
 
-The correct handoff after a pushed branch depends on the active lane:
-
-- **`coding-session`** (normal ship chain) — after **`pre-pr-review`** returns `go` and the developer approves PR creation, emit **`AGENT_RUN_REQUEST_V1`** for [`create-pr/SKILL.md`](../missions/plan-and-deliver/skills/create-pr/SKILL.md) per [`coding-session/SKILL.md`](../missions/plan-and-deliver/skills/coding-session/SKILL.md) § *Create-PR handoff after go*; announce wait for **`AGENT_RESULT_RESPONSE_V1`** and stop. Do **not** substitute an inline copy-paste prompt for that spawn.
-- **Other lanes** (Squad Leader, or coding work outside the **`coding-session`** ship chain) — use the **`create-pr`** protocol branch to generate a prompt for **a PR-creating agent**, start that session, and stop. **A PR-creating agent** opens the PR on the developer's behalf.
+This rule covers **chat output**, not just tool calls. After `git push`, do **not** surface or paraphrase GitHub's remote hint (the `Create a pull request for '<branch>' on GitHub by visiting: https://github.com/<org>/<repo>/pull/new/<branch>` line). That URL is the GitHub UI form and bypasses the protocol. The only PR-creation artifacts you present from non–`create-pr` lanes are a **`create-pr`** spawn (on **`coding-session`**) or a **`create-pr`** session prompt (elsewhere).
 
 ## Worktree setup in plans
 
@@ -197,7 +198,7 @@ Break work down recursively until each piece is a **PR leaf**: one reviewable **
 - **Plan tree vs. git worktree** — The **plan** is a tree of intent: **master-plan** roots and nested `.plan.md` files (e.g. `parent:` links), with YAML **todos** in each file for **agents** (the Plan Board sidebar lists **plan files only**, not todo rows). **Git worktrees** are execution: at most one active PR per worktree ([One PR per worktree](#one-pr-per-worktree-many-worktrees-in-parallel)). **Each parallel PR** should map to **one leaf plan file** (and honest todos inside that file for the agent) so status stays honest.
 - **Child plans** — If one `.plan.md` gets too deep or cross-repo, add a **linked child plan**. The parent keeps a short **Plan map** (bullets or Mermaid) listing child slugs and roles.
 - **Contract drift** — If a leaf PR invalidates the breakdown, **update the parent plan** (diagram + todos) before spawning more worktrees so the tree stays the source of truth.
-- **Splitting an existing pile** — When splitting after the fact: get explicit approval before branch, commit, or push; save a recoverable snapshot (`git stash create` + `git update-ref refs/backup/pre-split-<timestamp> …`); stage named paths or hunks only (no `git add .` / `git add -A`); use Mermaid when multiple slices. After push, use the **`create-pr`** protocol branch for **a PR-creating agent** handoff — never open a PR from the assistant session (see **Never open PRs yourself** above).
+- **Splitting an existing pile** — When splitting after the fact: get explicit approval before branch, commit, or push; save a recoverable snapshot (`git stash create` + `git update-ref refs/backup/pre-split-<timestamp> …`); stage named paths or hunks only (no `git add .` / `git add -A`); use Mermaid when multiple slices. After push, use the **`create-pr`** protocol branch for **a PR-creating agent** handoff — never open a PR from the assistant session (see **PR creation — only `create-pr`** above).
 
 ### Planning and validation (diagrams)
 
