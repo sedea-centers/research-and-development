@@ -46,6 +46,7 @@ inputs:
     required: false
 warmUpRules:
   - ".sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc"
+  - ".sedea/centers/research-and-development/missions/plan-and-deliver/skills/README.md"
   - ".sedea/centers/research-and-development/docs/development-process.md"
   - ".sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc"
   - ".sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc"
@@ -297,6 +298,21 @@ Normally spawned after deploy or on developer request. If run inline, use the sa
 
 ## Extensions
 
+Maintenance subcommands and future UX — **not** part of the default reconcile flow (§§1–4). Run only when the developer explicitly requests them or dry-run output shows they are needed.
+
 - **Stale worktree prune.** Today other flows own this. If UX merges here, add **`prune-sessions`** behind an explicit **`AskQuestion`** gate.
-- **`shippedPrs` frontmatter** — when **`reconcile`** / archive writes **`shippedPrs`**, prefer that field in **`list-candidates`** heuristics over body regex (adjust step 2 comments when shipped).
-- **`backfill-prs-from-body`** — optional step 0 behind a separate trigger if you add it to **`plan-state.mjs`**.
+
+- **`shippedPrs` frontmatter** — **`reconcile`** / **`archive`** write **`shippedPrs`** from sidecar **`prs[]`** at archive time. **`list-candidates`** prefers that field over body-regex hits when present (adjust step 2 commentary when this field is populated).
+
+- **`backfill-prs-from-body` (implemented; separate from reconcile).** Subcommand already exists on **`plan-state.mjs`** (see script **`--help`**). Use **before** step 1 when legacy PR plans still reference merged PRs **only in plan body prose** and lack frontmatter **`shippedPrs`** — without it, PR-tracked **`reconcile`** may **`skip`** plans that have no sidecar **`prs[]`**. The subcommand **only** backfills **`shippedPrs`**; it does **not** archive, reparent, or run follow-ups triage. Skips plans that already have non-empty **`shippedPrs`** unless **`--force`**.
+
+  **Triggers (examples):** *backfill shipped PRs*, *fix legacy PR metadata before reconcile*, dry-run **`list-candidates`** shows body-only PR hits with empty **`shippedPrs`**.
+
+  **Gate:** present dry-run output and use **AskQuestion** before any non-dry-run run (same approval pattern as step 1b). Then continue with **Flow** from step 1.
+
+  ```bash
+  node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-state.mjs backfill-prs-from-body --slug <slug> --dry-run
+  node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-state.mjs backfill-prs-from-body --all --dry-run
+  ```
+
+  After developer approval, drop **`--dry-run`**. Add **`--force`** only when re-running after prose corrections and existing **`shippedPrs`** must be overwritten.

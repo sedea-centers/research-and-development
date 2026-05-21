@@ -94,23 +94,27 @@ After emitting **`AGENT_RESULT_RESPONSE_V1`**, **stop on that lane** for the cur
 | `author-prd` (prd mission) | Yes | Also forbids downstream planning spawns |
 | `pr-plan` | Yes | Also forbids **`coding-session`** spawn |
 | `master-plan` | Variant | “Stop after the handoff line and terminal result” when `continuationStatus: active` |
-| `delivery-phases`, `pr-breakdown`, `phase-plan`, `new-plan`, `ad-hoc-prd`, ship chain | Often **no** in spawned section | Rely on this README + **Host protocol line** in each skill |
+| `delivery-phases`, `pr-breakdown`, `phase-plan`, `new-plan`, `ad-hoc-prd`, ship chain | Often **no** in spawned section | **`warmUpRules`** includes this README (§ *Default warm-up*); **Host protocol line** in each skill |
 
 When authoring or reviewing a skill, duplicating the canonical sentence under **`## Completion (spawned)`** is encouraged but **not** required if this README is in **`warmUpRules`** or the spawn request passes it.
 
 ## Default warm-up
 
-**Planning skills** (frontmatter `warmUpRules` on most planning skills):
+Every **spawned** plan-and-deliver skill lists the paths below in frontmatter **`warmUpRules`** (Mission Control merges with optional run-request **`warmUpRules`**). **`skills/README.md`** (this file) is **required** on all of them so § *Terminal stop (normative)* loads even when an individual `SKILL.md` omits the closing sentence.
 
-- `.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc` — Squad Leader §§1–7 ledger, spawn/wait, §6–§7 continuation (not full §8 ship chain)
+**All spawned skills** (planning + ship):
+
+- `.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc` — Squad Leader §§1–7 ledger, spawn/wait; ship skills also use §8 via dev-process / bubble-up
+- `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/README.md` — spawn contracts, inline vs spawned shapes, **terminal stop (normative)**
 - `.sedea/centers/research-and-development/docs/development-process.md`
+
+**Planning skills** also include:
+
 - `.sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc`
 
-**Ship skills** (`coding-session`, `pre-pr-review`, `create-pr`, `deploy-walk`, `plan-reconcile`) — frontmatter **`warmUpRules`**:
+**Ship skills** (`coding-session`, `pre-pr-review`, `create-pr`, `deploy-walk`, `plan-reconcile`) also include:
 
-- `.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`
-- `.sedea/centers/research-and-development/docs/development-process.md`
 - `.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`
 - `.sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc`
 
-Mission Control merges skill frontmatter with optional run-request **`warmUpRules`**. **`pr-review`** is inline-only — no frontmatter **`warmUpRules`** here.
+**`pr-review`** is inline-only — no frontmatter **`warmUpRules`**; it relies on the active **`coding-session`** lane (which includes this README).
