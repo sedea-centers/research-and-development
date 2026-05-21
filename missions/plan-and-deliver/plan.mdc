@@ -412,6 +412,8 @@ Related (optional):
 
 **`deploy-walk` entry points:** developer phrase on a detached lane; **`create-pr`** spawns after merge when the developer chooses **Start deploy verification now**; or direct skill dispatch with plan inputs. Finishing deploy-walk does **not** run **`plan-reconcile`**.
 
+**Start `coding-session`:** Detached lane only — not a Squad Leader spawn from §§1–7. Entry paths, required inputs, and anti-patterns: **`.sedea/centers/research-and-development/docs/development-process.md`** § *Start implementation (`coding-session` entry)*.
+
 Procedures, gates, and spawn contracts live in those skills and in **`.sedea/centers/research-and-development/docs/development-process.md`** (**Protocol branches** table and § *Ship chain*). The Squad Leader **does not** emit `AGENT_RUN_REQUEST_V1` for this table unless a future protocol step explicitly adds it.
 
 **Ship ledger row (per PR plan)**

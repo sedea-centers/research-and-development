@@ -490,6 +490,25 @@ Two independent gates apply before a worktree opens. Do not treat **`pr-plan`** 
 
 When **`readyForImplementation`** is true but §§5–8 still contain `_TBD_`, the script prints **`INCOMPLETE`** — expected, not a bug. Proceed only after the developer finishes those sections, uses **`pr-plan`** pre-fill sketches, chooses **Start with incomplete plan (executive override)** in the worktree-open gate, or sends **`override incomplete plan`** in the message. **`readyForImplementation` alone does not advance the Squad Leader §8 ship `phase` beyond `not-started`** until completeness passes or is overridden and **`coding-session`** sets `developerApprovedImplementation` (**`.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`** §7–§8). See **`.sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc`** § *PR-plan completeness before coding-session* and § *Agent checklist (planning vs ship — do not conflate)*.
 
+#### Start implementation (`coding-session` entry)
+
+After **`pr-plan`** handoff (or an approved per-PR plan), implementation runs on a **detached** lane — **not** on the **`plan and deliver`** Squad Leader lane (§§1–7). There is **no** `mission.yaml` command phrase for ship; use one of the starts below.
+
+| How to start | Typical lane | Minimum inputs |
+|--------------|--------------|----------------|
+| **New Mission Control session** — natural language | Detached | Name **`coding-session`** or “implement this PR”; `@path` to `.sedea/operations/<operationsUserId>/plans/<slug>.plan.md` or `targetPlanSlug`; product **`repoPath`** or **`repoPaths`** |
+| **After `pr-plan` menu handoff** (step 5c option 4) | New detached session | Same; `readyForImplementation: true` is a hint only — **`coding-session`** still runs the worktree-open gate |
+| **Re-use a prior session prompt** | Detached / coding-agent | Two-phase prompt from an earlier **`coding-session`** run; branch and sidecar `worktrees` must still match |
+| **Planning snapshot** | Detached | Snapshot with `targetPlanPath`, `operationsUserId`, repo paths per **`.sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc`** |
+
+**Do not**
+
+- Implement product code on the **`pr-plan`** lane or the Squad Leader planning lane because `readyForImplementation` is true.
+- Open a worktree from planning outputs alone without **`plan-ws-completeness.mjs`** exit 0 or an explicit override in **`coding-session`** § *Worktree-open gate*.
+
+**Canonical skill:** `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/coding-session/SKILL.md`  
+**Squad Leader §8:** post **Ship recap — plan and deliver** on the active leader dispatch as ship milestones complete (**`.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`** §8).
+
 #### Coding Session
 
 Each PR is delivered through the **`coding-session`** protocol branch (see **Development tools** § *Protocol branches*). This stage spins up a worktree, attaches the Sedea workbench when applicable, emits a copy-safe prompt for **a coding agent**, and coordinates the **ship chain** (§ *Ship chain* below) after an explicit committed implementation cut point.
