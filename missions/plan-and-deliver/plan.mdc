@@ -220,7 +220,7 @@ This subsection is the **Squad Leader** contract for §§3, 5, 6, and 7. Sedea h
 ### 2. Validate linked PRD
 
 - **Type:** Branching logic
-- **Intent:** Resolve the developer-provided PRD link or file into a readable PRD artifact before the mission engages **`master-plan`**.
+- **Intent:** Resolve the developer-provided PRD link or file into a readable PRD artifact before the mission engages **`master-plan`**. Intake routing vs the **`prd`** mission: **`.sedea/centers/research-and-development/docs/development-process.md`** § *PRD intake — plan and deliver §2 vs prd mission*.
 - **Inputs:** Confirmed §1 option **1**; PRD URL, absolute path, or workspace `@path`; optional title or related-document hints from the opening message.
 - **Expected output:** A readable PRD body plus the original PRD reference to pass into the **`master-plan`** seed.
 - **Next-step resolution:**

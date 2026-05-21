@@ -135,7 +135,7 @@ When you add, rename, or remove a protocol branch under `missions/plan-and-deliv
 
 ### Scripts (`plan-state.mjs`, `pr-review.py`)
 
-- **Location:** `missions/plan-and-deliver/scripts/` (paths in skills and rule **20** are relative to the **hosting repo root** that contains **`.sedea/`**).
+- **Location:** `missions/plan-and-deliver/scripts/` (paths in skills and rule **20** are workspace-root relative from the checkout that contains **`.sedea/`** — see that checkout’s **`.cursor/rules/`** for hosting-repo specifics).
 - **Runtime:** use the **Node / Python runtime bundled with Sedea / VS Code** — not **fnm**, **nvm**, or other host managers (see **`plan-reconcile`** § *Script CLI*).
-- **`node_modules/`:** a local **`yaml`** dependency may exist under `scripts/node_modules/` for development; it is **not** part of center governance and is **not** tracked in the center git checkout. Agents should not treat vendor trees under `scripts/` as protocol docs.
+- **Vendor trees:** do not treat `scripts/**/node_modules/` or other installed dependencies as protocol documentation (center governance ends at `SKILL.md`, rules, and mission plans).
 - **`verify-skill-manifest.mjs`** — compares **`center.yaml`** `skillEntries` to on-disk `SKILL.md` files for all missions in this center (exit 0 = match).

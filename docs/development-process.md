@@ -51,6 +51,8 @@ node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/v
 
 Exit **0** when manifest and disk match; **1** prints paths only on disk or only in YAML. Plan-and-deliver authors also see **`.sedea/centers/research-and-development/missions/plan-and-deliver/skills/README.md`** § *Adding or removing a skill*.
 
+**Scripts vendor trees.** Any `node_modules/` or other tooling-only trees under `missions/*/scripts/` are **not** center governance assets — do not link-audit or gap-report them as protocol. Hosting checkouts document audit scope in **`.cursor/rules/`** (not in this center repo).
+
 ### PRD authoring — which path?
 
 Two R&D flows produce requirements upstream of **`master-plan`**. Pick **one** row; do not run both for the same feature unless the developer explicitly switches (for example after **`manage prd`** on an existing doc, then **`plan and deliver`** with that `@path`).
@@ -71,6 +73,31 @@ Two R&D flows produce requirements upstream of **`master-plan`**. Pick **one** r
 
 **Referenced skills:** **`ad-hoc-prd`**, **`author-prd`**; missions **`plan-and-deliver/plan.mdc`** §§1–2, **`prd/plan.mdc`**.
 
+### PRD intake — `plan and deliver` §2 vs `prd` mission
+
+The table above chooses **how to author** a PRD. This table chooses **which mission validates or loads** requirements before **`master-plan`**.
+
+| Developer situation | Where to work | What the agent does |
+| --- | --- | --- |
+| **Readable PRD already exists** — workspace `@path`, local file, or URL the agent can fetch | **`plan and deliver`** §1 option **1** → **§2** | Squad Leader collects the reference, reads or fetches the body, acknowledges title/source, passes the artifact into the **`master-plan`** seed. **Do not** open a **`prd`** dispatch for intake alone. |
+| **No PRD yet; needs a full structured doc** — sections, evidence, iterative revision via **`manage prd`** | **`prd`** mission first (**`create prd`** / **`manage prd`**) | **`author-prd`** writes under **`.sedea/operations/<operationsUserId>/docs/`**. When the developer is satisfied, start a **separate** **`plan and deliver`** dispatch with **`@path`** (or link) to that file → §2 treats it like any existing PRD. |
+| **No PRD yet; short blurb; already on `plan and deliver`** | Same dispatch — §1 option **2** → §3 **`ad-hoc-prd`** | Spawn **`ad-hoc-prd`** on this dispatch. **Not** **`create prd`** / **`manage prd`** (those belong to the **`prd`** mission). |
+| **External URL auth-blocked or unreadable in §2** | Stay on **`plan and deliver`** (or switch per AskQuestion) | §2 **AskQuestion**: paste body, switch to ad-hoc (§1 option 2), **`create prd` mission first** (then return with `@path`), or a different readable `@path`. See **`plan.mdc`** §2 *Auth-blocked or unreadable PRD*. |
+| **PRD needs more depth before planning** | **`prd`** **`manage prd`** | Finish or revise the doc on the **`prd`** dispatch; resume **`plan and deliver`** only when the developer supplies a readable `@path` or link. |
+
+**`plan and deliver` §2 does not:** spawn **`author-prd`**, run **`create prd`** / **`manage prd`** inline, or replace option **1** (existing PRD) with **`ad-hoc-prd`**.
+
+**`prd` mission does not:** perform Squad Leader §2 link validation or Confluence/Google fetch for the **`master-plan`** seed — that is **`plan and deliver`** only.
+
+**Handoff phrase examples**
+
+| Developer says (paraphrase) | Route |
+| --- | --- |
+| “Here’s the PRD `@path` — start planning” | **`plan and deliver`** → §2 |
+| “Write a PRD from these notes, then we’ll plan” | **`create prd`** → later **`plan and deliver`** + `@path` |
+| “Small fix, plan and deliver” (no file) | **`plan and deliver`** §1 option **2** → **`ad-hoc-prd`** |
+| “This Confluence link won’t load” | **`plan and deliver`** §2 **AskQuestion** (not invented body text) |
+
 ### Agent UX pitfalls (easy mis-runs)
 
 | Pitfall | Correct surface |
@@ -80,6 +107,7 @@ Two R&D flows produce requirements upstream of **`master-plan`**. Pick **one** r
 | **Commit and push cadence** step 3 | Rule **20** step 3 = **`pr-review` Step 5 — GitHub only** after push when Steps 1–4 already ran — not a second full triage |
 | **High complexity** Master Plan (score **> 20**) | Omit §6 spawn routes until score **≤ 20**; Squad Leader never spawns **`delivery-phases`** / **`pr-breakdown`** |
 | Branch/PR/chat titles | **`.sedea/centers/research-and-development/rules/10_plan-naming-convention.mdc`** — benefit verbs only; never the forbidden busy-work prefix |
+| **`create prd`** while already on **`plan and deliver`** §1–2 | §1 option **2** → **`ad-hoc-prd`**, or finish **`prd`** first then new **`plan and deliver`** + `@path` — § *PRD intake — plan and deliver §2 vs prd mission* |
 
 ### Agents and roles
 
