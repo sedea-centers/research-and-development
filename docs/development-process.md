@@ -342,7 +342,7 @@ Sections 1, 2, 3, 4, 6, 7, and 8 (when present) flow into the PR description tha
 | Happy-path **skill order** (planning → ship) | **Cadence reference** diagram (matches **`plan-and-deliver/plan.mdc`** *Cadence reference*) |
 | **Mission Control `plan and deliver` dispatch** — who spawns whom, §§1–8 protocol, §8 ship ledger, `MC_DISPATCH_RESOLVED_V1` gates | **`.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`** — *Squad operations* and §8 (not duplicated here) |
 
-The large loop diagram below includes planning, **ship chain**, feedback, and plan updates. It is **not** the Squad Leader spawn map. Detached ship lanes and leader-lane recap: **`.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`** §8 and § *Leader-lane ship recap* under **Loop stages** below.
+The large loop diagram below includes planning, **ship chain**, feedback, and plan updates. It is **not** the Squad Leader spawn map. Detached ship lanes, Mission Control §8 host sync, and leader-lane recap: **`plan.mdc`** §8 (*Mission Control host sync*, *Leader-lane ship recap*) and **Loop stages** § *Leader-lane ship recap* below.
 
 ### Cadence reference (skill order — same as plan-and-deliver mission plan)
 
@@ -512,13 +512,18 @@ Archive candidates, follow-ups triage, merge/deploy gates. Often developer-trigg
 
 ##### Leader-lane ship recap (detached lanes)
 
-On a **`plan and deliver`** Mission Control dispatch, the Squad Leader **§8** ship ledger may **not** receive child **`AGENT_RESULT_RESPONSE_V1`** from detached lanes.
+On a **`plan and deliver`** Mission Control dispatch, the Squad Leader **§8** ship ledger often does **not** show detached child **`AGENT_RESULT_RESPONSE_V1`** on the leader chat. Progress still reaches §8 through three channels (see **`plan.mdc`** §8 *Mission Control host sync* and *Leader-lane ship recap*):
 
-- **§8 does not auto-update from detached work.** Finishing **`pre-pr-review`**, **`create-pr`**, **`deploy-walk`**, or **`plan-reconcile`** on a detached or nested lane does **not** refresh the leader §8 table by itself. Advance or register a row when the developer posts **Ship recap — plan and deliver** on the **leader dispatch** (`lastReportedBy: developer-message`), or when a parent lane forwards a child result the leader can parse (`lastReportedBy: child-output`). Until then, §8 rows stay stale even if the PR plan file or GitHub already moved on.
+| Channel | When |
+|---------|------|
+| **Host sync** | Mission Control persists **`ship-ledger.v1.json`** and injects a silent leader-lane message **`Mission Control: ship-ledger sync (section 8).`** with a **Ship recap — plan and deliver** block when a ship child terminal includes **`outputs.targetPlanPath`**, **`outputs.shipPhase`**, and **`outputs.rowStatus`**. |
+| **Developer recap** | Developer or agent posts the recap template on the **leader dispatch** (`lastReportedBy: developer-message`). |
+| **Forwarded child-output** | A parent lane forwards parseable child results to the leader. |
 
-After each ship milestone, post the **Ship recap — plan and deliver** block on the **leader dispatch** (template and phase enum: **`.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`** §8 *Leader-lane ship recap*). Each ship skill § *Squad Leader bubble-up* maps **`outputs`** → **`shipPhase`**. **`pr-review`** is inline on the **`coding-session`** lane — use the same recap with `shipPhase: pr-review` (**`pr-review/SKILL.md`** § *Leader §8 recap*).
+- **Host sync is partial.** It covers terminal results from **`coding-session`**, **`pre-pr-review`**, **`create-pr`**, **`deploy-walk`**, and **`plan-reconcile`** when required **`outputs`** are present. It does **not** run for inline **`pr-review`** on the **`coding-session`** lane (no separate child terminal). Manual recap is still required for **`pr-review`** milestones and whenever sync was skipped (missing `targetPlanPath`, older Mission Control build, or nested parent not the Squad Leader).
+- **Manual recap still valid.** Post **Ship recap — plan and deliver** on the leader dispatch when host sync did not fire or §8 rows look stale. Each ship skill § *Squad Leader bubble-up* and § *Mission Control section 8 sync* maps terminal **`outputs`** → **`shipPhase`** / **`rowStatus`**.
 
-- **Dispatch closure gate:** On the **plan and deliver** leader lane, do **not** propose **`MC_DISPATCH_RESOLVED_V1`** with **`resolved`** while any §8 ship row is **`open`** or **`blocked`** unless a **Ship recap** block for that row was parsed on the leader dispatch in this session, or the developer explicitly chose **planning-only** dispatch closure via **AskQuestion** (see **`plan.mdc`** §8 *Pre-resolution checklist*).
+- **Dispatch closure gate:** On the **plan and deliver** leader lane, do **not** propose **`MC_DISPATCH_RESOLVED_V1`** with **`resolved`** while any §8 ship row is **`open`** or **`blocked`** unless a **Ship recap** block for that row was parsed on the leader dispatch in this session (including host-sync messages), or the developer explicitly chose **planning-only** dispatch closure via **AskQuestion** (see **`plan.mdc`** §8 *Pre-resolution checklist*).
 
 #### Feedback Collection
 
