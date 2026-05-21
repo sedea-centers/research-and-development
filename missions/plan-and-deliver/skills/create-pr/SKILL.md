@@ -59,6 +59,11 @@ inputs:
     description: When true, wait for merge status and spawn deploy-walk after the PR is merged.
     required: false
     default: true
+warmUpRules:
+  - ".sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc"
+  - ".sedea/centers/research-and-development/docs/development-process.md"
+  - ".sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc"
+  - ".sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc"
 ---
 
 # Create PR

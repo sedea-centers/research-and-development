@@ -82,6 +82,11 @@ Stop after the terminal line.
 - `.sedea/centers/research-and-development/docs/development-process.md`
 - `.sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc`
 
-**Ship skills** — invoker should pass rule **20**, target plan path, and Sedea always-apply rules via Mission Control warm-up and optional run-request **`warmUpRules`** (many ship skills omit frontmatter `warmUpRules`).
+**Ship skills** (`coding-session`, `pre-pr-review`, `create-pr`, `deploy-walk`, `plan-reconcile`) — frontmatter **`warmUpRules`**:
 
-The invoker should also pass this mission **`plan.mdc`** where the parent is the Squad Leader or needs mission context.
+- `.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`
+- `.sedea/centers/research-and-development/docs/development-process.md`
+- `.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`
+- `.sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc`
+
+Mission Control merges skill frontmatter with optional run-request **`warmUpRules`**. **`pr-review`** is inline-only — no frontmatter **`warmUpRules`** here.
