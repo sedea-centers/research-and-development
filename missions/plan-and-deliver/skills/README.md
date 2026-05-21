@@ -44,7 +44,7 @@ These skills run on **detached** or **nested** lanes (often **not** the Squad Le
 | `coding-session` | Developer / mission dispatch | `## Implementation handoff result` (+ **`## Completion (inline)`** if same-lane) | Layer 2: `developerApprovedImplementation` after worktree-open gate only |
 | `pre-pr-review` | `coding-session` | Step 8 — Report and result | `pre-pr-review`; `recommendation: go` |
 | `create-pr` | `coding-session` | `## Result contract` (+ lifecycle sections) | `pr-open`; `prUrl`, `prNumber` |
-| `deploy-walk` | `create-pr` (after merge, when chosen) | `## Spawned result contract` | `deploy-walk`; `deployStatus`, `deployTodoStatus` |
+| `deploy-walk` | Developer phrase, **`create-pr`** after merge, or detached dispatch | `## Spawned result contract` | `deploy-walk`; entry points in **development-process.md** § *Ship chain* |
 | `plan-reconcile` | Developer / `create-pr` after deploy | `## Spawned result contract` | `reconcile` → `done`; `archivedSlugs` |
 
 The Squad Leader **§8** ship ledger may update from **developer-message** when detached lanes do not bubble `AGENT_RESULT_RESPONSE_V1` to the leader — see **`../plan.mdc`** §8.

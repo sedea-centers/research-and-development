@@ -160,6 +160,8 @@ If PR status is `closed` without merge, return `partial` or `abandoned` accordin
 
 ### Spawn deploy-walk after merge
 
+Entry paths for **`deploy-walk`**: **`.sedea/centers/research-and-development/docs/development-process.md`** § *Ship chain* → **`deploy-walk` entry points*. This subsection is the **`create-pr`** chain path (spawned child after merge).
+
 When `autoDeployAfterMerge` is not `false` and PR status is `merged`, verify deploy-walk prerequisites, then ask the developer with **AskQuestion** before spawning deploy verification. Required options:
 
 1. **Start deploy verification now**

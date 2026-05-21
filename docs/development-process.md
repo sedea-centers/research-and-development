@@ -430,8 +430,18 @@ After **`pr-plan`** handoff and **`coding-session`** implementation, the happy p
 | 1 | **`pre-pr-review`** | Fresh reviewer lane; go/no-go before merge-ready |
 | 2 | **`create-pr`** | **Only** branch that may run **`gh pr create`** (rule **20**) |
 | 3 | **`pr-review`** | Triage open PR comments (often **inline** in **`coding-session`**) |
-| 4 | **`deploy-walk`** | Walk §7 deploy checklist after merge when applicable |
-| 5 | **`plan-reconcile`** | Merge-driven archive + follow-ups triage (not auto-run from deploy-walk) |
+| 4 | **`deploy-walk`** | Walk §7 deploy checklist after merge when applicable (see **Entry points** below) |
+| 5 | **`plan-reconcile`** | Merge-driven archive + follow-ups triage (separate cadence after merge/deploy) |
+
+**`deploy-walk` entry points (canonical)**
+
+| How it starts | Typical lane | When |
+|---------------|--------------|------|
+| **Developer phrase** — `deploy-walk present <N>`, `deploy-walk status`, step done/skip/block | Detached (developer or snapshot) | PR merged or target env ready; plan §7 exists |
+| **`create-pr` chain** — **AskQuestion** **Start deploy verification now** after merge | Spawned **`deploy-walk`** child | PR `merged`; `autoDeployAfterMerge` not `false` (**`create-pr/SKILL.md`** § *Spawn deploy-walk after merge*) |
+| **Mission / skill dispatch** — invoke **`deploy-walk/SKILL.md`** with plan anchor | Detached | Same as developer phrase when inputs are supplied |
+
+**Ordering:** Run **`deploy-walk`** after the PR is **merged** and §7 is walkable. Finishing deploy-walk (or capstone todo **done**) does **not** run **`plan-reconcile`** — start **`plan-reconcile`** separately when linked PRs are merged and you want archive/follow-up triage (**`plan-reconcile/SKILL.md`** § *When to trigger*).
 
 ##### pre-pr-review
 
@@ -447,7 +457,7 @@ Runs **inline** on the active **`coding-session`** lane after a PR exists (not a
 
 ##### deploy-walk
 
-Step-by-step walk of the PR plan **`## 7. Deploy test plan`**; flips capstone todo **`deploy-test-plan-verified`** when done. Does **not** auto-run **`plan-reconcile`**. See **`.sedea/centers/research-and-development/missions/plan-and-deliver/skills/deploy-walk/SKILL.md`**.
+Step-by-step walk of the PR plan **`## 7. Deploy test plan`**; flips capstone todo **`deploy-test-plan-verified`** when done. Entry paths: **§ Ship chain** *deploy-walk entry points* above. See **`deploy-walk/SKILL.md`** § *Entry points*.
 
 ##### plan-reconcile
 

@@ -67,6 +67,18 @@ This skill drives the **per-step deploy verification loop** for a PR plan's `## 
 
 When spawned by **`create-pr`**, this skill is the **deploy-walk agent** for a merged PR. It owns deploy verification status and reports it upstream; it does not run implementation, PR review, or plan reconciliation.
 
+## Entry points
+
+Canonical table: **`.sedea/centers/research-and-development/docs/development-process.md`** § *Ship chain* → **`deploy-walk` entry points**.
+
+| How it starts | Lane |
+|---------------|------|
+| Developer phrase (`deploy-walk present <N>`, status, done/skip/block) | Detached |
+| **`create-pr`** after merge — developer chooses **Start deploy verification now** | Spawned child (`upstreamSkill: create-pr`) |
+| Direct skill dispatch with `targetPlanPath` / slug | Detached |
+
+Run after the PR is **merged** (or the plan's target env is ready). Completing this walk does **not** start **`plan-reconcile`** — reconcile is a separate developer or **`create-pr`** follow-on when merge/archive triage is needed.
+
 The skill is **loose mode by design**. Between `deploy-walk present <N>` (which presents step N) and `deploy-walk <N> done` / `skip` / `block` (which closes step N), the chat is **normal collaboration** — the **developer** can ask any question, request the agent run a command, paste log output, debug, take a break, switch tasks. The bracketing tokens (`deploy-walk present <N>` / `deploy-walk <N> done`) are the only signals this skill cares about; everything in between is whatever the **developer** needs.
 
 **State lives in the plan file, not in chat memory.** The skill re-reads the plan on every command. A walk that started yesterday, was interrupted by 30 other turns, and resumed today still works — the agent finds the same `[ ]` boxes and the same `**Status:**` line.
