@@ -14,11 +14,6 @@ inputs:
     type: string
     description: Output path for create mode or existing PRD path for manage mode.
     required: false
-  storageScope:
-    type: string
-    description: Deprecated; PRD creation always writes under `.sedea/operations/<operationsUserId>/docs/`.
-    required: false
-    default: user
   sourceMaterials:
     type: array
     description: Optional seed materials from the opening command or Squad Leader handoff; author-prd collects the full source ledger from the user.
@@ -49,11 +44,10 @@ Gather evidence, calibrate section policy, and draft or update a Product or Feat
 - `prdTitle`
 - `operation`: `create` or `manage`
 - `targetPath` when supplied
-- `storageScope`: ignored for creation; new PRDs always use `.sedea/operations/<operationsUserId>/docs/`
 - `sourceMaterials` (optional seed materials)
+- `operationsUserId` — `create` writes under `.sedea/operations/<operationsUserId>/docs/`
 - `sectionPolicy`
 - `existingPrdBody` for updates
-- `operationsUserId`
 
 ## Procedure
 
