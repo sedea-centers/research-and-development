@@ -34,6 +34,7 @@ inputs:
 warmUpRules:
   - ".sedea/centers/research-and-development/missions/prd/plan.mdc"
   - ".sedea/centers/research-and-development/docs/development-process.md"
+  - ".sedea/centers/research-and-development/rules/31_operations-user-id.mdc"
 ---
 
 # Skill: author-prd

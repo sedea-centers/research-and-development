@@ -57,6 +57,8 @@ After implementing changes, **stop**. Do not `git add`, `git commit`, or `git pu
 | **`coding-session`** (active ship chain) | **No** | After pre-PR **go** + developer approves PR creation → **`AGENT_RUN_REQUEST_V1`** for `create-pr`; wait for child result (§ *Create-PR handoff after go* in [`coding-session/SKILL.md`](../missions/plan-and-deliver/skills/coding-session/SKILL.md)) |
 | **Other lanes** (Squad Leader, planning, `pre-pr-review`, `pr-review`, `master-plan`, …) | **No** | Prepare branch/context; spawn **`create-pr`** or emit **`create-pr`** copy-paste prompt for the developer to start **a PR-creating agent** session — never open from the current lane |
 
+**Developer accountability:** the developer decides **when** to open a PR and approves creation in the ship chain; **only** the **`create-pr`** child lane runs `gh pr create` on their behalf. Other lanes prepare context and hand off — they do not open GitHub themselves.
+
 **All other lanes:** do **not** call `gh pr create` and do **not** instruct a subagent to do so except by spawning **`create-pr`** via **`AGENT_RUN_REQUEST_V1`** on the path above.
 
 When the user or task says "open a PR", "push and open a PR", or "create a pull request" on a **non–PR-creating** lane, interpret it as **hand off to `create-pr`** — not as permission to run `gh pr create` on this lane.

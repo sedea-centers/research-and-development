@@ -94,7 +94,8 @@ After emitting **`AGENT_RESULT_RESPONSE_V1`**, **stop on that lane** for the cur
 | `author-prd` (prd mission) | Yes | Also forbids downstream planning spawns |
 | `pr-plan` | Yes | Also forbids **`coding-session`** spawn |
 | `master-plan` | Variant | “Stop after the handoff line and terminal result” when `continuationStatus: active` |
-| `delivery-phases`, `pr-breakdown`, `phase-plan`, `new-plan`, `ad-hoc-prd`, ship chain | Often **no** in spawned section | **`warmUpRules`** includes this README (§ *Default warm-up*); **Host protocol line** in each skill |
+| `delivery-phases`, `pr-breakdown`, `new-plan`, `ad-hoc-prd`, ship chain | Often **no** in spawned section | **`warmUpRules`** includes this README (§ *Default warm-up*); **Host protocol line** in each skill |
+| `phase-plan` | Yes | Same canonical stop sentence as **`pr-plan`** |
 
 When authoring or reviewing a skill, duplicating the canonical sentence under **`## Completion (spawned)`** is encouraged but **not** required if this README is in **`warmUpRules`** or the spawn request passes it.
 
@@ -117,4 +118,10 @@ Every **spawned** plan-and-deliver skill lists the paths below in frontmatter **
 - `.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`
 - `.sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc`
 
-**`pr-review`** is inline-only — no frontmatter **`warmUpRules`**; it relies on the active **`coding-session`** lane (which includes this README).
+**`pr-review`** is inline-only — **no** frontmatter **`warmUpRules`**; it runs **only** on the active **`coding-session`** lane (which includes this README and rule **20**). Do not dispatch **`pr-review`** as a standalone skill session.
+
+### Scripts (`plan-state.mjs`, `pr-review.py`)
+
+- **Location:** `missions/plan-and-deliver/scripts/` (paths in skills and rule **20** are relative to the **hosting repo root** that contains **`.sedea/`**).
+- **Runtime:** use the **Node / Python runtime bundled with Sedea / VS Code** — not **fnm**, **nvm**, or other host managers (see **`plan-reconcile`** § *Script CLI*).
+- **`node_modules/`:** a local **`yaml`** dependency may exist under `scripts/node_modules/` for development; it is **not** part of center governance and is **not** tracked in the center git checkout. Agents should not treat vendor trees under `scripts/` as protocol docs.

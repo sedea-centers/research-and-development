@@ -60,7 +60,7 @@ R&D delivery agents are governed by:
 - **`.plan.md` files** — Standalone plan files at each hierarchy level (Master Plan, phase plans, PR plans); canonical location is under `.sedea/operations/**/plans/**`.
 - **PRD** — Product (or feature) Requirements Document — the prime input for the one-shot **Master Plan** (mode #1). **Bugs and small improvements** may start as an **Ad-Hoc PRD** at **`.sedea/operations/<operationsUserId>/docs/ad_hoc_<slug>_<hex>.ad-hoc-prd.md`** (personal operations space only when using the **`ad-hoc-prd`** skill; **`joint/docs/`** is not written by that protocol — promote by moving the file if the developer wants it shared). Authoring is defined by the **`ad-hoc-prd`** protocol branch (file shape is embedded in that skill).
 - **Git worktree** — Isolated checkout used by the **`coding-session`** protocol branch when spinning up a coding agent.
-- **Protocol** — The "Development" mission protocol that serves as an implementation of Development Processes as defined in this document. 
+- **Protocol** — The **plan and deliver** mission (`.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`, command phrase *plan and deliver*) — protocol branches and skills under `missions/plan-and-deliver/skills/` implement this document's cadence. 
 
 ### Protocol branches
 

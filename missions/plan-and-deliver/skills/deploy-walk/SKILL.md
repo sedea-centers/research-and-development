@@ -112,7 +112,7 @@ The agent **never auto-advances**. After `deploy-walk <N> done`, the confirmatio
 
 ## Step 1 — Resolve the target plan
 
-The target is a `.plan.md` file under the **`.sedea/operations/`** plan union with a `## N. Deploy test plan` section. Resolve it from chat context per [`30_planning-target-resolution.mdc`](../../../../rules/30_planning-target-resolution.mdc) § *Resolution order*, with **one additional filter**: only consider plans whose body has `## N. Deploy test plan` *and* a `**Status:**` line.
+The target is a `.plan.md` file under the **`.sedea/operations/`** plan union with a `## N. Deploy test plan` section. Resolve it from chat context per [`30_planning-target-resolution.mdc`](.sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc) § *Resolution order*, with **one additional filter**: only consider plans whose body has `## N. Deploy test plan` *and* a `**Status:**` line.
 
 Resolution order (highest confidence first):
 
