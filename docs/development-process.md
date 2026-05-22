@@ -374,21 +374,34 @@ The large loop diagram below includes planning, **ship chain**, feedback, and pl
 
 ### Cadence reference (skill order — same as plan-and-deliver mission plan)
 
-Approval gates and developer choices happen inside each skill; this line is the **happy-path order** only.
+Logical **milestones** — **not** strict spawn order. **`pr-review`** is usually **inline on `coding-session`** (open PR). **`plan-reconcile`** is **not** auto-started after **`deploy-walk`** (rule **20**, **`plan-reconcile/SKILL.md`** § *Not auto-started from deploy-walk*).
 
 ```mermaid
-flowchart LR
+flowchart TB
   classDef branch fill:#f0fdf4,stroke:#16a34a,color:#14532d
 
-  PRD[PRD] --> MPB[master-plan]:::branch
-  MPB --> DEC[delivery-phases or pr-breakdown]:::branch
-  DEC --> CHILD[new-plan → phase-plan or pr-plan]:::branch
-  CHILD --> CSB[coding-session]:::branch
-  CSB --> PPRB[pre-pr-review]:::branch
-  PPRB --> CPRB[create-pr]:::branch
-  CPRB --> REVB[pr-review]:::branch
-  REVB --> DWB[deploy-walk]:::branch
-  DWB --> RECB[plan-reconcile]:::branch
+  subgraph plan["Planning"]
+    PRD[PRD] --> MPB[master-plan]:::branch
+    MPB --> DEC[delivery-phases or pr-breakdown]:::branch
+    DEC --> CHILD[new-plan → phase-plan or pr-plan]:::branch
+  end
+
+  subgraph pre["Pre-merge ship — detached lanes"]
+    CSB[coding-session]:::branch
+    PPRB[pre-pr-review]:::branch
+    CPRB[create-pr]:::branch
+    REVB[pr-review]:::branch
+    CHILD --> CSB
+    CSB --> PPRB --> CPRB
+    CSB -.->|inline on coding-session| REVB
+  end
+
+  subgraph post["Post-merge — reconcile not auto-chained"]
+    DWB[deploy-walk]:::branch
+    RECB[plan-reconcile]:::branch
+    CPRB -.->|after PR merge| DWB
+    DWB -.->|separate explicit start| RECB
+  end
 ```
 
 ### Hosting repo development loop (planning + ship + feedback)
@@ -421,9 +434,9 @@ flowchart TD
 
       E --> PPR[pre-pr-review]
       PPR --> CPR[create-pr]
-      CPR --> PRV[pr-review]
-      PRV --> DW[deploy-walk]
-      DW --> REC[plan-reconcile]
+      E -.->|inline pr-review| PRV[pr-review]
+      CPR -.->|post-merge| DW[deploy-walk]
+      DW -.->|not auto-chained| REC[plan-reconcile]
       REC --> S1 --> H[Collect Feedback]
       H --> I[Plan Updates]
     end
@@ -452,7 +465,7 @@ flowchart TD
     class I rose
 ```
 
-**Diagram legend.** **`coding-session`** covers worktree setup and the **coding agent** implementation pass. The nodes **`pre-pr-review`** → **`create-pr`** → **`pr-review`** → **`deploy-walk`** → **`plan-reconcile`** are the **ship chain** (same order as **Cadence reference** above and **`.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`**). Feedback and **Plan Updates** close the iteration; they are not substitutes for ship branches.
+**Diagram legend.** **`coding-session`** covers worktree setup and the **coding agent** implementation pass. **Pre-merge:** **`pre-pr-review`** → **`create-pr`** on the ship lane; **`pr-review`** is usually **inline on `coding-session`** (dotted edge), not a mandatory step after **`create-pr`**. **Post-merge:** **`deploy-walk`** after merge (dotted from **`create-pr`**); **`plan-reconcile`** is a **separate explicit start** — finishing **`deploy-walk` does not auto-run reconcile** (dotted *not auto-chained*). See **Cadence reference** and **`plan-and-deliver/plan.mdc`**. Feedback and **Plan Updates** close the iteration; they are not substitutes for ship branches.
 
 **One-shot setup.** PRD → **Master Plan**. The agent that drafts the **Master Plan** from a PRD is the **`master-plan`** protocol branch (path in **Development tools** § *Protocol branches*); the artefact is mode #1's **Master Plan** template above.
 
