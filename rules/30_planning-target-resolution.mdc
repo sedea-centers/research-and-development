@@ -122,11 +122,25 @@ Below the table, repeat the same options as **`AskQuestion`** choices or a **num
 
 Snapshots should respect **coding-session** pre-worktree validation and the worktree-open gate when a PR plan would anchor a worktree session. **`readyForImplementation: true`** from **`pr-plan`** does **not** bypass validation — see **development-process.md** § *Planning readiness vs worktree completeness*.
 
-1. For each in-scope **PR plan** row, detect `_TBD_` outside fenced code in §§5–8 / deploy where applicable, or run (from hosting repo):  
-   `node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-ws-completeness.mjs --file "<absolute path>"`  
+1. For each in-scope **PR plan** row, detect `_TBD_` outside fenced code in §§5–8 / deploy where applicable, or run **`plan-ws-completeness.mjs`** from **`HOSTING_ROOT`** (§ *Hosting repo cwd for scripts (canonical)* in [`.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`](20_efficient-pr-shipping.mdc)):
+
+   ```bash
+   cd "$HOSTING_ROOT"
+   node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-ws-completeness.mjs \
+     --file "<absolute path to .plan.md>"
+   ```
+
    Exit **1** (`INCOMPLETE`) means incomplete for worktree handoff even when the plan was marked planning-ready.
 
-2. **Anchor plan** for **coding-session** matches **`plan-state.mjs resolve`**: `node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-state.mjs --operations-user-id <operationsUserId> resolve --cwd "$PWD"` when in a linked worktree (from hosting repo root), else the PR plan explicitly in play.
+2. **Anchor plan** for **coding-session** matches **`plan-state.mjs resolve`** — shell **`cwd`** is **`HOSTING_ROOT`**, **`--cwd`** is the worktree when linked:
+
+   ```bash
+   cd "$HOSTING_ROOT"
+   node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-state.mjs \
+     --operations-user-id <operationsUserId> resolve --cwd "$WORKTREE_ROOT"
+   ```
+
+   When not in a worktree, use the PR plan path explicitly in play. Do **not** set script paths from `ROOT="$(git rev-parse --show-toplevel)"` in a product worktree alone.
 
 3. If incomplete **and** that plan is the default **coding-session** anchor, the **first** numbered option must be finishing the PR plan sections; list **coding-session** only after completeness or with an explicit override label consistent with the **coding-session** skill.
 

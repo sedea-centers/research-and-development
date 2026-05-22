@@ -20,6 +20,53 @@ There are two kinds of agent sessions:
 
 When the Squad Leader receives an implementation request, PR review, or cross-repo task, hand off to a new agent session via the **`coding-session` protocol branch** ([`coding-session/SKILL.md`](../missions/plan-and-deliver/skills/coding-session/SKILL.md) — same mission as `pr-review` / `create-pr`). Create the worktree with `git worktree add` (see **Worktree setup in plans**), then in Mission Control chat call the MCP tool **`sedea_add_worktree_folder`** with **`path`** set to the **absolute** filesystem path of the new worktree root (optional **`name`** for the explorer folder label) so that folder is added to the Sedea workbench workspace before emitting the two-phase session prompt, and stop.
 
+## Hosting repo cwd for scripts (canonical)
+
+R&D automation scripts **`plan-state.mjs`**, **`plan-ws-completeness.mjs`**, and **`pr-review.py`** live under **`.sedea/centers/research-and-development/missions/plan-and-deliver/scripts/`** in the **hosting repository** — the Git checkout whose root contains **`.sedea/`** (and usually **`.sedea/centers/sedea/`**).
+
+**Product worktrees** (`git worktree add` for `push`, `payments-web`, etc.) often have a **different** `git rev-parse --show-toplevel` and **no** `.sedea/centers/` tree. Do **not** derive script paths from the worktree root alone.
+
+### Resolve `HOSTING_ROOT`
+
+Before any `node …/plan-state.mjs` or `python3 …/pr-review.py` invocation:
+
+1. Start from the implementation worktree or hosting checkout cwd.
+2. Walk **up** parent directories until **`.sedea/centers/sedea/`** exists (preferred) or at minimum **`.sedea/`** at the hosting repo root.
+3. Set **`HOSTING_ROOT`** to that directory (parent of `.sedea/`).
+4. **`cd "$HOSTING_ROOT"`** for every script shell line; use repo-relative paths from there (for example `.sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-state.mjs`).
+
+When the agent already knows the Mission Control primary checkout path, set **`HOSTING_ROOT`** explicitly instead of guessing.
+
+### Worktree context for `resolve --cwd`
+
+When linking a plan to a worktree, pass the **worktree** path to **`resolve --cwd`** while the shell **`cwd`** is **`HOSTING_ROOT`**:
+
+```bash
+WORKTREE_ROOT="$(pwd)"   # after cd into the implementation worktree
+cd "$HOSTING_ROOT"
+OPS_ID="<operationsUserId from Mission Control or sedea_get_current_user>"
+
+node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-state.mjs \
+  --operations-user-id "$OPS_ID" resolve --cwd "$WORKTREE_ROOT"
+```
+
+For **`upsert-pr --repo`**, use **`$(basename "$WORKTREE_ROOT")`** (the implementation repo), not the hosting checkout name.
+
+### `pr-review.py`
+
+Run **`python3 .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/pr-review.py`** with **`cd "$HOSTING_ROOT"`** (two-step **`PR_REVIEW_INPUT`** per [`pr-review/SKILL.md`](../missions/plan-and-deliver/skills/pr-review/SKILL.md)). Git / `gh` in **`pr-review`** Step 0 may use the **implementation worktree**; the script binary path must not assume `.sedea/` exists under the worktree root.
+
+### Forbidden pattern
+
+```bash
+ROOT="$(git rev-parse --show-toplevel)"   # worktree — often wrong for Sedea scripts
+node "$ROOT/.sedea/centers/.../plan-state.mjs" ...
+```
+
+Use **`HOSTING_ROOT`** plus a repo-relative script path from the hosting checkout, or an absolute path to the script file under **`HOSTING_ROOT`**.
+
+Cross-refs: [`.sedea/centers/research-and-development/rules/31_operations-user-id.mdc`](31_operations-user-id.mdc) § *Worked example*; [`.sedea/centers/sedea/rules/0_hosting-checkout.mdc`](../../sedea/rules/0_hosting-checkout.mdc).
+
 ## Plan for independence
 
 When creating a multi-PR plan, **maximize the number of PRs that can be worked on in parallel**:
@@ -136,7 +183,7 @@ How to run the full cadence:
 
 ### `plan-state.mjs` and `operationsUserId`
 
-Run all **`plan-state.mjs`** invocations from the **hosting repository root** (see § *Hosting repo cwd for scripts* below). Pass **`--operations-user-id <id>` before the subcommand** — same value as Mission Control **`operationsUserId`** (see [`.sedea/centers/research-and-development/rules/31_operations-user-id.mdc`](31_operations-user-id.mdc)). Without the flag, only **`joint`** plans are visible.
+Run all **`plan-state.mjs`** invocations per § *Hosting repo cwd for scripts (canonical)*. Pass **`--operations-user-id <id>` before the subcommand** — same value as Mission Control **`operationsUserId`** (see [`.sedea/centers/research-and-development/rules/31_operations-user-id.mdc`](31_operations-user-id.mdc)). Without the flag, only **`joint`** plans are visible.
 
 ### User input
 
@@ -147,30 +194,32 @@ Per **[`30_planning-target-resolution.mdc`](30_planning-target-resolution.mdc)**
 
 ### Steps
 
-**Hosting repo cwd for scripts.** The `node …/plan-state.mjs` and `python3 …/pr-review.py` invocations use paths relative to the **hosting repository root** (the checkout whose root contains `.sedea/`). A sibling git worktree often does **not** contain `.sedea/`; run these commands after `cd` to the hosting root, or pass an absolute path to the script.
+Apply § *Hosting repo cwd for scripts (canonical)* for every script invocation in this cadence (`HOSTING_ROOT`, `WORKTREE_ROOT`, `OPS_ID`).
 
 1. **Commit** (step 1). **Skip this step if `git status --short` is empty** — typical after the committed cut point reviewed by `pre-pr-review`. Do not amend the previous commit and do not pass `--allow-empty`; just proceed to step 2.
 2. Push to remote.
-3. **PR comment reconciliation (`pr-review` → this cadence).** This step is **only** [`pr-review`](../missions/plan-and-deliver/skills/pr-review/SKILL.md) **Step 5 — GitHub only** (not Steps 1–4). When this coding session already ran that skill’s Steps 1–4 (per-comment dispositions in the Step 4 report) and **GitHub** reply / resolve / minimize / summary from Step 5 has **not** run yet, the **commit and push cadence is incomplete** until Step 5 runs — **same agent turn**, immediately after the push succeeds (so the summary can cite `git rev-parse --short HEAD`). Execute via `python3 .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/pr-review.py` (two-step `PR_REVIEW_INPUT` per that skill). If thread IDs or PR identity are missing from context, re-run that skill’s **Step 1** script array for the same PR, then Step 5. If there was no `pr-review` triage in this chat, **skip step 3 entirely** — do not run the script.
-4. **Link the PR to its plan sidecar.** After push (and after step 3 when applicable), attempt to upsert the PR number into the Plan Board sidecar so `plan-reconcile` can later archive the plan when all linked PRs merge. Run (from hosting repo root; **`--operations-user-id` before the subcommand**):
+3. **PR comment reconciliation (`pr-review` → this cadence).** This step is **only** [`pr-review`](../missions/plan-and-deliver/skills/pr-review/SKILL.md) **Step 5 — GitHub only** (not Steps 1–4). When this coding session already ran that skill’s Steps 1–4 (per-comment dispositions in the Step 4 report) and **GitHub** reply / resolve / minimize / summary from Step 5 has **not** run yet, the **commit and push cadence is incomplete** until Step 5 runs — **same agent turn**, immediately after the push succeeds (so the summary can cite `git rev-parse --short HEAD` in the **worktree**). Execute from **`HOSTING_ROOT`**: `cd "$HOSTING_ROOT" && python3 .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/pr-review.py` (two-step `PR_REVIEW_INPUT` per that skill). If thread IDs or PR identity are missing from context, re-run that skill’s **Step 1** script array for the same PR, then Step 5. If there was no `pr-review` triage in this chat, **skip step 3 entirely** — do not run the script.
+4. **Link the PR to its plan sidecar.** After push (and after step 3 when applicable), attempt to upsert the PR number into the Plan Board sidecar so `plan-reconcile` can later archive the plan when all linked PRs merge. Run with **`cd "$HOSTING_ROOT"`** and **`--operations-user-id` before the subcommand** (`WORKTREE_ROOT` = implementation worktree where commit/push ran):
 
    ```bash
+   WORKTREE_ROOT="$(pwd)"   # implementation worktree (before cd to HOSTING_ROOT)
+   cd "$HOSTING_ROOT"
    OPS_ID="<operationsUserId from Mission Control or sedea_get_current_user>"
 
    # Which plan owns this worktree? (exit 2 = none; skip silently)
    node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-state.mjs \
-     --operations-user-id "$OPS_ID" resolve --cwd "$PWD"
+     --operations-user-id "$OPS_ID" resolve --cwd "$WORKTREE_ROOT"
    # → prints "<slug>\t<planPath>" on exit 0.
 
-   # Does an open PR already exist for this branch?
-   gh pr list --head "$(git branch --show-current)" --json number --jq '.[0].number // empty'
+   # Does an open PR already exist for this branch? (run in worktree)
+   gh -C "$WORKTREE_ROOT" pr list --head "$(git -C "$WORKTREE_ROOT" branch --show-current)" --json number --jq '.[0].number // empty'
    # → prints a number on stdout, or nothing (first push, a PR-creating agent not yet invoked).
 
    # If both resolved: upsert into sidecar prs[] (idempotent).
    node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-state.mjs \
      --operations-user-id "$OPS_ID" upsert-pr \
      --slug <slug-from-resolve> \
-     --repo "$(basename "$(git rev-parse --show-toplevel)")" \
+     --repo "$(basename "$WORKTREE_ROOT")" \
      --number <number-from-gh>
    ```
 
