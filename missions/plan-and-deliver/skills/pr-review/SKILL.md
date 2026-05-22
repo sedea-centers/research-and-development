@@ -30,7 +30,7 @@ Script: `.sedea/centers/research-and-development/missions/plan-and-deliver/scrip
 
 **`pr-review.py`** and **`plan-state.mjs`** run from **`HOSTING_ROOT`** (checkout whose root contains **`.sedea/`**), not from a worktree’s `git rev-parse --show-toplevel` alone. Canonical contract: [`.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`](../../../../rules/20_efficient-pr-shipping.mdc) § *Hosting repo cwd for scripts (canonical)* and [`.sedea/centers/research-and-development/rules/31_operations-user-id.mdc`](../../../../rules/31_operations-user-id.mdc) § *Worked example*.
 
-- **`WORKTREE_ROOT`** — implementation worktree where you edit code (`git` / `gh` in Step 0).
+- **`WORKTREE_ROOT`** — hosting repo worktree where you edit code (`git` / `gh` in Step 0).
 - **`HOSTING_ROOT`** — walk up until **`.sedea/centers/sedea/`** or **`.sedea/`** exists; **`cd "$HOSTING_ROOT"`** before **`node …/plan-state.mjs`** or **`python3 …/pr-review.py`**.
 
 The script reads input from (in order): **`PR_REVIEW_INPUT`** (absolute path to a JSON file — keeps payloads **outside** the repo).
@@ -102,7 +102,7 @@ Before Step 1, attempt to upsert the resolved PR number into the Plan Board side
 If the id is omitted, only `joint` plans are visible (stderr warns once). **Slug collision:** the same slug in both trees → the **user** tree wins (listed first).
 
 ```bash
-WORKTREE_ROOT="$(pwd)"   # implementation worktree (after cd into it)
+WORKTREE_ROOT="$(pwd)"   # hosting repo worktree (after cd into it)
 # HOSTING_ROOT: walk up until .sedea/centers/sedea/ or .sedea/ exists — see rule 20 § *Resolve HOSTING_ROOT*
 cd "$HOSTING_ROOT"
 OPS_ID="<operationsUserId from Mission Control warm-up or sedea_get_current_user>"
@@ -192,7 +192,7 @@ Do **not** include `Must fix`, `Should fix`, or `Skipped (no follow-up)` items h
 
 Acknowledge: *"Prepared <K> Code Review Follow-ups for `<slug>.plan.md` § Follow-ups; awaiting developer approval before appending."*
 
-Plan files live under **`.sedea/operations/`** on the hosting checkout. In the Sedea `app` monorepo, see `.sedea/centers/sedea/rules/0_hosting-checkout.mdc`: that tree is often its **own** git repository, gitignored or submodule-pinned from the monorepo. Edits to `*.plan.md` / `*.state.yaml` therefore may **not** appear in the implementation repo's `git status`. Sync plan changes through whatever workflow owns the operations checkout (for example a dedicated `operations` commit), not only the `app` PR — rule **20** § *Commit and push cadence* still commits implementation-repo source changes as usual when the developer requests *commit* / *push* in the same message.
+Plan files live under **`.sedea/operations/`** on the primary hosting repo. In the Sedea `app` monorepo, see `.sedea/centers/sedea/rules/0_hosting-checkout.mdc`: that tree is often its **own** git repository, gitignored or submodule-pinned from the monorepo. Edits to `*.plan.md` / `*.state.yaml` therefore may **not** appear in the hosting repo worktree's `git status`. Sync plan changes through whatever workflow owns the operations checkout (for example a dedicated `operations` commit), not only the `app` PR — rule **20** § *Commit and push cadence* still commits hosting-repo source changes as usual when the developer requests *commit* / *push* in the same message.
 
 ### Step 4 — Report
 

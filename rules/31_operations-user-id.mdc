@@ -50,7 +50,7 @@ Ellipses in path examples (for example `` `.sedea/operations/.../plans/` ``, `` 
 Flag order is **global** — **`--operations-user-id <id>` before the subcommand** (see rule **20** § *Commit and push cadence*).
 
 ```bash
-WORKTREE_ROOT="$(pwd)"   # implementation worktree (or hosting checkout when same)
+WORKTREE_ROOT="$(pwd)"   # hosting repo worktree (or primary hosting repo when same)
 # Set HOSTING_ROOT: walk up until .sedea/centers/sedea/ or .sedea/ exists — see rule 20 § *Resolve HOSTING_ROOT*
 cd "$HOSTING_ROOT"
 OPS_ID="<operationsUserId from Mission Control warm-up or sedea_get_current_user>"

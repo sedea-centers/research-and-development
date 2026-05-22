@@ -30,7 +30,7 @@ R&D automation scripts **`plan-state.mjs`**, **`plan-ws-completeness.mjs`**, and
 
 Before any `node …/plan-state.mjs` or `python3 …/pr-review.py` invocation:
 
-1. Start from the implementation worktree or hosting checkout cwd.
+1. Start from the hosting repo worktree or primary hosting repo cwd.
 2. Walk **up** parent directories until **`.sedea/centers/sedea/`** exists (preferred) or at minimum **`.sedea/`** at the hosting repo root.
 3. Set **`HOSTING_ROOT`** to that directory (parent of `.sedea/`).
 4. **`cd "$HOSTING_ROOT"`** for every script shell line; use repo-relative paths from there (for example `.sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-state.mjs`).
@@ -42,7 +42,7 @@ When the agent already knows the Mission Control primary checkout path, set **`H
 When linking a plan to a worktree, pass the **worktree** path to **`resolve --cwd`** while the shell **`cwd`** is **`HOSTING_ROOT`**:
 
 ```bash
-WORKTREE_ROOT="$(pwd)"   # after cd into the implementation worktree
+WORKTREE_ROOT="$(pwd)"   # after cd into the hosting repo worktree
 cd "$HOSTING_ROOT"
 OPS_ID="<operationsUserId from Mission Control or sedea_get_current_user>"
 
@@ -50,11 +50,11 @@ node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/p
   --operations-user-id "$OPS_ID" resolve --cwd "$WORKTREE_ROOT"
 ```
 
-For **`upsert-pr --repo`**, use **`$(basename "$WORKTREE_ROOT")`** (the implementation repo), not the hosting checkout name.
+For **`upsert-pr --repo`**, use **`$(basename "$WORKTREE_ROOT")`** (the hosting repo worktree), not the primary hosting repo directory name when they differ.
 
 ### `pr-review.py`
 
-Run **`python3 .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/pr-review.py`** with **`cd "$HOSTING_ROOT"`** (two-step **`PR_REVIEW_INPUT`** per [`pr-review/SKILL.md`](../missions/plan-and-deliver/skills/pr-review/SKILL.md)). Git / `gh` in **`pr-review`** Step 0 may use the **implementation worktree**; the script binary path must not assume `.sedea/` exists under the worktree root.
+Run **`python3 .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/pr-review.py`** with **`cd "$HOSTING_ROOT"`** (two-step **`PR_REVIEW_INPUT`** per [`pr-review/SKILL.md`](../missions/plan-and-deliver/skills/pr-review/SKILL.md)). Git / `gh` in **`pr-review`** Step 0 may use the **hosting repo worktree**; the script binary path must not assume `.sedea/` exists under the worktree root.
 
 ### Forbidden pattern
 
@@ -63,7 +63,7 @@ ROOT="$(git rev-parse --show-toplevel)"   # worktree — often wrong for Sedea s
 node "$ROOT/.sedea/centers/.../plan-state.mjs" ...
 ```
 
-Use **`HOSTING_ROOT`** plus a repo-relative script path from the hosting checkout, or an absolute path to the script file under **`HOSTING_ROOT`**.
+Use **`HOSTING_ROOT`** plus a repo-relative script path from the hosting repo, or an absolute path to the script file under **`HOSTING_ROOT`**.
 
 Cross-refs: [`.sedea/centers/research-and-development/rules/31_operations-user-id.mdc`](31_operations-user-id.mdc) § *Worked example*; [`.sedea/centers/sedea/rules/0_hosting-checkout.mdc`](../../sedea/rules/0_hosting-checkout.mdc).
 
@@ -199,10 +199,10 @@ Apply § *Hosting repo cwd for scripts (canonical)* for every script invocation 
 1. **Commit** (step 1). **Skip this step if `git status --short` is empty** — typical after the committed cut point reviewed by `pre-pr-review`. Do not amend the previous commit and do not pass `--allow-empty`; just proceed to step 2.
 2. Push to remote.
 3. **PR comment reconciliation (`pr-review` → this cadence).** This step is **only** [`pr-review`](../missions/plan-and-deliver/skills/pr-review/SKILL.md) **Step 5 — GitHub only** (not Steps 1–4). When this coding session already ran that skill’s Steps 1–4 (per-comment dispositions in the Step 4 report) and **GitHub** reply / resolve / minimize / summary from Step 5 has **not** run yet, the **commit and push cadence is incomplete** until Step 5 runs — **same agent turn**, immediately after the push succeeds (so the summary can cite `git rev-parse --short HEAD` in the **worktree**). Execute from **`HOSTING_ROOT`**: `cd "$HOSTING_ROOT" && python3 .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/pr-review.py` (two-step `PR_REVIEW_INPUT` per that skill). If thread IDs or PR identity are missing from context, re-run that skill’s **Step 1** script array for the same PR, then Step 5. If there was no `pr-review` triage in this chat, **skip step 3 entirely** — do not run the script.
-4. **Link the PR to its plan sidecar.** After push (and after step 3 when applicable), attempt to upsert the PR number into the Plan Board sidecar so `plan-reconcile` can later archive the plan when all linked PRs merge. Run with **`cd "$HOSTING_ROOT"`** and **`--operations-user-id` before the subcommand** (`WORKTREE_ROOT` = implementation worktree where commit/push ran):
+4. **Link the PR to its plan sidecar.** After push (and after step 3 when applicable), attempt to upsert the PR number into the Plan Board sidecar so `plan-reconcile` can later archive the plan when all linked PRs merge. Run with **`cd "$HOSTING_ROOT"`** and **`--operations-user-id` before the subcommand** (`WORKTREE_ROOT` = hosting repo worktree where commit/push ran):
 
    ```bash
-   WORKTREE_ROOT="$(pwd)"   # implementation worktree (before cd to HOSTING_ROOT)
+   WORKTREE_ROOT="$(pwd)"   # hosting repo worktree (before cd to HOSTING_ROOT)
    cd "$HOSTING_ROOT"
    OPS_ID="<operationsUserId from Mission Control or sedea_get_current_user>"
 
@@ -247,9 +247,9 @@ Apply § *Hosting repo cwd for scripts (canonical)* for every script invocation 
 
    Include `targetPlanPath` from **`resolve`**, `rowStatus: open` while work continues, and `remainingTasks` when known.
 
-**Examples — pick the block that matches the implementation repo.** Do not mix patterns on one repo.
+**Examples — pick the block that matches the hosting repo.** Do not mix patterns on one repo.
 
-Example A — **hosting checkout** (implementation repo root contains `.sedea/centers/sedea/`; stacked PRs on `main` per [`.sedea/centers/sedea/rules/7_stacked-pr-branch-naming.mdc`](../../sedea/rules/7_stacked-pr-branch-naming.mdc)):
+Example A — **hosting repo** (root contains `.sedea/centers/sedea/`; stacked PRs on `main` per [`.sedea/centers/sedea/rules/7_stacked-pr-branch-naming.mdc`](../../sedea/rules/7_stacked-pr-branch-naming.mdc)):
 
 ```
 ## Worktree setup
@@ -334,7 +334,7 @@ Break work down recursively until each piece is a **PR leaf**: one reviewable **
 
 For **multi-step or multi-PR** plans, include **at least one Mermaid diagram** (dependency order, data/control flow, or PR slice boundaries). A single trivial PR in one obvious place may omit a diagram. Sequence-heavy work can add a **numbered list** or **PR ↔ module** table alongside Mermaid; prefer Mermaid for **structure** because it renders in GitHub and in-editor.
 
-After each decomposition step, make validation easy for the human: **(a)** diagram, **(b)** ordered leaves marked **independent** vs **depends on …** (see [Plan for independence](#plan-for-independence)), **(c)** explicit **out of scope**. Prefer validation before implementation worktrees spin up.
+After each decomposition step, make validation easy for the human: **(a)** diagram, **(b)** ordered leaves marked **independent** vs **depends on …** (see [Plan for independence](#plan-for-independence)), **(c)** explicit **out of scope**. Prefer validation before hosting repo worktrees spin up.
 
 ### Situation awareness and Plan Board
 
@@ -370,21 +370,21 @@ Every description starter (including on the first push in this cadence) should c
 
 ## Branch naming
 
-Names apply to the **implementation repository** (the worktree root that receives the code change), not necessarily the checkout that holds `.sedea/` for planning scripts. **Worktree setup examples** above are split by repo type — use Example A or B, not both.
+Names apply to the **hosting repo worktree** that receives the code change, not necessarily the checkout that holds `.sedea/` for planning scripts. **Worktree setup examples** above are split by repo type — use Example A or B, not both.
 
-### Hosting checkout (sedea-ai/app and equivalents)
+### Hosting repo (primary, sedea-ai/app and equivalents)
 
-When the implementation repo **is** the Sedea **hosting checkout** — the tree whose root contains `.sedea/centers/sedea/` on the active workbench — follow **[`.sedea/centers/sedea/rules/7_stacked-pr-branch-naming.mdc`](../../sedea/rules/7_stacked-pr-branch-naming.mdc)** ([`0_hosting-checkout.mdc`](../../sedea/rules/0_hosting-checkout.mdc) defines that checkout).
+When the **hosting repo** root contains `.sedea/centers/sedea/` on the active workbench — follow **[`.sedea/centers/sedea/rules/7_stacked-pr-branch-naming.mdc`](../../sedea/rules/7_stacked-pr-branch-naming.mdc)** ([`0_hosting-checkout.mdc`](../../sedea/rules/0_hosting-checkout.mdc) defines the hosting repo).
 
 - Stacked integration on `main`: **`<prefix>/<NN>-<slug>`** with exactly two digits (`01`–`99`). Default prefix for a new stack is **`feat`** unless the plan or developer names another prefix.
 - **Invalid on hosting stacked workflow:** `feat/token-auth`, `improve/logger`, `feature/01-foo` — missing `NN`, wrong prefix family, or non-kebab slug.
 - Rename locally **before first push** if the branch name is wrong ([`7_stacked-pr-branch-naming.mdc`](../../sedea/rules/7_stacked-pr-branch-naming.mdc) § *Before the first git push*).
 
-Benefit-style prefixes (`improve/`, `simplify/`, …) from [`10_plan-naming-convention.mdc`](10_plan-naming-convention.mdc) apply to **hosting repo** implementation repos unless the stack explicitly uses them **with** `<NN>-` on the hosting repo (e.g. `improve/02-logger`).
+Benefit-style prefixes (`improve/`, `simplify/`, …) from [`10_plan-naming-convention.mdc`](10_plan-naming-convention.mdc) may use **`<NN>-`** on the primary **hosting repo** when the stack explicitly requires it (e.g. `improve/02-logger`).
 
-### Other implementation repos
+### Hosting repo worktree
 
-When the worktree is **another** hosting repository, use descriptive kebab-case on **that** repo:
+When the worktree is a **hosting repo worktree** (separate repository from the primary hosting repo), use descriptive kebab-case on **that** repo:
 
 - `feat/<short-description>` — new features
 - `improve/<short-description>` — improvements (or a more specific verb prefix like `simplify/`, `harden/`, `speedup/`; see [`10_plan-naming-convention.mdc`](10_plan-naming-convention.mdc))
