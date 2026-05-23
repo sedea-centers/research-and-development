@@ -391,7 +391,7 @@ function pathCovers(candidate, cwd) {
 
 // ---------- subcommand: set-worktrees ----------
 
-// `set-worktrees --slug <slug> --json '[{"repo":"push","path":"/abs"}]'`.
+// `set-worktrees --slug <slug> --json '[{"repo":"user-auth","path":"/abs"}]'`.
 // Replaces the sidecar `worktrees:` list wholesale (one active worktree set per plan).
 // Each entry is validated; absolute paths required so downstream resolve()
 // can compare without re-normalising.
@@ -1760,7 +1760,7 @@ Subcommands:
       Print "<slug>\\t<planPath>" for the plan whose sidecar covers <cwd>.
       Exit 2 when no plan matches (rule-friendly).
 
-  set-worktrees --slug <slug> --json '[{"repo":"push","path":"/abs"}]'
+  set-worktrees --slug <slug> --json '[{"repo":"user-auth","path":"/abs"}]'
       Replace sidecar worktrees[] wholesale.
 
   set-session --slug <slug> --focus <abs>

@@ -24,7 +24,7 @@ When the Squad Leader receives an implementation request, PR review, or cross-re
 
 R&D automation scripts **`plan-state.mjs`**, **`plan-ws-completeness.mjs`**, and **`pr-review.py`** live under **`.sedea/centers/research-and-development/missions/plan-and-deliver/scripts/`** in the **hosting repo** whose root contains **`.sedea/`** (and usually **`.sedea/centers/sedea/`**).
 
-**Hosting repo worktrees** (`git worktree add` for `push`, `payments-web`, etc.) often have a **different** `git rev-parse --show-toplevel` and **no** `.sedea/centers/` tree. Do **not** derive script paths from the worktree root alone.
+**Hosting repo worktrees** (`git worktree add` for `user-auth`, `payments-web`, etc.) often have a **different** `git rev-parse --show-toplevel` and **no** `.sedea/centers/` tree. Do **not** derive script paths from the worktree root alone.
 
 ### Resolve `HOSTING_ROOT`
 
@@ -273,17 +273,17 @@ Cleanup after merge:
 git worktree prune
 ```
 
-Example B — **hosting repo** (e.g. `push`; no two-digit stack index unless that repo's rules require it):
+Example B — **hosting repo** (e.g. `user-auth`; no two-digit stack index unless that repo's rules require it):
 
 ```
 ## Worktree setup
 
 git fetch origin main
 
-git worktree add ../push-improve-logger -b improve/logger origin/main
+git worktree add ../user-auth-improve-logger -b improve/logger origin/main
 # sedea_add_worktree_folder — absolute path
 
-git worktree add ../push-feat-token-auth -b feat/token-auth origin/main
+git worktree add ../user-auth-feat-token-auth -b feat/token-auth origin/main
 # sedea_add_worktree_folder — absolute path
 ```
 
