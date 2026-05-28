@@ -99,7 +99,7 @@ On **[Spawned implementation lane](#spawned-implementation-lane)**, **this lane*
 
 ### Spawned lane — sentinel-first (binding)
 
-On spawned **`coding-session`** lanes the **AskQuestion tool** is usually **unavailable**. Before the [Worktree-open gate](#worktree-open-gate), [Worktree-open gate (pr-plan spawn handoff)](#worktree-open-gate-pr-plan-spawn-handoff), and [Ship cut-point gate](#ship-cut-point-gate-approve-commit-before-deploy) — **unless** [Auto-authorize implementation (pr-plan spawn)](#auto-authorize-implementation-pr-plan-spawn) applies (no modal; proceed to worktrees):
+On spawned **`coding-session`** lanes the **AskQuestion tool** is usually **unavailable**. Before the [Worktree-open gate](#worktree-open-gate), [Worktree-open gate (pr-plan spawn handoff)](#worktree-open-gate-pr-plan-spawn-handoff), [Ship cut-point gate](#ship-cut-point-gate-approve-commit-before-deploy), [Review feedback approval gate](#review-feedback-approval-gate), and [Post-create-pr handoff gate](#post-create-pr-handoff-gate) — **unless** [Auto-authorize implementation (pr-plan spawn)](#auto-authorize-implementation-pr-plan-spawn) applies (no modal; proceed to worktrees):
 
 1. **Self-check:** the assistant message **starts** with **`MC_PHASED_RESPONSE_V1`** (or sentinel-only **`MC_ASKQUESTION_V1`**) — **no** recap prose before the sentinel.
 2. Put required recap lines in **`display.markdown`** only (see pr-plan spawn handoff recap below).
@@ -617,32 +617,58 @@ Spawn `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/
 
 When Mission Control delivers the **`pre-pr-review`** result:
 
-1. Copy `blockers`, `flags`, `proposedFollowUps`, `followUpsAppended`, `codingAgentHandback`, `requiresDeveloperApproval`, `remainingTasks`, `activeLanes`, and `openLedgerEntries` into the coding-session result.
-2. When `recommendation` is `no-go`, `blockers` is non-empty, or `flags` is non-empty, **immediately recommend** addressing pre-PR review findings before PR creation or another review pass — include one explicit sentence in the recap (for example: *Pre-PR review found issues; fix the relevant items on this lane before opening a PR.*). Do not deliver a findings-only recap without that recommendation.
-3. If recommendation is `go`, **coding-session** presents the approval gate in **Create-PR handoff after go** because it owns the implementation context, worktree path, branch, diff summary, PR plan path, and reviewer result. Do not make **`pre-pr-review`** spawn `create-pr`.
-4. If recommendation is `no-go`, keep the implementation lane active, open [Review feedback approval gate](#review-feedback-approval-gate) on **this lane** in the **same session**, and route fix work **only after developer approval**; do not proceed to PR creation and do not suggest a new coding chat or prompt-only handoff for the fix pass.
-5. If review failed, was aborted, or was abandoned, keep the ledger entry blocked until the developer retries, defers, or abandons the review.
+1. Copy `blockers`, `flags`, `proposedFollowUps`, `followUpsAppended`, `codingAgentHandback`, `requiresDeveloperApproval`, `remainingTasks`, `activeLanes`, and `openLedgerEntries` into the coding-session result. Record `outputs.prePrReviewRecommendation` from the child.
+2. Compute **`actionablePrePrFindings`** — **true** when **any** of:
+   - `recommendation` is `no-go`
+   - `blockers` is non-empty
+   - `flags` is non-empty
+   - `codingAgentHandback` includes a non-empty **Must** or **Should** group (ignore **Defer**-only handback and items tagged **`[G §7 After deploy — post-merge]`**)
+3. When **`actionablePrePrFindings`** is true, **immediately recommend** addressing pre-PR review findings before PR creation or another review pass — include one explicit sentence in the recap (for example: *Pre-PR review found issues; fix the relevant items on this lane before opening a PR.*). Do not deliver a findings-only recap without that recommendation.
+4. **If `actionablePrePrFindings`** — open [Review feedback approval gate](#review-feedback-approval-gate) on **this lane** in the **same session** **before** [Create-PR handoff after go](#create-pr-handoff-after-go), **even when** `recommendation` is `go`. Do **not** jump to Create-PR or spawn **`create-pr`** in the same turn as the reviewer result.
+5. **If NOT `actionablePrePrFindings`** and `recommendation` is `go` — proceed to [Create-PR handoff after go](#create-pr-handoff-after-go). Do not make **`pre-pr-review`** spawn `create-pr`.
+6. If review failed, was aborted, or was abandoned, keep the ledger entry blocked until the developer retries, defers, or abandons the review.
 
 ### Review feedback approval gate
 
-When **`pre-pr-review`** returns `recommendation: "no-go"`, any `blockers`, or non-empty `flags`:
+When **`actionablePrePrFindings`** is true (see [Review result aggregation](#review-result-aggregation)) — including **`recommendation: "go"`** with **`flags`** or **Must** / **Should** handback:
 
-1. Present the review summary to the developer: blockers, `Must`, `Should`, `Defer`, and any proposed follow-ups for the PR plan. **Recommend** fixing relevant findings before PR creation or re-review (same wording as [Review result aggregation](#review-result-aggregation) step 2). Treat **`Defer`** items tagged **`[G §7 After deploy — post-merge]`** (or equivalent) as **post-merge / deploy-walk** — do not promote them to `Must` or `Should`, and do not block PR creation on them.
-2. Use **AskQuestion** before making any code or plan edits (`modalTitle`: *Pre-PR review — address findings*). Required options **in this order**:
+1. Present the review summary to the developer: `recommendation`, blockers, `Must`, `Should`, `Defer`, `flags`, and any proposed follow-ups for the PR plan. **Recommend** fixing relevant findings before PR creation or re-review (same wording as [Review result aggregation](#review-result-aggregation) step 3). Treat **`Defer`** items tagged **`[G §7 After deploy — post-merge]`** (or equivalent) as **post-merge / deploy-walk** — do not promote them to `Must` or `Should`, and do not block PR creation on them.
+2. Use **one** **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** before making any code or plan edits (`modalTitle`: *Pre-PR review — address findings*). Required options **in this order** (omit rows marked *go-only* when `recommendation` is `no-go`):
 
 | Option id | Label (brief) | Agent action |
 |-----------|---------------|--------------|
-| `fix-now-session` | Fix relevant findings now (this session) | Continue on **this coding-session lane** in the attached worktree; implement reviewer `Must` items and any `Should` items the developer affirms before edits; keep `continuationStatus: "active"` |
+| `fix-now-session` | Implement pre-PR review findings now (this session) | Continue on **this coding-session lane** in the attached worktree; implement reviewer `Must` items and any `Should` items the developer affirms before edits; keep `continuationStatus: "active"` |
 | `apply-must` | Apply Must fixes only | Edit only blocker / `Must` items on this lane |
 | `apply-must-should` | Apply Must + Should fixes | Edit blocker / `Must` and `Should` items on this lane |
+| `proceed-create-pr` | Proceed to create PR (skip fixes for now) | *go-only* — on **next** turn, open [Create-PR handoff after go](#create-pr-handoff-after-go); no code edits this pick |
 | `revise-scope` | Revise review scope | Clarify or challenge findings before code edits |
 | `defer` | Defer / abandon review fixes | Keep ledger blocked or mark the PR plan deferred/abandoned per developer choice |
 | `more-details` | More details for option _ | Elaborate; ask again |
 
-3. Do not interpret the reviewer handback itself as approval. No source edits, plan edits, commits, pushes, or new review spawn occur until the developer chooses an approval option.
+3. Do not interpret the reviewer handback itself as approval. No source edits, plan edits, commits, pushes, PR creation, or new review spawn occur until the developer chooses an approval option (except **`proceed-create-pr`**, which only authorizes the Create-PR gate on the **next** turn).
 4. **`fix-now-session`**, **`apply-must`**, and **`apply-must-should`** authorize implementation on **this lane** only — not a detached session prompt or a new Mission Control dispatch for coding.
-5. After approved fixes are implemented, restart from [Ship cut-point gate](#ship-cut-point-gate-approve-commit-before-deploy) (combined approve + commit + Before deploy when applicable, then **`pre-pr-review`**). The loop repeats until **`pre-pr-review`** returns `go` or the developer explicitly defers/abandons.
-6. Track each loop pass in outputs as `reviewLoopCount` and keep `continuationStatus: "active"` while approval, fixes, implementation review, commit, Before deploy, or re-review remains open.
+5. After approved fixes are implemented, restart from [Ship cut-point gate](#ship-cut-point-gate-approve-commit-before-deploy) (combined approve + commit + Before deploy when applicable, then **`pre-pr-review`**). The loop repeats until **`pre-pr-review`** returns `go` with no **`actionablePrePrFindings`**, or the developer chooses **`proceed-create-pr`** or **`defer`**.
+6. Track each loop pass in outputs as `reviewLoopCount` and keep `continuationStatus: "active"` while approval, fixes, implementation review, commit, Before deploy, re-review, or pending Create-PR after **`proceed-create-pr`** remains open.
+
+### Spawned lane — review feedback sentinel (binding)
+
+When the **AskQuestion tool** is unavailable after **`pre-pr-review`** returns with **`actionablePrePrFindings`**, emit **`MC_PHASED_RESPONSE_V1`** — recap in `display.markdown`, options in `askQuestion`. **Line 1 must be the sentinel** (see [Spawned lane — sentinel-first (binding)](#spawned-lane--sentinel-first-binding)). Example (replace `<recap>`; omit `proceed-create-pr` when `recommendation` is `no-go`):
+
+```
+MC_PHASED_RESPONSE_V1
+{"version":1,"display":{"markdown":"<recap>"},"askQuestion":{"modalTitle":"Pre-PR review — address findings","questions":[{"id":"pre-pr-feedback","prompt":"How should we handle pre-PR review findings?","allowMultiple":false,"options":[{"id":"fix-now-session","label":"Implement pre-PR review findings now (this session)"},{"id":"apply-must","label":"Apply Must fixes only"},{"id":"apply-must-should","label":"Apply Must + Should fixes"},{"id":"proceed-create-pr","label":"Proceed to create PR (skip fixes for now)"},{"id":"revise-scope","label":"Revise review scope"},{"id":"defer","label":"Defer / abandon review fixes"},{"id":"more-details","label":"More details for option _"}]}]}}
+```
+
+### Act after review feedback pick
+
+Run on the **developer's response turn** — **not** in the same assistant turn as the feedback modal.
+
+| Pick | Actions |
+|------|---------|
+| **`fix-now-session`**, **`apply-must`**, **`apply-must-should`** | Implement approved scope on this lane; then [Ship cut-point gate](#ship-cut-point-gate-approve-commit-before-deploy) when fixes are ready |
+| **`proceed-create-pr`** | Open [Create-PR handoff after go](#create-pr-handoff-after-go) (requires prior `recommendation: "go"`) |
+| **`revise-scope`**, **`more-details`** | Clarify; re-open feedback gate |
+| **`defer`** | Stop ship chain per developer choice |
 
 ### User requests to open a PR (before `create-pr` spawn)
 
@@ -654,7 +680,13 @@ When the developer says *open a PR*, *create a pull request*, or similar **befor
 
 ### Create-PR handoff after go
 
-When **`pre-pr-review`** returns `recommendation: "go"`:
+When **`pre-pr-review`** returns `recommendation: "go"` **and** either:
+
+- **`actionablePrePrFindings`** was false (clean `go`), **or**
+- the developer chose **`proceed-create-pr`** at [Review feedback approval gate](#review-feedback-approval-gate), **or**
+- the developer completed a fix pass and the **subsequent** **`pre-pr-review`** returned `go` with no **`actionablePrePrFindings`**
+
+**Do not** open this gate in the same turn as the reviewer result when **`actionablePrePrFindings`** is true — use the feedback gate first.
 
 This path is the normative **`create-pr`** handoff on this lane — it **supersedes** rule **20** § *Commit and push cadence* step 5 prompt-only wording when both apply.
 
@@ -671,11 +703,74 @@ This path is the normative **`create-pr`** handoff on this lane — it **superse
 5. Inputs must include `targetPlanPath`, `targetPlanSlug`, `worktreePath`, `branchName`, `baseRef`, `repoUrl`, `diffSummary`, `prePrReviewRecommendation: "go"`, `prePrReviewFlags`, `followUpsAppended`, `ledgerParent`, and `upstreamSkill: "coding-session"`.
 6. Announce that **coding-session** is waiting for the PR-creating agent result and stop. Do not continue to `pr-review` or deploy until `create-pr` reports a PR URL/number or a blocking failure.
 
-When Mission Control delivers the **`create-pr`** result, copy `prUrl`, `prNumber`, `branchName`, `prState`, `reviewState`, `mergeSha`, `mergedAt`, `deployStatus`, `deployTodoStatus`, `remainingTasks`, `activeLanes`, and `openLedgerEntries` into the coding-session result. If the PR was created, keep the mission lane active for inline `pr-review`, merge tracking, and deploy verification. If `create-pr` reports deploy-walk active or blocked, propagate that status upstream without closing the coding-session ledger entry.
+When Mission Control delivers the **`create-pr`** result:
+
+1. Copy `prUrl`, `prNumber`, `branchName`, `prState`, `reviewState`, `mergeSha`, `mergedAt`, `deployStatus`, `deployTodoStatus`, `remainingTasks`, `activeLanes`, and `openLedgerEntries` into the coding-session result.
+2. If `create-pr` reports an active **`deploy-walk`** child or `deployStatus` is in progress, announce that **coding-session** is waiting for the **deploy-walk** child result and **stop** — do not open [Post-create-pr handoff gate](#post-create-pr-handoff-gate).
+3. Otherwise open [Post-create-pr handoff gate](#post-create-pr-handoff-gate) on **this lane** in the **same session**. Keep `continuationStatus: "active"`. Do **not** auto-start inline **`pr-review`** or spawn **`deploy-walk`** without the developer pick.
+
+### Post-create-pr handoff gate
+
+When the **`create-pr`** child returns a PR URL/number (or the developer returns to this lane with a confirmed open PR from the same ship chain):
+
+1. Recap: `prUrl`, `prNumber`, `prState`, `reviewState`, and §7 **`### After deploy`** unchecked count when plan-anchored.
+2. Use **one** **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** (`modalTitle`: *Coding session — PR opened, next step*). Required options **in this order**:
+
+| Option id | Label (brief) | Agent action |
+|-----------|---------------|--------------|
+| `start-pr-review` | Start inline PR review | Run [Inline PR review after PR creation](#inline-pr-review-after-pr-creation) on **next** turn |
+| `check-pr-status` | Check PR merge status | Refresh `prState` / `mergeSha` / `mergedAt` via `gh` or repo tooling; re-open this gate |
+| `spawn-after-deploy-walk` | PR merged — start After deploy deploy-walk | On **next** turn, [After deploy deploy-walk handoff](#after-deploy-deploy-walk-handoff) when merge confirmed |
+| `defer-ship` | Defer next ship step | Keep `continuationStatus: active`; no spawn |
+| `more-details` | More details for option _ | Elaborate; ask again |
+
+3. Do **not** run inline **`pr-review`**, spawn **`deploy-walk`**, or **`plan-reconcile`** in the same assistant turn as this modal.
+4. Re-open this gate after **`check-pr-status`** unless the developer picks a forward path on that response turn.
+
+### Spawned lane — post-create-pr sentinel (binding)
+
+When the **AskQuestion tool** is unavailable after **`create-pr`** returns, emit **`MC_PHASED_RESPONSE_V1`** — recap in `display.markdown`, options in `askQuestion`. **Line 1 must be the sentinel.**
+
+```
+MC_PHASED_RESPONSE_V1
+{"version":1,"display":{"markdown":"<recap>"},"askQuestion":{"modalTitle":"Coding session — PR opened, next step","questions":[{"id":"post-create-pr","prompt":"What should we do next with this PR?","allowMultiple":false,"options":[{"id":"start-pr-review","label":"Start inline PR review"},{"id":"check-pr-status","label":"Check PR merge status"},{"id":"spawn-after-deploy-walk","label":"PR merged — start After deploy deploy-walk"},{"id":"defer-ship","label":"Defer next ship step"},{"id":"more-details","label":"More details for option _"}]}]}}
+```
+
+### Act after post-create-pr pick
+
+Run on the **developer's response turn** — **not** in the same assistant turn as the modal.
+
+| Pick | Actions |
+|------|---------|
+| **`start-pr-review`** | [Inline PR review after PR creation](#inline-pr-review-after-pr-creation) |
+| **`check-pr-status`** | Query PR state; update `outputs`; re-open [Post-create-pr handoff gate](#post-create-pr-handoff-gate) |
+| **`spawn-after-deploy-walk`** | [After deploy deploy-walk handoff](#after-deploy-deploy-walk-handoff) |
+| **`defer-ship`** | Stop with recap; `continuationStatus: active` |
+| **`more-details`** | Clarify; re-open gate |
+
+### After deploy deploy-walk handoff
+
+Run from [Act after post-create-pr pick](#act-after-post-create-pr-pick) when the developer chooses **`spawn-after-deploy-walk`**, or when **`prState`** is **`merged`** and they explicitly say the PR merged / *start After deploy* in the same message.
+
+1. **Verify merge** — `prState` must be **`merged`** (from **`create-pr`** outputs or a fresh `gh pr view` / repo check). If still **`open`**, report one line and re-open [Post-create-pr handoff gate](#post-create-pr-handoff-gate) — do **not** spawn **`deploy-walk`** for After deploy only.
+2. When plan-anchored, **read** §7. If **`### After deploy`** is empty or all `[x]` and capstone is done, note in one line and offer [Post-create-pr handoff gate](#post-create-pr-handoff-gate) or **`plan-reconcile`** defer — no spawn.
+3. **Spawn** `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/deploy-walk/SKILL.md` on a **child lane** — **post-merge full walk** (do **not** set `deployWalkScope: before-deploy-only`).
+
+**Spawn inputs (required):**
+
+- `targetPlanPath`, `targetPlanSlug`
+- `worktreePath`, `branchName`
+- `prUrl`, `prNumber`, `mergeSha`, `mergedAt`, `repoUrl` (from **`create-pr`** outputs when present)
+- `ledgerParent`, `upstreamSkill: "coding-session"`
+
+**`initiatingPrompt`** must state: PR **merged**; post-merge §7 deploy verification; walk **After deploy** (and remaining lifecycle to `done`); run agent-executable steps automatically; flip `**Status:**` via deploy-walk rules when appropriate.
+
+4. Announce that **coding-session** is waiting for the **deploy-walk** child result; **stop** — do not spawn **`plan-reconcile`** in the same turn.
+5. When the child returns, copy deploy status into `outputs` and re-open [Post-create-pr handoff gate](#post-create-pr-handoff-gate) or offer **`plan-reconcile`** defer per developer message.
 
 ### Inline PR review after PR creation
 
-After `create-pr` reports a PR URL/number, the active **coding-session agent** executes `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/pr-review/SKILL.md` inline. Do not spawn a `pr-review` agent.
+Run only after the developer chooses **`start-pr-review`** at [Post-create-pr handoff gate](#post-create-pr-handoff-gate) (or an explicit *triage PR comments* message on this lane with a known `prUrl`). Do **not** auto-start immediately when **`create-pr`** returns unless the developer already picked **`start-pr-review`** on the prior turn.
 
 Inline `pr-review` inputs come from coding-session state:
 
