@@ -486,8 +486,9 @@ Post-ship **worktree removal**, **branch delete**, and **`main` sync** are owned
 | **When to detect** | After **`prState: merged`** and deploy verification **`done`**, or when the developer returns post-merge on this lane with a plan anchor |
 | **How** | From **`HOSTING_ROOT`**: `node …/plan-state.mjs --operations-user-id "$OPS_ID" detect-stale-workspaces --slug <slug> --json` |
 | **If empty** | One line: no stale worktree paths on disk for this plan — **no** cleanup menu |
-| **If stale** | Short recap (path, branch, **`mergedPr`** when **`prs[]`** exists) then **AskQuestion**: start **`plan-reconcile`** now · defer · **More details for option _** — **not** remove-worktree options |
-| **Defer** | Developer may run **`plan-reconcile`** later; do not run cleanup here |
+| **If stale** | Short recap (path, branch, **`mergedPr`** when **`prs[]`** exists) then **AskQuestion** (`modalTitle`: *Coding session — stale worktree*): **`start-plan-reconcile`** · **`defer-reconcile`** · **`more-details`** — **not** remove-worktree options |
+| **`start-plan-reconcile`** | On **next** turn, [Plan-reconcile handoff (inline)](#plan-reconcile-handoff-inline) |
+| **`defer-reconcile`** | Developer may run inline **`plan-reconcile`** later; do not run cleanup here |
 
 ## Ship chain after implementation (coding-session lane)
 
@@ -814,7 +815,7 @@ Run on the **developer's response turn** — **not** in the same assistant turn 
 Run from [Act after post-create-pr pick](#act-after-post-create-pr-pick) when the developer chooses **`spawn-after-deploy-walk`**, or when **`prState`** is **`merged`** and they explicitly say the PR merged / *start After deploy* in the same message.
 
 1. **Verify merge** — `prState` must be **`merged`** (from coding-session `outputs` after inline **`create-pr`** or a fresh `gh pr view` / repo check). If still **`open`**, report one line and re-open [Post-create-pr handoff gate](#post-create-pr-handoff-gate) — do **not** run inline **`deploy-walk`** for After deploy only.
-2. When plan-anchored, **read** §7. If **`### After deploy`** is empty or all `[x]` and capstone is done, note in one line and offer [Post-create-pr handoff gate](#post-create-pr-handoff-gate) or **`plan-reconcile`** defer — no inline walk.
+2. When plan-anchored, **read** §7. If **`### After deploy`** is empty or all `[x]` and capstone is done, note in one line and offer [Post-create-pr handoff gate](#post-create-pr-handoff-gate) or [Plan-reconcile handoff (inline)](#plan-reconcile-handoff-inline) defer — no inline walk.
 3. Load `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/deploy-walk/SKILL.md` and run it **inline on this lane** — **post-merge full walk** (do **not** set `deployWalkScope: before-deploy-only`). **Do not** emit **`AGENT_RUN_REQUEST_V1`** for **`deploy-walk`**.
 
 **Inline context:**
@@ -827,8 +828,38 @@ Run from [Act after post-create-pr pick](#act-after-post-create-pr-pick) when th
 | `ledgerParent` | From coding-session ledger when present |
 | `upstreamSkill` | `"coding-session"` |
 
-4. Follow **`deploy-walk`** procedure (post-merge §7, lifecycle to `done`). Merge **`## Completion (inline)`** into coding-session `outputs`. Do **not** spawn **`plan-reconcile`** in the same turn.
-5. When the walk completes or stops on a manual step, re-open [Post-create-pr handoff gate](#post-create-pr-handoff-gate) or offer **`plan-reconcile`** defer per developer message. Do **not** wait for a child **`AGENT_RESULT_RESPONSE_V1`** — there is no **`deploy-walk`** child lane.
+4. Follow **`deploy-walk`** procedure (post-merge §7, lifecycle to `done`). Merge **`## Completion (inline)`** into coding-session `outputs`. Do **not** run inline **`plan-reconcile`** in the same turn.
+5. When the walk completes or stops on a manual step, re-open [Post-create-pr handoff gate](#post-create-pr-handoff-gate) or offer [Plan-reconcile handoff (inline)](#plan-reconcile-handoff-inline) defer per developer message. Do **not** wait for a child **`AGENT_RESULT_RESPONSE_V1`** — there is no **`deploy-walk`** child lane.
+
+### Plan-reconcile handoff (inline)
+
+Run when the developer chooses **`start-plan-reconcile`** at [Stale worktree detection (detect-only)](#stale-worktree-detection-detect-only), explicitly says *plan reconcile* / *reconcile plans* on this lane, or authorizes reconcile after After deploy / deploy verification **done**.
+
+**Preconditions (plan-anchored ship chain):**
+
+1. `prState` is **`merged`** (from coding-session `outputs` or fresh `gh pr view`).
+2. `deployStatus` is **`done`** and `deployTodoStatus` is **`done`** (from inline **`deploy-walk`** outputs when applicable).
+3. `targetPlanPath` or `targetPlanSlug` resolves.
+
+If any precondition fails, report one line what is missing; offer defer or complete the missing ship step first. **Do not** archive before merge and deploy verification are complete.
+
+**Broad reconcile** (developer phrase without a single PR plan anchor): may run when **`operationsUserId`** is valid — skip ship-chain preconditions but still use **AskQuestion** before mutations per **`plan-reconcile/SKILL.md`** **Flow**.
+
+1. Load `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/plan-reconcile/SKILL.md` and run it **inline on this lane** — **do not** emit **`AGENT_RUN_REQUEST_V1`** for **`plan-reconcile`**.
+
+**Inline context:**
+
+| Inline context field | Value |
+|----------------------|--------|
+| `targetPlanPath` / `targetPlanSlug` | From coding-session state when plan-anchored |
+| `prUrl`, `prNumber`, `prState` | From coding-session `outputs` when present |
+| `deployStatus`, `deployTodoStatus` | From inline **`deploy-walk`** outputs when present |
+| `ledgerParent` | From coding-session ledger when present |
+| `upstreamSkill` | `"coding-session"` |
+
+2. Follow **`plan-reconcile`** **Flow** (reconcile dry-run, archive candidates, follow-ups triage, §5 workspace cleanup when approved). Merge **`## Completion (inline)`** into coding-session `outputs` (`archivedSlugs`, `shipPhase`, `rowStatus`, `cleanedWorktrees`, …).
+3. Do **not** wait for a child **`AGENT_RESULT_RESPONSE_V1`** — there is no **`plan-reconcile`** child lane.
+4. When reconcile completes or pauses on flagged/postponed follow-ups, keep `continuationStatus: "active"` until the developer defers or the target plan row is **`closed`**.
 
 ### Inline PR review after PR creation
 

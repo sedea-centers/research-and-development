@@ -73,7 +73,7 @@ If Mission Control opened a session whose only intent is **`create-pr`** / *open
 
 **Required upstream context:** `prePrReviewRecommendation: "go"`; `worktreePath`, `branchName`, `baseRef`; optional `targetPlanPath` / `targetPlanSlug`; `diffSummary` and pre-PR flags when available. If context is missing, recover on **`coding-session`** before running this procedure.
 
-**Post-PR lifecycle:** merge checks, After-deploy **`deploy-walk`**, and **`plan-reconcile`** are owned by **`coding-session`** ([Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate), [After deploy deploy-walk handoff](../coding-session/SKILL.md#after-deploy-deploy-walk-handoff)) — not this skill.
+**Post-PR lifecycle:** merge checks, After-deploy **`deploy-walk`**, and inline **`plan-reconcile`** are owned by **`coding-session`** ([Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate), [After deploy deploy-walk handoff](../coding-session/SKILL.md#after-deploy-deploy-walk-handoff), [Plan-reconcile handoff (inline)](../coding-session/SKILL.md#plan-reconcile-handoff-inline)) — not this skill.
 
 ## Structured choice (Mission Control)
 

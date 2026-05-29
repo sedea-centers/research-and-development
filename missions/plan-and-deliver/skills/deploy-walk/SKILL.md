@@ -95,7 +95,7 @@ When run **inline** on **`coding-session`** (pre-merge **Before deploy** or post
 
 | Agent mistake | Correct action |
 |---------------|----------------|
-| Treat deploy walk `done` as permission to archive the plan | Tell the developer to start **`plan-reconcile`** separately (phrase, dispatch, or **`coding-session`** reconcile choice after deploy) |
+| Treat deploy walk `done` as permission to archive the plan | Tell the developer to run **`plan-reconcile`** inline on **`coding-session`** when ready (phrase or stale-worktree / post-deploy choice) |
 | Emit **`AGENT_RUN_REQUEST_V1`** for **`plan-reconcile`** from this lane | **Forbidden** — hand off in prose only |
 
 Canonical: **`.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`** § *deploy-walk vs plan-reconcile (not chained)*.

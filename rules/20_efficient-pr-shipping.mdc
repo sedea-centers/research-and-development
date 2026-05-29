@@ -149,7 +149,7 @@ Finishing **`deploy-walk`** (checklist complete, capstone todo **`deploy-test-pl
 | **`deploy-walk`** | Deploy §7 walked; Status `done` | **`plan-reconcile`** |
 | **`plan-reconcile`** | Archive / follow-ups triage per **`plan-state.mjs`** | (nothing upstream) |
 
-Start **`plan-reconcile`** separately: developer phrase, mission dispatch, or **`coding-session`** after deploy when the developer **explicitly** chooses reconcile — see **`plan-reconcile/SKILL.md`** § *When to trigger* and **development-process.md** § *Ship chain*.
+Start **`plan-reconcile`** separately: developer phrase on active **`coding-session`**, or **`coding-session`** [Plan-reconcile handoff (inline)](../missions/plan-and-deliver/skills/coding-session/SKILL.md#plan-reconcile-handoff-inline) after deploy when the developer **explicitly** chooses reconcile — see **`plan-reconcile/SKILL.md`** § *When this skill runs* and **development-process.md** § *Ship chain*.
 
 ## PR creation — inline **`create-pr`** on **`coding-session`**
 
