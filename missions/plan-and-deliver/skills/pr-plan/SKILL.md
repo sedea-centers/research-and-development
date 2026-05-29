@@ -102,7 +102,7 @@ Read the target plan in full and apply:
 | Has `## Overview` + `## Phasing` + `## Out of scope` (**new-plan** stub) | Fresh stub, drafting needed | Step 1b → Step 2 → Step 3 → Step 4 (full body rewrite) |
 | Has `## 1. Single concern` … `## 4. Reasoning` with `_TBD_` under one or more of §§ 1–4 | Partially drafted | Step 1b → Step 2 → Step 3 → Step 4 (fill only still-`_TBD_` sections) |
 | Has §§ 1–4 all populated | Already drafted | Step 5 (handoff menu) |
-| Master Plan body (`## 4. Architectural design` + `## 6. Delivery phases \| PR breakdown`) | Wrong skill | **Stop:** use **`master-plan`**. |
+| Master Plan body (`## 4. Architectural design` + `## 6. Delivery phases \| PR breakdown`) | Wrong skill | **Stop:** use **`planner`**. |
 | Phase plan body (`## 1. Background` … `## 4. Changes` for mode #2) | Wrong skill | **Stop:** use **`phase-plan`**. |
 
 Acknowledge the body state in one line.
@@ -113,9 +113,9 @@ If the **new-plan** stub sections carry **non-stub user content**, merge it into
 
 Read the target plan's sidecar `<slug>.state.yaml` for `parent:`.
 
-- `parent: null` (or sidecar missing) → **stop:** PR plans require a parent under **`PR breakdown`**. Fix via **`plan-reconcile`** or by hand, or use **`master-plan`** if this file should be a Master Plan.
+- `parent: null` (or sidecar missing) → **stop:** PR plans require a parent under **`PR breakdown`**. Fix via **`plan-reconcile`** or by hand, or use **`planner`** if this file should be a Master Plan.
 - `parent:` does not resolve to an existing `.plan.md` under the same `.sedea/operations/.../plans/` tree → **stop:** fix sidecar before drafting.
-- Parent is a **roadmap topic** grouping plan → **stop:** children should be Master Plans, not PR plans; fix sidecar or use **`master-plan`**.
+- Parent is a **roadmap topic** grouping plan → **stop:** children should be Master Plans, not PR plans; fix sidecar or use **`planner`**.
 - Parent resolves; read parent's dual-title block (`## 6. …` Master, `## 5. …` Phase):
   - Heading **`PR breakdown`** → proceed.
   - Heading **`Delivery phases`** → **stop:** use **`phase-plan`** on this file (phase child), not **`pr-plan`**.
@@ -424,7 +424,7 @@ Perform exactly what was chosen. List short **numbered observations** for gaps (
 
 **Owns:** target PR plan **body** §§ 1–4; **4a-bis** append-only capstone todo; implementation readiness assessment; optional **fill** sketches for § 5–8 when explicitly chosen.
 
-**Out of scope:** parent **`### PR list`** edits; parent **`Plan:`** wiring (**`plan-reconcile`**); frontmatter `name` / `overview` / `isProject` (except **4a-bis** append); running **`coding-session`** procedures on this lane (worktrees, `git worktree`, MCP attach, implementation edits); Master / Phase templates (**`master-plan`**, **`phase-plan`**).
+**Out of scope:** parent **`### PR list`** edits; parent **`Plan:`** wiring (**`plan-reconcile`**); frontmatter `name` / `overview` / `isProject` (except **4a-bis** append); running **`coding-session`** procedures on this lane (worktrees, `git worktree`, MCP attach, implementation edits); Master / Phase templates (**`planner`**, **`phase-plan`**).
 
 **In scope for spawn:** one **`AGENT_RUN_REQUEST_V1`** for **`coding-session`** per §5d after **AskQuestion** **`start-coding-session`** with real absolute paths.
 

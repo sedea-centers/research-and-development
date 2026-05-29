@@ -1,5 +1,5 @@
 ---
-name: master-plan
+name: planner
 description: >-
   Take a PRD and scaffold a Master Plan file under `.sedea/operations/<operationsUserId>/plans/`,
   pre-populated with sections 1 through 5 (Background, Benefits, Related
@@ -10,11 +10,11 @@ description: >-
   splits before `delivery-phases`/`pr-breakdown`. Section 6 (Delivery phases | PR breakdown)
   and section 7 (Caveats) stay as TBD stubs for follow-up turns. Use when the user
   opens a fresh planning chat from the "feature plan: design + changes"
-  plan-board prompt, or says "master-plan" / "draft a master plan".
+  plan-board prompt, or says "planner" / "draft a master plan".
 inputs:
   seedBlock:
     type: string
-    description: Complete master-plan seed block containing Feature planning, PRD, Parent, and optional Related entries.
+    description: Complete planner seed block (Master Plan handoff) containing Feature planning, PRD, Parent, and optional Related entries.
     required: true
   featurePlanningTitle:
     type: string
@@ -40,7 +40,7 @@ warmUpRules:
   - ".sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc"
 ---
 
-# Master plan: §§ 1–5 from the PRD
+# Planner: §§ 1–5 from the PRD
 
 This skill drives the **first** step of feature planning: read a PRD, **scaffold the Master Plan file**, draft sections 1 through 5 (Background, Benefits, Related features, Architectural design, Changes) directly into that file, then compute a **plan-scope complexity score** from what was written under §§ 4–5, persist it under § 5, and stop. Sections 6 (Delivery phases | PR breakdown) and 7 (Caveats) are filled in in follow-up turns once the user has reviewed the initial draft — **unless complexity is high**, in which case defer **§6 decomposition** until the scope is split (see Step 6c).
 
@@ -52,7 +52,7 @@ The procedure below is a hard contract — do **not** skip steps, re-order them,
 
 Cross-check every emit against **`.sedea/centers/research-and-development/missions/plan-and-deliver/skills/README.md`** § *Universal spawn preflight* before the host parses the line.
 
-### Inbound — Squad Leader → **master-plan** (`plan and deliver` §5)
+### Inbound — Squad Leader → **planner** (`plan and deliver` §5)
 
 The **Squad Leader** must pass **`inputs`** keys that match this skill’s frontmatter **exactly** (see **`plan.mdc`** §5 *Spawn preflight* for the §4 seed → **`inputs`** map).
 
@@ -67,10 +67,10 @@ The **Squad Leader** must pass **`inputs`** keys that match this skill’s front
 **Valid example (illustrative — replace UUID, paths, and seed text):**
 
 ```text
-AGENT_RUN_REQUEST_V1 {"version":1,"correlationId":"00000000-0000-4000-8000-000000000001","skillPath":".sedea/centers/research-and-development/missions/plan-and-deliver/skills/master-plan/SKILL.md","name":"Master plan","slug":"master-plan-harden-spawn-example","description":"Draft Master Plan from PRD seed","inputs":{"seedBlock":"Feature planning: \"Example feature\"\nPRD: @/path/to/example.prd.md\nParent: null","featurePlanningTitle":"Example feature","prdRef":"/path/to/example.prd.md","parent":"null","related":[]}}
+AGENT_RUN_REQUEST_V1 {"version":1,"correlationId":"00000000-0000-4000-8000-000000000001","skillPath":".sedea/centers/research-and-development/missions/plan-and-deliver/skills/planner/SKILL.md","name":"Planner","slug":"planner-harden-spawn-example","description":"Draft Master Plan from PRD seed","inputs":{"seedBlock":"Feature planning: \"Example feature\"\nPRD: @/path/to/example.prd.md\nParent: null","featurePlanningTitle":"Example feature","prdRef":"/path/to/example.prd.md","parent":"null","related":[]}}
 ```
 
-### Outbound — **master-plan** → **`delivery-phases`** / **`pr-breakdown`** (Step 7c)
+### Outbound — **planner** → **`delivery-phases`** / **`pr-breakdown`** (Step 7c)
 
 When the user selects **Route §6 decomposition**, emit **one** spawn line per Step 7c with **`inputs`** required by the target skill’s frontmatter. Minimum set for both decomposition skills:
 
@@ -190,7 +190,7 @@ Related (optional, `<role>: <link or @path>` per bullet):
 - <role>: <link or @path>
 - ...
 
-Load and follow .sedea/centers/research-and-development/missions/plan-and-deliver/skills/master-plan/SKILL.md ...
+Load and follow .sedea/centers/research-and-development/missions/plan-and-deliver/skills/planner/SKILL.md ...
 ```
 
 `Feature planning:`, `PRD:`, and `Parent:` are required slots. The Related block is the only optional one — empty when the feature stands alone. `Parent:` is read in step 5a; if it's empty or unresolvable, step 5a falls back to an `AskQuestion` picker so the user can still proceed.

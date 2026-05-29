@@ -30,7 +30,7 @@ Mission Control delivery for skills that mix long plan output with structured us
 |-------|-------|-------------------|-----|
 | **`pr-breakdown`**, **`delivery-phases`** | §5d | §6 | §6 act-after-select |
 | **`pr-plan`** | §5c recap | §5c modal | §5d spawn |
-| **`master-plan`** | §7a | §7b | §7c |
+| **`planner`** | §7a | §7b | §7c |
 | **`phase-plan`** | §4f echo / §5c link | §5b / §5c | §5b spawn / §5d follow-up |
 | **`new-plan`** | stub + parent link | populator gate § indexed handoff | populator spawn |
 
@@ -47,7 +47,7 @@ Squad Leader steps **§3** and **§5** and downstream decomposition agents run t
 | Skill | Typical spawner | Squad Leader ledger |
 |-------|-----------------|---------------------|
 | `ad-hoc-prd` | Squad Leader §3 | Child lane owns PRD recap + approval (steps 5–7); leader §4 only after `terminal` + `developerApprovedPrd: true`; no nested child lanes |
-| `master-plan` | Squad Leader §5 | Seed ledger; §6 ack when `continuationOwner: master-plan-agent` |
+| `planner` | Squad Leader §5 | Seed ledger; §6 ack when `continuationOwner: master-plan-agent` |
 | `delivery-phases` | Master Plan agent | Merge `childRows`, `spawnedPlans`, `activeLanes` in §7 |
 | `pr-breakdown` | Master Plan agent | Same as delivery-phases |
 | `new-plan` | decomposition agents | Register child plan path/slug per row index |
@@ -104,7 +104,7 @@ Populate `outputs` from the skill’s **`## Completion (spawned)`** and any refe
 
 ## Universal spawn preflight (all plan-and-deliver spawners)
 
-Run this checklist **before** every `AGENT_RUN_REQUEST_V1` emit on any lane (Squad Leader §§3/§5, **master-plan** Step 7, **pr-plan** §5d, ship-chain spawns). Host behavior is in **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Agent-to-agent spawn protocol*; this section is the **plan-and-deliver** operator checklist.
+Run this checklist **before** every `AGENT_RUN_REQUEST_V1` emit on any lane (Squad Leader §§3/§5, **planner** Step 7, **pr-plan** §5d, ship-chain spawns). Host behavior is in **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Agent-to-agent spawn protocol*; this section is the **plan-and-deliver** operator checklist.
 
 | Step | Check |
 |------|--------|
@@ -116,7 +116,7 @@ Run this checklist **before** every `AGENT_RUN_REQUEST_V1` emit on any lane (Squ
 | 6 | **`skillPath`** must resolve under **`.sedea/centers/research-and-development/`** for this mission’s skills (or the correct center path when spawning cross-center). |
 | 7 | On failure (no child lane, immediate child validation error, or silent host reject): stop, name the failing checklist row, fix keys/paths/JSON, mint a **new** `correlationId`, and re-emit — do not guess. |
 
-Skill-specific **`inputs`** tables and paste-ready examples live in each **`SKILL.md`** (for example **`master-plan`** § *Spawn contract*). **`plan and deliver`** Squad Leader §5 adds a **master-plan** seed → **`inputs`** mapping before the §5 spawn step.
+Skill-specific **`inputs`** tables and paste-ready examples live in each **`SKILL.md`** (for example **`planner`** § *Spawn contract*). **`plan and deliver`** Squad Leader §5 adds a **planner** seed → **`inputs`** mapping before the §5 spawn step.
 
 ### Terminal stop (normative for every spawned skill)
 
@@ -138,7 +138,7 @@ After emitting **`AGENT_RESULT_RESPONSE_V1`**, **stop on that lane** for the cur
 |-------|------------------------------------------------------------------------|--------|
 | `author-prd` (prd mission) | Yes | Also forbids downstream planning spawns |
 | `pr-plan` | Yes | May spawn **`coding-session`** in §5d before terminal; one spawn per turn |
-| `master-plan` | Yes | Procedure stop before terminal when `continuationStatus: active`; Step 7 spawns on **later** user messages only |
+| `planner` | Yes | Procedure stop before terminal when `continuationStatus: active`; Step 7 spawns on **later** user messages only |
 | `delivery-phases`, `pr-breakdown`, `new-plan`, `ad-hoc-prd` | Yes | `ad-hoc-prd`: active result after write, terminal only after developer approval; see each skill § *Completion (spawned)* |
 | Ship chain (`coding-session`, `pre-pr-review`, `create-pr`, `deploy-walk`, `plan-reconcile`) | Yes | See each skill § *Completion (spawned)* |
 | `phase-plan` | Yes | Same canonical stop sentence as **`pr-plan`** |

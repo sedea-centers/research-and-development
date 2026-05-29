@@ -89,7 +89,7 @@ Read the target plan in full and apply:
 | Has `## 1. Background` + `## 2. Scope` + `## 3. Code design` + `## 4. Changes`, with one or more `_TBD_` placeholders under §§ 1–4 | Partially drafted phase plan | Step 1b → Step 2 → Step 3 → Step 4 (fill only the still-`_TBD_` sections; keep already-drafted content) |
 | Has §§ 1–4 populated but **no** `### Decomposition assessment` before `## 5. Delivery phases \| PR breakdown` | Partial draft (assessment missing) | Step 1b → Step 2 → Step 3 → Step 4g only (insert assessment via `StrReplace`; leave §§ 1–4 untouched unless they still have `_TBD_`) |
 | Has §§ 1–4 + `### Decomposition assessment` complete; `## 5. Delivery phases \| PR breakdown` still `_TBD_` | Ready for **`delivery-phases`** / **`pr-breakdown`** | Step 5 (handoff menu) |
-| Has `## 4. Architectural design` + `## 6. Delivery phases \| PR breakdown` (Master Plan template) | Wrong skill — this is a Master Plan | **Stop**: *"This plan's body is the Master Plan template. Use the **`master-plan`** protocol branch to draft Master Plan §§ 1–5."* |
+| Has `## 4. Architectural design` + `## 6. Delivery phases \| PR breakdown` (Master Plan template) | Wrong skill — this is a Master Plan | **Stop**: *"This plan's body is the Master Plan template. Use the **`planner`** protocol branch to draft Master Plan §§ 1–5."* |
 | Has `## Single concern` heading | Wrong skill — this is a PR plan | **Stop**: *"This is a PR plan. PR plans don't use the Phase plan template; they have their own per-PR template."* |
 
 Acknowledge the body state in one line — e.g. *"Body state: fresh new-plan stub; will rewrite to the Phase plan template."*
@@ -100,9 +100,9 @@ If the body is the new-plan stub but `## Overview` / `## Phasing` / `## Out of s
 
 Read the target plan's sidecar `<slug>.state.yaml` for `parent:`. Apply:
 
-- `parent: null` (or sidecar missing) → **stop** with: *"This plan has no parent (`parent: null` or sidecar missing). Phase plans hang under a Master Plan or another Phase plan in **`Delivery phases`** mode. Fix the sidecar via **`plan-reconcile`** (or by hand), or use the **`master-plan`** protocol branch if this file should be a Master Plan."*
+- `parent: null` (or sidecar missing) → **stop** with: *"This plan has no parent (`parent: null` or sidecar missing). Phase plans hang under a Master Plan or another Phase plan in **`Delivery phases`** mode. Fix the sidecar via **`plan-reconcile`** (or by hand), or use the **`planner`** protocol branch if this file should be a Master Plan."*
 - `parent: <slug>` does not resolve to an existing `.plan.md` under the same `.sedea/operations/.../plans/` tree as this target (`plan-state resolve` / parent absolute path) → **stop** with: *"Sidecar `parent: <slug>` doesn't resolve to an existing plan. Fix the sidecar before drafting."*
-- Parent is a **roadmap topic** top-level plan (`parent:` points at a plan whose process role is roadmap grouping) → **stop** with: *"Phase plans hang under Master / Phase parents in **`Delivery phases`**. Fix the sidecar parent, or use the **`master-plan`** protocol branch if this file should be a Master Plan."*
+- Parent is a **roadmap topic** top-level plan (`parent:` points at a plan whose process role is roadmap grouping) → **stop** with: *"Phase plans hang under Master / Phase parents in **`Delivery phases`**. Fix the sidecar parent, or use the **`planner`** protocol branch if this file should be a Master Plan."*
 - Parent resolves; read parent's body. Locate parent's dual-title section (`## 6. ...` for Master Plan parent, `## 5. ...` for Phase plan parent) and apply:
   - Heading is `Delivery phases` → proceed.
   - Heading is `PR breakdown` → **stop** with: *"Parent plan's decomposition is `PR breakdown`, so its children are PR plans, not phase plans. Use the **`pr-plan`** protocol branch to populate this plan's body instead."*
@@ -213,11 +213,11 @@ _TBD_
 _TBD_
 ````
 
-The `_TBD_` placeholders under §§ 5–6 mirror the convention from `master-plan` step 5c — italic and easy to grep (`rg '^_TBD_$'`). The `## 5.` heading uses the **deliberate dual-title** form per the doc's § 6 / § 5 contents rule; the actual decomposition decision (`Delivery phases` vs `PR breakdown`) and the numbered child list are made when § 5 is drafted via `delivery-phases` / `pr-breakdown`. The **`### Decomposition assessment`** block is **not** a substitute for that list — it records evidence *before* the choice.
+The `_TBD_` placeholders under §§ 5–6 mirror the convention from `planner` step 5c — italic and easy to grep (`rg '^_TBD_$'`). The `## 5.` heading uses the **deliberate dual-title** form per the doc's § 6 / § 5 contents rule; the actual decomposition decision (`Delivery phases` vs `PR breakdown`) and the numbered child list are made when § 5 is drafted via `delivery-phases` / `pr-breakdown`. The **`### Decomposition assessment`** block is **not** a substitute for that list — it records evidence *before* the choice.
 
 The frontmatter (`name`, `overview`, `todos`, `isProject`) is **not** touched — those were set correctly by the new-plan skill at scaffold time. If a follow-up `iterate` ever does edit a frontmatter scalar (e.g. fixing a typo in `name:`), follow the YAML scalar-quoting bullet in [`../new-plan/SKILL.md`](../new-plan/SKILL.md) § *Write the plan template* → `<slug>.plan.md` rules — most importantly, wrap any value containing `: ` (colon + space) in double quotes so Plan Board doesn't fall back to the slug for the tree label.
 
-If the body is **partially drafted** (per the step 1a table), do not rewrite the whole body. Instead, fill only the still-`_TBD_` section(s) — one `StrReplace` per section, using the section header as disambiguating context (same shape as `master-plan` step 6 for §§ 1–5). Keep already-drafted content untouched. To add a missing assessment only, insert `### Decomposition assessment` and its bullets **immediately before** `## 5. Delivery phases | PR breakdown` (step 4g).
+If the body is **partially drafted** (per the step 1a table), do not rewrite the whole body. Instead, fill only the still-`_TBD_` section(s) — one `StrReplace` per section, using the section header as disambiguating context (same shape as `planner` step 6 for §§ 1–5). Keep already-drafted content untouched. To add a missing assessment only, insert `### Decomposition assessment` and its bullets **immediately before** `## 5. Delivery phases | PR breakdown` (step 4g).
 
 ### 4b — § 1 Background
 
@@ -430,7 +430,7 @@ Silence or missing downstream metadata is not completion; return `partial` and k
 
 ## One choice per turn — surface observations
 
-Match the discipline in **`master-plan`**: perform exactly what was chosen; do not silently expand scope. If you notice gaps (parent Changes bullets that do not map to a phase, diagram simplifications, assessment vs parent hint mismatch), list them as short **numbered notes** in the chat reply; the developer addresses them by number on the next turn or folds them into a revise pass.
+Match the discipline in **`planner`**: perform exactly what was chosen; do not silently expand scope. If you notice gaps (parent Changes bullets that do not map to a phase, diagram simplifications, assessment vs parent hint mismatch), list them as short **numbered notes** in the chat reply; the developer addresses them by number on the next turn or folds them into a revise pass.
 
 ## Scope guard
 
@@ -440,7 +440,7 @@ This skill writes the **body** of the target phase plan — replacing the **`new
 
 **Out of scope here:** target plan frontmatter (left as **`new-plan`** set it); editing the ancestor parent body except the **hoisted § 5 note** on this phase file (**§ 5a-hoist** step 2); parent `Plan:` / row updates on the ancestor (**hoisted `pr-breakdown`** + **`new-plan`**); drafting the dual-title § 5 **numbered list** on this phase when **`hoistRequired`**; § 6 Caveats (**`delivery-phases`** / non-hoisted **`pr-breakdown`** own those); spawning grandchildren directly (**`new-plan`** after § 5 exists is owned by the spawned decomposition skill); git / commit automation.
 
-Wrong template stops live in step 1a — use **`master-plan`** or **`pr-plan`** protocol branches when the file is a Master Plan or PR plan.
+Wrong template stops live in step 1a — use **`planner`** or **`pr-plan`** protocol branches when the file is a Master Plan or PR plan.
 
 Stop after the handoff block in step 5, or after spawning the next decomposition branch and announcing the wait state.
 

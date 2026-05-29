@@ -4,7 +4,7 @@ description: >-
   (new-plan, phase-plan, pr-plan, delivery-phases, pr-breakdown, plan-reconcile). Resolution
   is from session and chat context — not from IDE focused-file list. Covers resolution order,
   snapshot emission, and "Where we are now in the plan tree" table format for planning moves
-  (§ *Sedea input channel*; § *Planning vs ship cadence*). **`master-plan`** handoff uses the same contract (Step 7 — AskQuestion + AGENT_RUN_REQUEST_V1).
+  (§ *Sedea input channel*; § *Planning vs ship cadence*). **`planner`** handoff uses the same contract (Step 7 — AskQuestion + AGENT_RUN_REQUEST_V1).
 alwaysApply: true
 ---
 
@@ -31,7 +31,7 @@ When a turn **requires a user reply** before you continue (pick a planning branc
 | **`coding-session`** after inline **`pr-review`** | PR comment triage finished on the coding lane | Nudge **Ship recap** on the leader dispatch (`shipPhase: pr-review`) | Assume host sync updated §8 — **`pr-review` is not host-synced** (§ *§8 ship ledger and inline `pr-review`* below) |
 | Squad Leader **`plan and deliver`** dispatch | Parsed **Ship recap** or host-sync message | Refresh §8 rows; then resolution gates | Close dispatch **`resolved`** while rows `open`/`blocked` without recap — **`plan.mdc`** §8 *§8 troubleshooting* |
 
-**Lane rule:** Planning skills (**`pr-plan`**, **`master-plan`**, decomposition tree) ≠ ship skills (**`coding-session`** → **`pre-pr-review`** → **`create-pr`** → …). **`pr-plan`** may spawn **`coding-session`** on a child lane (§5d); worktrees and implementation stay on the child.
+**Lane rule:** Planning skills (**`pr-plan`**, **`planner`**, decomposition tree) ≠ ship skills (**`coding-session`** → **`pre-pr-review`** → **`create-pr`** → …). **`pr-plan`** may spawn **`coding-session`** on a child lane (§5d); worktrees and implementation stay on the child.
 
 ## §8 ship ledger and inline `pr-review`
 

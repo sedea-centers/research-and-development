@@ -59,7 +59,7 @@ The procedure below is a hard contract — do **not** skip steps, re-order them,
 
 - Mission dispatch or explicit request to run the **`delivery-phases`** protocol branch.
 - Natural language: decompose phases, draft delivery phases, phase decomposition.
-- After **`master-plan`** when the developer has already chosen **`Delivery phases`** over **`PR breakdown`** for § 6 — **`master-plan`** spawns this skill; this skill drafts § 6 and owns indexed phase-child spawning for that branch.
+- After **`planner`** when the developer has already chosen **`Delivery phases`** over **`PR breakdown`** for § 6 — **`planner`** spawns this skill; this skill drafts § 6 and owns indexed phase-child spawning for that branch.
 
 The **developer** picks the next move per **30_planning-target-resolution** § *Sedea input channel*.
 
@@ -198,7 +198,7 @@ Required **`options`** (adapt labels; keep **K** visible in the **`prompt`** whe
 | `abandon` | Abandon this branch |
 | `more-details` | More details for option _ |
 
-**Spawned under `master-plan`:** Structured-choice approval is mandatory before indexed child spawns. Do **not** emit **`AGENT_RESULT_RESPONSE_V1`** in the structured-choice message.
+**Spawned under `planner`:** Structured-choice approval is mandatory before indexed child spawns. Do **not** emit **`AGENT_RESULT_RESPONSE_V1`** in the structured-choice message.
 
 **Standalone:** After structured-choice approval, **stop** and wait for the developer’s next message.
 
@@ -213,7 +213,7 @@ In a **new** assistant turn after the developer selects an option in the approva
 | **Defer / abandon** | Emit terminal result per labels; do not spawn. |
 | **More details for option _** | Elaborate (information-only), then run structured choice again. |
 
-When running as a spawned downstream agent under `master-plan`, each **`AGENT_RUN_REQUEST_V1`** in the act-after-select message must include `mode: "indexed-child"`, `parentPlanPath`, `parentPlanSlug`, `index`, `childKind: "phase-plan"`, `requestedPopulatorSkill: "phase-plan"`, `ledgerParent`, `upstreamSkill: "delivery-phases"`, and `decompositionKind: "delivery-phases"`. Record each spawned child in the ledger; announce waiting for **K** results.
+When running as a spawned downstream agent under `planner`, each **`AGENT_RUN_REQUEST_V1`** in the act-after-select message must include `mode: "indexed-child"`, `parentPlanPath`, `parentPlanSlug`, `index`, `childKind: "phase-plan"`, `requestedPopulatorSkill: "phase-plan"`, `ledgerParent`, `upstreamSkill: "delivery-phases"`, and `decompositionKind: "delivery-phases"`. Record each spawned child in the ledger; announce waiting for **K** results.
 
 If **K = 0**, treat that as a drafting failure: do not open structured-choice spawn paths; return failure or partial.
 
@@ -240,7 +240,7 @@ Only return `continuationStatus: "terminal"` when every row is explicitly `compl
 
 ## One primary choice per turn — surface observations
 
-Match the discipline in **`master-plan`** and **`phase-plan`**: perform exactly what was chosen; scope stays on the chosen pass. If you notice gaps (diagram vs phase boundary, duplicate wording, phase count vs assessment), list short **numbered observations** in the chat reply (information-only); the developer addresses them on the next turn or folds them into a revise pass. When you need an explicit accept/skip decision on flags, use **AskQuestion** or **`MC_ASKQUESTION_V1`** with one `option` per flag plus **More details for option _**.
+Match the discipline in **`planner`** and **`phase-plan`**: perform exactly what was chosen; scope stays on the chosen pass. If you notice gaps (diagram vs phase boundary, duplicate wording, phase count vs assessment), list short **numbered observations** in the chat reply (information-only); the developer addresses them on the next turn or folds them into a revise pass. When you need an explicit accept/skip decision on flags, use **AskQuestion** or **`MC_ASKQUESTION_V1`** with one `option` per flag plus **More details for option _**.
 
 ## Scope guard
 

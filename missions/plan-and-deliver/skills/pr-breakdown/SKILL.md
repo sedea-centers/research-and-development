@@ -83,7 +83,7 @@ The procedure below is a hard contract — do **not** skip steps, re-order them,
 
 - Mission dispatch or explicit request to run the **`pr-breakdown`** protocol branch.
 - Natural language: decompose into PRs, draft PR breakdown, PR breakdown.
-- After **`master-plan`** when the developer has already chosen **`PR breakdown`** for § 6 — **`master-plan`** spawns this skill; this skill drafts § 6 and owns indexed PR-child spawning for that branch.
+- After **`planner`** when the developer has already chosen **`PR breakdown`** for § 6 — **`planner`** spawns this skill; this skill drafts § 6 and owns indexed PR-child spawning for that branch.
 
 The **developer** picks the next move per **30_planning-target-resolution** § *Sedea input channel*.
 
@@ -175,7 +175,7 @@ Before **AskQuestion** (step 4) or before drafting set-level **`PR breakdown`** 
    - Use a unique `old_string` anchor of the form `## <N>. Delivery phases \| PR breakdown\n\n_TBD_` **or** `## <N>. PR breakdown\n\n_TBD_` (match the file exactly — include the chosen heading line).
    - `new_string` is: `### Decomposition assessment` + blank line + bullet lines + blank line + the same `## <N>. …` heading + `\n\n_TBD_`.
 
-Do **not** remove an existing assessment authored by **`phase-plan`** / **`master-plan`** unless the **developer** asked to replace it.
+Do **not** remove an existing assessment authored by **`phase-plan`** / **`planner`** unless the **developer** asked to replace it.
 
 ## Step 4 — Decision gate (when the heading is still `Delivery phases | PR breakdown`)
 
@@ -323,7 +323,7 @@ Required **`options`** (adapt labels; keep **K** visible in the **`prompt`** whe
 
 **Standalone / non-spawned:** After structured-choice approval, **stop** and wait for the developer’s next message. On **revise**, run step **6a** then repeat recap → structured choice. On other choices, act per the labels above without impersonating **`new-plan`** / **`pr-plan`** in the same turn.
 
-**Spawned under `master-plan`:** Structured-choice approval is mandatory before indexed child spawns. Do **not** emit **`AGENT_RESULT_RESPONSE_V1`** in the structured-choice message.
+**Spawned under `planner`:** Structured-choice approval is mandatory before indexed child spawns. Do **not** emit **`AGENT_RESULT_RESPONSE_V1`** in the structured-choice message.
 
 ### Act after developer selects
 
@@ -360,7 +360,7 @@ Only return `continuationStatus: "terminal"` when every row is explicitly `compl
 
 ## One primary choice per turn — surface observations
 
-Match the discipline in **`master-plan`**, **`delivery-phases`**, and **`phase-plan`**: perform exactly what was chosen; scope stays on the chosen pass. If you notice gaps (Changes bullets that do not map to a PR, sequencing tension, assessment vs draft mismatch), list short **numbered observations** in the chat reply (information-only). When you need an explicit accept/skip decision on flags, use **AskQuestion** or **`MC_ASKQUESTION_V1`** with one `option` per flag plus **More details for option _**.
+Match the discipline in **`planner`**, **`delivery-phases`**, and **`phase-plan`**: perform exactly what was chosen; scope stays on the chosen pass. If you notice gaps (Changes bullets that do not map to a PR, sequencing tension, assessment vs draft mismatch), list short **numbered observations** in the chat reply (information-only). When you need an explicit accept/skip decision on flags, use **AskQuestion** or **`MC_ASKQUESTION_V1`** with one `option` per flag plus **More details for option _**.
 
 ## Scope guard
 
