@@ -199,6 +199,46 @@ git worktree add <path> -b <branch> origin/main
 
 Submodules, native extensions, and vscode compile run per `scripts/bootstrap-worktree-dev.sh --help`. The script is idempotent. **`coding-session`** spawns **`worktree-bootstrap`** on a child lane by default (see [`coding-session/SKILL.md`](../missions/plan-and-deliver/skills/coding-session/SKILL.md) § *Worktree bootstrap handoff*); the child runs the script in [`worktree-bootstrap/SKILL.md`](../missions/plan-and-deliver/skills/worktree-bootstrap/SKILL.md). On failure, ship phase stays at `worktree` and the parent reports `partial` until bootstrap succeeds. Use **`--skip-*`** only when the developer attests partial setup.
 
+### Fast vs full worktree bootstrap (sedea-ai/app overlay)
+
+On **`sedea-ai/app`**, **`coding-session`** / **`worktree-bootstrap`** choose **full** vs **`extensions-only-link`** per [`.cursor/rules/dot-sedea.mdc`](.cursor/rules/dot-sedea.mdc) § *Worktree bootstrap mode* and § *Fast bootstrap verification checklist*. Generic hosting repos without that overlay always use **full** bootstrap.
+
+```mermaid
+flowchart TD
+  Start[Worktree attached] --> Read[Read dot-sedea worktreeBootstrap.mode]
+  Read --> Mode{mode?}
+  Mode -->|full or unset| Full[Full bootstrap script]
+  Mode -->|extensions-only-link| Warm{Primary warm?}
+  Warm -->|out + node_modules| Fast[extensions-only + link from HOSTING_ROOT]
+  Warm -->|missing| Full
+  Full --> Sub[Submodules + vscode ci + smoke]
+  Fast --> Ext[Worktree extension sync + rebuild]
+  Sub --> Done[bootstrapStatus success]
+  Ext --> Done
+```
+
+| Path | Choose when | Invocation (from **`HOSTING_ROOT`**) |
+|------|-------------|--------------------------------------|
+| **`full`** | Default; cold primary; submodule/auth unknown; **`vscode/src`** edits | `./scripts/bootstrap-worktree-dev.sh "$WORKTREE_ROOT"` |
+| **`extensions-only-link`** | Warm primary; overlay **`extensions-only-link`**; extension / rule / doc work only | `./scripts/bootstrap-worktree-dev.sh "$WORKTREE_ROOT" --extensions-only --link-vsc-build-artifacts-from "$HOSTING_ROOT"` |
+
+**Submodule preconditions:** **`--extensions-only`** skips submodule init. Acceptable only when **`.sedea/`** is already populated in the worktree or you seed from primary and attest **`--skip-submodules`**. Full bootstrap fetches submodule SHAs from the **committed** gitlink on the branch you branched from — not from the primary working tree. Push order: [`.cursor/rules/dot-sedea.mdc`](.cursor/rules/dot-sedea.mdc) § *Push before worktrees (mandatory)* and § *Operations submodule pin-drift*.
+
+**Branch skew:** After **`git pull`** on the primary clone, linked **`vscode/out`** may advance while the worktree branch lags. Re-run **`rebuild-native-extensions.sh`** in the worktree when extension sources change; unfetchable submodule SHA → fix push order before retry.
+
+**Launch from worktree (after bootstrap success):**
+
+```bash
+cd "$WORKTREE_ROOT"
+./scripts/run-dev-sedea.sh
+# Faster restart after first successful launch:
+SKIP_BUILD=1 VSCODE_SKIP_PRELAUNCH=1 ./scripts/run-dev-sedea.sh
+```
+
+Hub activation must reference **`$WORKTREE_ROOT/extensions/`**, not the primary clone path.
+
+**Agent verification (minimum before ship chain):** **`bootstrapStatus: success`**; smoke shows **`vscode/out`** + extension **`node_modules`**; optional **`SKIP_BUILD=1 VSCODE_SKIP_PRELAUNCH=1`** launch confirms worktree extension paths. Full checklist: **dot-sedea** § *Fast bootstrap verification checklist*.
+
 **Detach merged worktrees from the workbench.** After a PR merges and you retire a worktree, invoke **`sedea_remove_worktree_folder`** with JSON `{ "path": "<same-absolute-worktree-root>" }` so Sedea drops that workspace root (not the primary folder at index 0). Prefer calling this **before** `git worktree remove` so the explorer does not point at a deleted tree.
 
 Use `origin/main`, **not** `main` — `git worktree add … main` (and `git fetch origin main:main`) fails with `fatal: refusing to fetch into branch 'refs/heads/main'` when `main` is already checked out in the current worktree.
