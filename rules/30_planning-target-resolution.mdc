@@ -1,7 +1,7 @@
 ---
 description: >-
   How to resolve the target `.plan.md` when running plan-and-deliver protocol branches
-  (new-plan, phase-plan, pr-plan, delivery-phases, pr-breakdown, plan-reconcile). Resolution
+  (new-plan, phase-planner, pr-plan, delivery-phases, pr-breakdown, plan-reconcile). Resolution
   is from session and chat context — not from IDE focused-file list. Covers resolution order,
   snapshot emission, and "Where we are now in the plan tree" table format for planning moves
   (§ *Sedea input channel*; § *Planning vs ship cadence*). **`planner`** handoff uses the same contract (Step 7 — AskQuestion + AGENT_RUN_REQUEST_V1).
@@ -100,7 +100,7 @@ Squad Leader §8 ship rows advance from **`coding-session`** outputs or an expli
 3. When a pick is required before continuing, use **AskQuestion** (§ *Sedea input channel*) with one option per **protocol branch + target plan** (brief `label`; put branch and path in `prompt` when needed).
 4. Agent resolves the target from the **AskQuestion** response (selected `option` plus any modal free-form text per § *Resolution order* bullet 2), then invokes the relevant skill with the target pre-resolved.
 
-Mid-flow, when chat already unambiguously names the current lane (e.g. **`new-plan`** indexed-child just wrote `3_xxx_<hex>.plan.md` and the next step is clearly **phase-plan** on that file), the agent may continue without a new snapshot — see § *Resolution order* bullet 4.
+Mid-flow, when chat already unambiguously names the current lane (e.g. **`new-plan`** indexed-child just wrote `3_xxx_<hex>.plan.md` and the next step is clearly **phase-planner** on that file), the agent may continue without a new snapshot — see § *Resolution order* bullet 4.
 
 ## Resolution order
 
@@ -109,7 +109,7 @@ Highest confidence first. Stop at the first match.
 1. **Explicit in session or message.** Slug, relative path under `plans/`, or absolute `.sedea/operations/.../*.plan.md` — use verbatim.
 2. **AskQuestion response.** The developer submitted **AskQuestion** (selected `option` `id` / `label` from the most recent planning pick, plus any **free-form text** Mission Control returns with that submission). Bind the target from that `option`; treat modal free-form text as scope or path hints when unambiguous.
 3. **Snapshot pinpoint.** The latest snapshot lists exactly one option matching the branch the user chose — use that target.
-4. **Mid-flow continuation.** Chat names the current lane unambiguously (e.g. child file just written; next skill is **phase-plan** on that path). Valid while snapshot freshness holds (§ *Snapshot freshness*).
+4. **Mid-flow continuation.** Chat names the current lane unambiguously (e.g. child file just written; next skill is **phase-planner** on that path). Valid while snapshot freshness holds (§ *Snapshot freshness*).
 5. **Stop and emit fresh snapshot.** If still ambiguous, emit a new snapshot (information-only) and ask again via **AskQuestion** (§ *Sedea input channel*).
 
 Do **not** use `<open_and_recently_viewed_files>` as the primary resolver for planning targets.
@@ -133,11 +133,11 @@ Markdown table for each in-flight plan (typically one Master Plan subtree):
 | **Plan** | Slug + display name. |
 | **Stage** | Mode #1 Master Plan, #2 Phase, #3 PR plan, roadmap topic. |
 | **Status** | Drafted sections, `_TBD_`, PR linked, archived. |
-| **Next viable moves** | **Numbered** options naming **protocol branch + target** (e.g. *1. **new-plan** — expand list item **2** under `<parent-slug>`*; *2. **phase-plan** — populate child `<path>`*). |
+| **Next viable moves** | **Numbered** options naming **protocol branch + target** (e.g. *1. **new-plan** — expand list item **2** under `<parent-slug>`*; *2. **phase-planner** — populate child `<path>`*). |
 
 When a pick is required, offer the same moves as **`AskQuestion`** `options` (§ *Sedea input channel*). Session and plan-path contracts for planning live in this center rule, **`planning-target-resolution`**, center skills, and **`.sedea/centers/research-and-development/docs/development-process.md`** — hosting-repo **`.cursor/rules/`** cover codebase architecture and navigation only.
 
-**Snapshot-scoped prompts** (e.g. *Option 2: **phase-plan** on `<path>`*) belong **only** inside that snapshot.
+**Snapshot-scoped prompts** (e.g. *Option 2: **phase-planner** on `<path>`*) belong **only** inside that snapshot.
 
 ### PR-plan completeness before coding-session
 
@@ -182,6 +182,6 @@ Emit a fresh snapshot when:
 
 ## Skills consume the resolved target
 
-Each planning skill (**new-plan**, **phase-plan**, **pr-plan**, **delivery-phases**, **pr-breakdown**) receives the target path as **pre-resolved structured input**. When loading a skill, the agent states the target up front (one line).
+Each planning skill (**new-plan**, **phase-planner**, **pr-plan**, **delivery-phases**, **pr-breakdown**) receives the target path as **pre-resolved structured input**. When loading a skill, the agent states the target up front (one line).
 
 Skills still run their own **template / stage verification** on disk. If a skill loads without a resolved target, **stop** and resolve via this rule before proceeding.

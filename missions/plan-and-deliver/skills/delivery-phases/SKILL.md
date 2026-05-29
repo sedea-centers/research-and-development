@@ -6,7 +6,7 @@ description: >-
   development-process § 2 + § 6/§ 5 contents rule, gates Delivery phases vs PR
   breakdown when the dual-title body is _TBD_, then drafts the parent's dual-title
   section as Delivery phases with a numbered child list. Child stubs and Plan:
-  links follow **new-plan** indexed spawn; bodies follow **phase-plan**. Target
+  links follow **new-plan** indexed spawn; bodies follow **phase-planner**. Target
   resolved per planning-target-resolution. Use under mission dispatch, **delivery-phases**
   protocol branch, or natural language (decompose phases, draft delivery phases).
 inputs:
@@ -51,7 +51,7 @@ warmUpRules:
 
 # Delivery phases — mode #2 decomposition
 
-This skill drives **mode #2** (Delivery phases) under Sedea's New Feature Development Process. **Input:** a target **Master Plan** or **Phase plan** whose dual-title section (`Delivery phases | PR breakdown`) is still undecided or is already committed to **`Delivery phases`**. **Output:** that section drafted as a numbered list of child phases; each row is later expanded into its own phase plan via the **`new-plan`** protocol branch (indexed child), then the **`phase-plan`** protocol branch on the new child.
+This skill drives **mode #2** (Delivery phases) under Sedea's New Feature Development Process. **Input:** a target **Master Plan** or **Phase plan** whose dual-title section (`Delivery phases | PR breakdown`) is still undecided or is already committed to **`Delivery phases`**. **Output:** that section drafted as a numbered list of child phases; each row is later expanded into its own phase plan via the **`new-plan`** protocol branch (indexed child), then the **`phase-planner`** protocol branch on the new child.
 
 The procedure below is a hard contract — do **not** skip steps, re-order them, or start drafting before stage is verified.
 
@@ -213,7 +213,7 @@ In a **new** assistant turn after the developer selects an option in the approva
 | **Defer / abandon** | Emit terminal result per labels; do not spawn. |
 | **More details for option _** | Elaborate (information-only), then run structured choice again. |
 
-When running as a spawned downstream agent under `planner`, each **`AGENT_RUN_REQUEST_V1`** in the act-after-select message must include `mode: "indexed-child"`, `parentPlanPath`, `parentPlanSlug`, `index`, `childKind: "phase-plan"`, `requestedPopulatorSkill: "phase-plan"`, `ledgerParent`, `upstreamSkill: "delivery-phases"`, and `decompositionKind: "delivery-phases"`. Record each spawned child in the ledger; announce waiting for **K** results.
+When running as a spawned downstream agent under `planner`, each **`AGENT_RUN_REQUEST_V1`** in the act-after-select message must include `mode: "indexed-child"`, `parentPlanPath`, `parentPlanSlug`, `index`, `childKind: "phase-planner"`, `requestedPopulatorSkill: "phase-planner"`, `ledgerParent`, `upstreamSkill: "delivery-phases"`, and `decompositionKind: "delivery-phases"`. Record each spawned child in the ledger; announce waiting for **K** results.
 
 If **K = 0**, treat that as a drafting failure: do not open structured-choice spawn paths; return failure or partial.
 
@@ -223,7 +223,7 @@ For standalone/non-spawned use, re-offer recap → structured choice after itera
 
 When the developer asks to revise the **`Delivery phases`** list, re-read that section, apply edits via `StrReplace`, echo the result, and return to the step 6 menu pattern.
 
-When the developer chooses to spawn or populate a child in standalone use, emit child-spawn requests for **`new-plan`** / **`phase-plan`** instead of impersonating those skills’ full procedures in the same turn. Stop after spawning if the result is needed for the next step.
+When the developer chooses to spawn or populate a child in standalone use, emit child-spawn requests for **`new-plan`** / **`phase-planner`** instead of impersonating those skills’ full procedures in the same turn. Stop after spawning if the result is needed for the next step.
 
 ## Step 6b — Aggregate indexed child results
 
@@ -231,7 +231,7 @@ When Mission Control delivers a child result from a spawned **`new-plan`** lane:
 
 1. Match it to the ledger entry by correlation id first, then by `outputs.parentPlanSlug` + `outputs.parentIndex`.
 2. If the result reports a created child plan (`outputs.planPath` / `outputs.planSlug`), add it to `spawnedPlans` and mark that row `created`.
-3. If the result reports an active populator lane (`phase-plan`), keep the row open and add the populator lane to `activeLanes`.
+3. If the result reports an active populator lane (`phase-planner`), keep the row open and add the populator lane to `activeLanes`.
 4. If the result reports terminal completion with no remaining tasks, close that row as `completed`.
 5. If the result is `partial`, keep the row open and copy its `remainingTasks`.
 6. If the result is `failure`, `aborted`, or `abandoned`, mark the row blocked and ask the developer whether to retry that row, defer it, accept partial resolution, or abandon the branch.
@@ -240,13 +240,13 @@ Only return `continuationStatus: "terminal"` when every row is explicitly `compl
 
 ## One primary choice per turn — surface observations
 
-Match the discipline in **`planner`** and **`phase-plan`**: perform exactly what was chosen; scope stays on the chosen pass. If you notice gaps (diagram vs phase boundary, duplicate wording, phase count vs assessment), list short **numbered observations** in the chat reply (information-only); the developer addresses them on the next turn or folds them into a revise pass. When you need an explicit accept/skip decision on flags, use **AskQuestion** or **`MC_ASKQUESTION_V1`** with one `option` per flag plus **More details for option _**.
+Match the discipline in **`planner`** and **`phase-planner`**: perform exactly what was chosen; scope stays on the chosen pass. If you notice gaps (diagram vs phase boundary, duplicate wording, phase count vs assessment), list short **numbered observations** in the chat reply (information-only); the developer addresses them on the next turn or folds them into a revise pass. When you need an explicit accept/skip decision on flags, use **AskQuestion** or **`MC_ASKQUESTION_V1`** with one `option` per flag plus **More details for option _**.
 
 ## Scope guard
 
 **Owns:** the parent plan’s dual-title **`Delivery phases`** section only (heading + list body for mode #2); decision gate when still `_TBD_`; echo for review.
 
-**Out of scope:** renaming child plans after **`new-plan`** creates them; filling phase bodies inline (**`phase-plan`** owns the body); PR breakdown content (**`pr-breakdown`**); edits outside the dual-title section; extra H2 phase headings in the parent; `git` / commit automation; roadmap topics and PR plans (step 1 stops).
+**Out of scope:** renaming child plans after **`new-plan`** creates them; filling phase bodies inline (**`phase-planner`** owns the body); PR breakdown content (**`pr-breakdown`**); edits outside the dual-title section; extra H2 phase headings in the parent; `git` / commit automation; roadmap topics and PR plans (step 1 stops).
 
 ## Completion (spawned)
 

@@ -3,7 +3,7 @@ name: pr-plan
 description: >-
   Populate a PR plan body: draft §§ 1–4 (Single concern, Background, Change scope,
   Reasoning) per Sedea's New Feature Development Process per-PR template. Mirrors
-  **phase-plan** for mode #3: scope from parent's `### PR list` item N, grounds § 4
+  **phase-planner** for mode #3: scope from parent's `### PR list` item N, grounds § 4
   in parent's `### Single-concern strategy` + `### Sequencing`, scopes § 3 from the
   parent's changes. §§ 5–8 and deploy scaffolding stay `_TBD_` for **coding-session**
   (and follow-up turns). Appends canonical `deploy-test-plan-verified` todo per
@@ -103,7 +103,7 @@ Read the target plan in full and apply:
 | Has `## 1. Single concern` … `## 4. Reasoning` with `_TBD_` under one or more of §§ 1–4 | Partially drafted | Step 1b → Step 2 → Step 3 → Step 4 (fill only still-`_TBD_` sections) |
 | Has §§ 1–4 all populated | Already drafted | Step 5 (handoff menu) |
 | Master Plan body (`## 4. Architectural design` + `## 6. Delivery phases \| PR breakdown`) | Wrong skill | **Stop:** use **`planner`**. |
-| Phase plan body (`## 1. Background` … `## 4. Changes` for mode #2) | Wrong skill | **Stop:** use **`phase-plan`**. |
+| Phase plan body (`## 1. Background` … `## 4. Changes` for mode #2) | Wrong skill | **Stop:** use **`phase-planner`**. |
 
 Acknowledge the body state in one line.
 
@@ -118,7 +118,7 @@ Read the target plan's sidecar `<slug>.state.yaml` for `parent:`.
 - Parent is a **roadmap topic** grouping plan → **stop:** children should be Master Plans, not PR plans; fix sidecar or use **`planner`**.
 - Parent resolves; read parent's dual-title block (`## 6. …` Master, `## 5. …` Phase):
   - Heading **`PR breakdown`** → proceed.
-  - Heading **`Delivery phases`** → **stop:** use **`phase-plan`** on this file (phase child), not **`pr-plan`**.
+  - Heading **`Delivery phases`** → **stop:** use **`phase-planner`** on this file (phase child), not **`pr-plan`**.
   - Dual-title `Delivery phases | PR breakdown` still `_TBD_` → **stop:** run **`pr-breakdown`** (or **`delivery-phases`**) on the parent first.
 
 Acknowledge: *"Parent: `<parent-slug>` (mode #3 **`PR breakdown`**); proceeding."*
@@ -424,7 +424,7 @@ Perform exactly what was chosen. List short **numbered observations** for gaps (
 
 **Owns:** target PR plan **body** §§ 1–4; **4a-bis** append-only capstone todo; implementation readiness assessment; optional **fill** sketches for § 5–8 when explicitly chosen.
 
-**Out of scope:** parent **`### PR list`** edits; parent **`Plan:`** wiring (**`plan-reconcile`**); frontmatter `name` / `overview` / `isProject` (except **4a-bis** append); running **`coding-session`** procedures on this lane (worktrees, `git worktree`, MCP attach, implementation edits); Master / Phase templates (**`planner`**, **`phase-plan`**).
+**Out of scope:** parent **`### PR list`** edits; parent **`Plan:`** wiring (**`plan-reconcile`**); frontmatter `name` / `overview` / `isProject` (except **4a-bis** append); running **`coding-session`** procedures on this lane (worktrees, `git worktree`, MCP attach, implementation edits); Master / Phase templates (**`planner`**, **`phase-planner`**).
 
 **In scope for spawn:** one **`AGENT_RUN_REQUEST_V1`** for **`coding-session`** per §5d after **AskQuestion** **`start-coding-session`** with real absolute paths.
 

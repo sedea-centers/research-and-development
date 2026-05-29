@@ -6,7 +6,7 @@ description: >-
   (name, overview, todos, isProject) and `parent` only in the sidecar. Resolves
   parent per planning-target-resolution; confirms parent before write except on
   indexed child spawn when parent + index N are already locked by session context.
-  After an indexed spawn, may hand off to **phase-plan** or **pr-plan** via
+  After an indexed spawn, may hand off to **phase-planner** or **pr-plan** via
   initiating-agent ignition when those skills exist. When spawned from an upstream
   decomposition agent that already approved the parent list, skips the child-stub
   populator approval modal and spawns the populator immediately. Use under mission dispatch or
@@ -32,7 +32,7 @@ inputs:
     required: false
   childKind:
     type: string
-    description: Expected child body type, usually phase-plan or pr-plan. Required when mode is indexed-child.
+    description: Expected child body type, usually phase-planner or pr-plan. Required when mode is indexed-child.
     required: false
   requestedPopulatorSkill:
     type: string
@@ -54,7 +54,7 @@ inputs:
     type: boolean
     description: >-
       When true with childKind pr-plan, allow indexed PR child under a Delivery phases
-      parent row (single-PR hoist from phase-plan); requires hoistFromPhasePath.
+      parent row (single-PR hoist from phase-planner); requires hoistFromPhasePath.
     required: false
     default: false
   hoistFromPhasePath:
@@ -83,7 +83,7 @@ Scaffold a standalone `.plan.md` and `.state.yaml` under the **`.sedea/operation
 Invocation context examples (mission dispatch and structured choices):
 
 - Mission dispatch or explicit request to run **`new-plan`** (standalone or indexed-child).
-- Natural language: scaffold a new plan file …; expand list item **N** under a parent’s `Delivery phases` or `### PR list` (then usually **`phase-plan`** or **`pr-plan`** on the child path).
+- Natural language: scaffold a new plan file …; expand list item **N** under a parent’s `Delivery phases` or `### PR list` (then usually **`phase-planner`** or **`pr-plan`** on the child path).
 - Free-form (“I need a plan for …”) — confirm scope, then **`new-plan`** standalone or indexed-child per **30_planning-target-resolution**.
 
 The **developer** selects continuation per **30_planning-target-resolution** § *Sedea input channel*.
@@ -96,7 +96,7 @@ When `mode: "indexed-child"` is supplied, treat the indexed path as mandatory an
 
 The regular parent-confirmation gate below is **skipped** when that pre-resolution is explicit: acknowledge in one line — `Parent: <slug> (from <source>)` — then proceed to slug + filenames.
 
-**Stub vs full template.** Indexed-child files use the **generic** scaffold in *Write the plan template* below (`## Overview`, `## Phasing`, `## Out of scope`). **`phase-plan`** or **`pr-plan`** replaces that body with the Phase or per-PR template — intentional two-step split; see **`.sedea/centers/research-and-development/docs/development-process.md`** (§ *§ 6 / § 5 contents rule*, **Indexed-child stub** paragraph).
+**Stub vs full template.** Indexed-child files use the **generic** scaffold in *Write the plan template* below (`## Overview`, `## Phasing`, `## Out of scope`). **`phase-planner`** or **`pr-plan`** replaces that body with the Phase or per-PR template — intentional two-step split; see **`.sedea/centers/research-and-development/docs/development-process.md`** (§ *§ 6 / § 5 contents rule*, **Indexed-child stub** paragraph).
 
 1. **Read item N** from the parent’s dual-title section. Where the numbered list lives depends on the section heading:
    - **`Delivery phases`** (mode #2): the numbered list is the body of `## 6. Delivery phases` (Master Plan) or `## 5. Delivery phases` (Phase plan).
@@ -104,9 +104,9 @@ The regular parent-confirmation gate below is **skipped** when that pre-resoluti
 
    The **seed** for the child title is the **bolded title** on item **N**’s first line — strip the list marker (`1. `, …) and `**` markers. **Display title** (`name:` + H1) uses **sentence case** plus optional `<N>. ` prefix per § **Slug and filename** / **Write the plan template** → **Rules**. **Slug base** for filenames normalizes from the **raw** bolded string (before sentence case).
 2. **Validate the requested child kind against the parent heading.**
-   - `Delivery phases` parent heading requires `childKind: "phase-plan"` and `requestedPopulatorSkill: "phase-plan"` when a populator is requested.
+   - `Delivery phases` parent heading requires `childKind: "phase-planner"` and `requestedPopulatorSkill: "phase-planner"` when a populator is requested.
    - `PR breakdown` parent heading requires `childKind: "pr-plan"` and `requestedPopulatorSkill: "pr-plan"` when a populator is requested.
-   - **Hoist exception:** when `hoistFromPhase: true` and `hoistFromPhasePath` are set, allow `childKind: "pr-plan"` under a **`Delivery phases`** parent for the indexed row **N** that owns the hoisted phase (single-PR hoist from **`phase-plan`**). Require `requestedPopulatorSkill: "pr-plan"` when a populator is requested. Read scope from the phase plan at **`hoistFromPhasePath`** for titling; the parent's **`Plan:`** sub-bullet (not **`Phase plan:`**) receives the new PR link after write.
+   - **Hoist exception:** when `hoistFromPhase: true` and `hoistFromPhasePath` are set, allow `childKind: "pr-plan"` under a **`Delivery phases`** parent for the indexed row **N** that owns the hoisted phase (single-PR hoist from **`phase-planner`**). Require `requestedPopulatorSkill: "pr-plan"` when a populator is requested. Read scope from the phase plan at **`hoistFromPhasePath`** for titling; the parent's **`Plan:`** sub-bullet (not **`Phase plan:`**) receives the new PR link after write.
    - If the requested kind conflicts with the parent heading and the hoist exception does not apply, stop with `failure`; do not create a child file.
 3. **Capture the exact `Plan:` placeholder for item N.** The selected row must contain exactly one `Plan:` line that is still pending. Accept `_TBD`, `_TBD_`, or a clear spawn-hint placeholder after `Plan:`. If the row has no `Plan:` line, has multiple `Plan:` lines, or already links a `.plan.md`, stop with `partial` and report the row problem; do not create a duplicate child.
 4. **Capture parent row prose for the child stub.** When item **N** includes sub-bullets per the dev-process **§ 6 / § 5 contents rule** (decomposition decision, scope sentence, `Plan:`), treat that text as **already reviewed on the parent** — copy the scope sentence (and optional decomposition line) into the child `overview:` and `## Overview` when writing the stub. Do **not** ask the developer to re-approve that prose.
@@ -206,7 +206,7 @@ isProject: false
 - **Seed `todos:`** with one real first todo unless the developer asked for scope-only with empty todos.
 - **`isProject: false`** unless they asked otherwise.
 - **YAML quoting** — wrap `name:`, `overview:`, todo `content:` in double quotes when the value contains `: ` or ends with `:`, starts with YAML-significant characters, looks like `true`/`false`/`null`, etc. Re-read after write; if `name:` parsed as a nested object, re-quote.
-- **Indexed child — parent row prose** — when step 4 under **Indexed child spawn** captured a scope sentence from item **N**, use it for `overview:` and `## Overview` instead of inventing new scope. Keep `## Phasing` as a short stub (for example *TBD — filled by phase-plan / pr-plan or follow-up decomposition.*). Do **not** treat parent-list prose as needing a second developer approval pass.
+- **Indexed child — parent row prose** — when step 4 under **Indexed child spawn** captured a scope sentence from item **N**, use it for `overview:` and `## Overview` instead of inventing new scope. Keep `## Phasing` as a short stub (for example *TBD — filled by phase-planner / pr-plan or follow-up decomposition.*). Do **not** treat parent-list prose as needing a second developer approval pass.
 
 ### 2. `<slug>.state.yaml`
 
@@ -240,7 +240,7 @@ When **all** of the following are true, **skip** step 3 and go straight to step 
 | Condition | Required |
 |-----------|----------|
 | `mode` is `indexed-child` | Yes |
-| `requestedPopulatorSkill` is set (`phase-plan` or `pr-plan`) | Yes |
+| `requestedPopulatorSkill` is set (`phase-planner` or `pr-plan`) | Yes |
 | `upstreamSkill` is `delivery-phases` or `pr-breakdown` | Yes |
 
 Rationale: **`delivery-phases`** and **`pr-breakdown`** already run a structured-choice gate (**Approve … and spawn children** / **Approve PR breakdown and spawn PR plans**) over the parent numbered list. Item **N** prose (scope sentence, decomposition hint) is reviewed there — re-asking on this lane is redundant.
@@ -264,11 +264,11 @@ Set `outputs.populatorApprovalStatus: "waived-upstream"` and one line: *Parent l
 
    **Do not** open this gate when auto-authorize applies — proceed to step 4 in the same turn after the stub and `Plan:` link verify.
 
-4. **Populator handoff (indexed spawn only).** If the parent heading is **`Delivery phases`**, the next step is the **`phase-plan`** protocol branch on the new child; if **`PR breakdown`**, the **`pr-plan`** protocol branch. When `requestedPopulatorSkill` is set and either auto-authorize applies **or** the developer approved step 3, emit exactly one child-spawn request for that populator skill in the **same turn** after the child stub and parent `Plan:` line are written and verified (do **not** stop for a stub-approval modal when auto-authorized).
+4. **Populator handoff (indexed spawn only).** If the parent heading is **`Delivery phases`**, the next step is the **`phase-planner`** protocol branch on the new child; if **`PR breakdown`**, the **`pr-plan`** protocol branch. When `requestedPopulatorSkill` is set and either auto-authorize applies **or** the developer approved step 3, emit exactly one child-spawn request for that populator skill in the **same turn** after the child stub and parent `Plan:` line are written and verified (do **not** stop for a stub-approval modal when auto-authorized).
 
    Populator skill paths:
 
-   - `phase-plan` → `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/phase-plan/SKILL.md`
+   - `phase-planner` → `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/phase-planner/SKILL.md`
    - `pr-plan` → `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/pr-plan/SKILL.md`
 
    Inputs must include `targetPlanPath`, `targetPlanSlug`, `parentPlanPath`, `parentPlanSlug`, `parentIndex`, `ledgerParent`, and `upstreamSkill: "new-plan"`. Announce that this agent is waiting for the populator result and stop. **`pr-breakdown`**, nested decomposition, and **`plan-reconcile`** happen in their own mission steps after this skill finishes. If a center populator `SKILL.md` is ever absent, end after stub + parent link and point at **`development-process.md`**.
@@ -286,7 +286,7 @@ Set `outputs.populatorApprovalStatus: "waived-upstream"` and one line: *Parent l
 
 ## Scope guard
 
-This skill writes `.plan.md` + `.state.yaml`, optionally updates one `Plan:` line under the parent’s dual-title list (indexed spawn), and may spawn the requested **`phase-plan`** / **`pr-plan`** populator. Worktree creation, PR prompts, archive bullets, and expanding the dual-title list beyond the chosen item **N** sit in **`coding-session`**, **`plan-reconcile`**, **`delivery-phases`**, and **`pr-breakdown`** as applicable.
+This skill writes `.plan.md` + `.state.yaml`, optionally updates one `Plan:` line under the parent’s dual-title list (indexed spawn), and may spawn the requested **`phase-planner`** / **`pr-plan`** populator. Worktree creation, PR prompts, archive bullets, and expanding the dual-title list beyond the chosen item **N** sit in **`coding-session`**, **`plan-reconcile`**, **`delivery-phases`**, and **`pr-breakdown`** as applicable.
 
 ## Completion (spawned)
 

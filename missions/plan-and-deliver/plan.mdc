@@ -22,7 +22,7 @@ flowchart TB
   subgraph plan["Planning"]
     PRD[PRD] --> MPB[planner]:::branch
     MPB --> DEC[delivery-phases or pr-breakdown]:::branch
-    DEC --> CHILD[new-plan → phase-plan or pr-plan]:::branch
+    DEC --> CHILD[new-plan → phase-planner or pr-plan]:::branch
   end
 
   subgraph pre["Pre-merge ship — detached lanes"]
@@ -45,7 +45,7 @@ flowchart TB
 
 Approval gates and developer choices happen inside each skill.
 
-1. **Feature planning contracts** — From PRD or scope, produce reviewable Master / Phase / PR plan bodies per Sedea development-process templates (`planner`, `phase-plan`, `pr-plan`).
+1. **Feature planning contracts** — From PRD or scope, produce reviewable Master / Phase / PR plan bodies per Sedea development-process templates (`planner`, `phase-planner`, `pr-plan`).
 
 2. **Ad-hoc plan and delivery** — For smaller, well-bounded requests: shorter ad-hoc PRD (`ad-hoc-prd`), plans under `.sedea/operations/`, expedited Master Plan → one or more PR plans when the phase layer is not needed. All checks and verifications remain mandatory.
 
@@ -71,7 +71,7 @@ This diagram is the **dispatch ownership map**. It answers: which agent on this 
 |------|------|--------|----------|
 | **Squad Leader** | Mission dispatch leader | `ad-hoc-prd` (§3), `planner` (§5) | PRD approval on leader lane (owned by **Ad-Hoc PRD** child); route menu for §6 decomposition; `delivery-phases`, `coding-session`, etc. |
 | **Master Plan agent** | Child lane after §5 | `delivery-phases`, `pr-breakdown` via **AskQuestion** + `AGENT_RUN_REQUEST_V1`; drafts §7 inline | Replace Squad Leader ledger; resolve dispatch |
-| **Downstream skill agents** | Further child lanes | Per skill: e.g. `new-plan` → `phase-plan` / `pr-plan`; `coding-session` → `pre-pr-review` | `MC_DISPATCH_RESOLVED_V1` |
+| **Downstream skill agents** | Further child lanes | Per skill: e.g. `new-plan` → `phase-planner` / `pr-plan`; `coding-session` → `pre-pr-review` | `MC_DISPATCH_RESOLVED_V1` |
 | **Detached branches** | Often separate session / phrase | Invoked via `development-process.md` branch names | Automatic Squad Leader spawn from §§1–5 |
 
 **Host rules:** each `AGENT_RUN_REQUEST_V1` opens a child lane; parent waits for `AGENT_RESULT_RESPONSE_V1` when the skill says so. Squad Leader **§7** tracks planning `activeLanes`, `openLedgerEntries`, `spawnedPlans`, `remainingTasks`; **§8** tracks ship rows per PR plan — it does not re-run detached child skills from the leader lane.
@@ -113,7 +113,7 @@ flowchart TB
     DP["delivery-phases"]:::child
     PB["pr-breakdown"]:::child
     NP["new-plan indexed"]:::child
-    POP["phase-plan or pr-plan"]:::child
+    POP["phase-planner or pr-plan"]:::child
     M6 --> DP
     M6 --> PB
     DP --> NP
@@ -147,7 +147,7 @@ flowchart TB
 
 **Legend:** yellow = Squad Leader executable steps; blue = spawned child lanes and their spawns; purple = cadence branches outside §§1–5 (see **Cadence reference** and `development-process.md`).
 
-**Single-PR hoist:** after **`phase-plan`**, a **single-PR** assessment spawns **`pr-breakdown`** on the **ancestor** plan (not on the phase file) with `hoistFromPhasePath` — see `development-process.md` § *Single-PR hoist from a phase plan* and **`phase-plan`** § **5a-hoist**.
+**Single-PR hoist:** after **`phase-planner`**, a **single-PR** assessment spawns **`pr-breakdown`** on the **ancestor** plan (not on the phase file) with `hoistFromPhasePath` — see `development-process.md` § *Single-PR hoist from a phase plan* and **`phase-planner`** § **5a-hoist**.
 
 ## Hub missionInputs
 
@@ -250,7 +250,7 @@ This subsection is the **Squad Leader** contract for §§3, 5, 6, and 7. Sedea h
    2. **Ad-hoc task description** — Short blurb the agent uses to draft an ad-hoc PRD via **`ad-hoc-prd`** (see development-process § *PRD authoring — which path?* and protocol branches table — not **`create prd`** on the **`prd`** mission).
 3. Apply the branch for the confirmed choice (see **Next-step resolution** above). Do not engage downstream protocol branches from partial or ambiguous answers.
 
-**Out of scope for this step:** **`new-plan`** indexed-child expansion (and downstream **`phase-plan`** / **`pr-plan`**) — those use **AskQuestion** per **30_planning-target-resolution** § *Sedea input channel* and often a separate session command (not `plan and deliver` §1–2 PRD intake).
+**Out of scope for this step:** **`new-plan`** indexed-child expansion (and downstream **`phase-planner`** / **`pr-plan`**) — those use **AskQuestion** per **30_planning-target-resolution** § *Sedea input channel* and often a separate session command (not `plan and deliver` §1–2 PRD intake).
 
 **Referenced assets:** `.sedea/centers/research-and-development/docs/development-process.md`; `skills/ad-hoc-prd/SKILL.md`; `skills/planner/SKILL.md`.
 

@@ -1,5 +1,5 @@
 ---
-name: phase-plan
+name: phase-planner
 description: >-
   Populate a phase plan body: draft §§ 1–4 (Background, Scope, Code design,
   Changes) plus **`### Decomposition assessment`** before the dual-title § 5,
@@ -7,7 +7,7 @@ description: >-
   parent's `Delivery phases` item N, reuses the parent's diagrams with this phase
   highlighted, and infers phase-scoped Changes. § 5 list body and § 6 Caveats
   stay `_TBD_` for **`delivery-phases`** / **`pr-breakdown`**. Target resolved per
-  planning-target-resolution. Use under mission dispatch, **`phase-plan`** protocol
+  planning-target-resolution. Use under mission dispatch, **`phase-planner`** protocol
   branch, natural language, or after **`new-plan`** ignition on a `Delivery phases`
   child stub.
 inputs:
@@ -63,7 +63,7 @@ The procedure below is a hard contract — do **not** skip steps, re-order them,
 
 Invocation context (mission dispatch and structured choices):
 
-- Mission dispatch or explicit request to run the **`phase-plan`** protocol branch.
+- Mission dispatch or explicit request to run the **`phase-planner`** protocol branch.
 - Natural language: populate / draft / fill the phase plan body.
 - Immediately after **`new-plan`** ignition when the parent dual-title is **`Delivery phases`** — the usual next step on the new child stub.
 
@@ -349,7 +349,7 @@ When **`hoistRequired`** is true (route `pr-breakdown-single`):
    - `scopeParentIndex` = `parentIndex` from spawn inputs (step 3a **N**)
    - `prBreakdownShape: "single"`
    - `routeLock: "pr-breakdown"`
-   - `parentAgentRole: "phase-plan-agent"`
+   - `parentAgentRole: "phase-planner-agent"`
    - `ledgerParent`, `decompositionAssessment` when known
 4. Do **not** set `targetPlanPath` to this phase plan for **`pr-breakdown`** unless the developer later chooses **decompose on this phase plan** ( **`decomposeOnPhasePlan: true`** on the spawn).
 
@@ -374,11 +374,11 @@ Before spawning, present the drafted phase plan body and the route signal to the
 When **`hoistRequired`**, add:
 
 - **Hoist single-PR to ancestor** (default when approving single-PR route)
-- **PR breakdown on this phase plan** — sets `decomposeOnPhasePlan: true` on the **`pr-breakdown`** spawn (override; not recommended after **`delivery-phases`** → **`phase-plan`**)
+- **PR breakdown on this phase plan** — sets `decomposeOnPhasePlan: true` on the **`pr-breakdown`** spawn (override; not recommended after **`delivery-phases`** → **`phase-planner`**)
 
 Only **Approve phase plan and route** (with hoist when single-PR) authorizes the child-spawn request. Do not treat agreement between parent hint and assessment as developer approval.
 
-Inputs for **`delivery-phases`** / multi **`pr-breakdown`**: `targetPlanPath`, `targetPlanSlug` = **this phase plan**; `parentAgentRole: "phase-plan-agent"`; `ledgerParent`; `decompositionAssessment`; `routeLock`; `prBreakdownShape` when applicable.
+Inputs for **`delivery-phases`** / multi **`pr-breakdown`**: `targetPlanPath`, `targetPlanSlug` = **this phase plan**; `parentAgentRole: "phase-planner-agent"`; `ledgerParent`; `decompositionAssessment`; `routeLock`; `prBreakdownShape` when applicable.
 
 Inputs for hoisted single-PR **`pr-breakdown`**: per **§ 5a-hoist** (ancestor `targetPlanPath`, `hoistFromPhasePath`, `scopeParentIndex`, `prBreakdownShape: "single"`).
 
@@ -422,7 +422,7 @@ When Mission Control delivers a child result from the spawned **`delivery-phases
 
 1. Match it by correlation id first, then by `outputs.targetPlanPath` / `outputs.targetPlanSlug`.
 2. Copy downstream `spawnedPlans`, `activeLanes`, `openLedgerEntries`, and `remainingTasks` into this skill's result.
-3. If downstream status is `success` and `continuationStatus: "terminal"`, this phase-plan lane may return `terminal`.
+3. If downstream status is `success` and `continuationStatus: "terminal"`, this phase-planner lane may return `terminal`.
 4. If downstream status is `success` or `partial` with active lanes or remaining tasks, return `active`.
 5. If downstream status is `failure`, `aborted`, or `abandoned`, return the same status upstream and include downstream errors.
 
@@ -460,7 +460,7 @@ Required `outputs` fields:
 - `outputs.hoistRequired` — boolean when single-PR default applies
 - `outputs.hoistAncestorPlanSlug` — when hoist spawn emitted
 - `outputs.spawnedPlans`, `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.remainingTasks`
-- `outputs.continuationOwner`: `"phase-plan-agent"`
+- `outputs.continuationOwner`: `"phase-planner-agent"`
 - `outputs.continuationStatus` — `active` while route approval, downstream decomposition, or route choice remains; `terminal` when no remaining planning work on this phase plan
 
 Stop after the terminal line.

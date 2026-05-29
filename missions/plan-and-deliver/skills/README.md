@@ -31,7 +31,7 @@ Mission Control delivery for skills that mix long plan output with structured us
 | **`pr-breakdown`**, **`delivery-phases`** | §5d | §6 | §6 act-after-select |
 | **`pr-plan`** | §5c recap | §5c modal | §5d spawn |
 | **`planner`** | §7a | §7b | §7c |
-| **`phase-plan`** | §4f echo / §5c link | §5b / §5c | §5b spawn / §5d follow-up |
+| **`phase-planner`** | §4f echo / §5c link | §5b / §5c | §5b spawn / §5d follow-up |
 | **`new-plan`** | stub + parent link | populator gate § indexed handoff | populator spawn |
 
 **Ship and ops skills:** **`coding-session`** (worktree-open, bootstrap spawn, pre-PR, create-PR handoffs), **`worktree-bootstrap`**, **`deploy-walk`**, **`plan-reconcile`**, **`create-pr`**, **`pre-pr-review`** — structured choice for gates; recap for status, diff, or dry-run report only. Prefer **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** when recap and modal belong in one message.
@@ -51,7 +51,7 @@ Squad Leader steps **§3** and **§5** and downstream decomposition agents run t
 | `delivery-phases` | Master Plan agent | Merge `childRows`, `spawnedPlans`, `activeLanes` in §7 |
 | `pr-breakdown` | Master Plan agent | Same as delivery-phases |
 | `new-plan` | decomposition agents | Register child plan path/slug per row index |
-| `phase-plan` | `new-plan` / decomposition | Populator lane; route fields for next branch |
+| `phase-planner` | `new-plan` / decomposition | Populator lane; route fields for next branch |
 | `pr-plan` | `new-plan` / decomposition | Layer 1: `readyForImplementation`, `implementationHandoffStatus`; may spawn **`coding-session`** after **AskQuestion** **Start coding session** (§5d) |
 
 Field-level `outputs` and `continuationStatus` rules: each skill’s **`## Completion (spawned)`**.
@@ -141,7 +141,7 @@ After emitting **`AGENT_RESULT_RESPONSE_V1`**, **stop on that lane** for the cur
 | `planner` | Yes | Procedure stop before terminal when `continuationStatus: active`; Step 7 spawns on **later** user messages only |
 | `delivery-phases`, `pr-breakdown`, `new-plan`, `ad-hoc-prd` | Yes | `ad-hoc-prd`: active result after write, terminal only after developer approval; see each skill § *Completion (spawned)* |
 | Ship chain (`coding-session`, `pre-pr-review`, `create-pr`, `deploy-walk`, `plan-reconcile`) | Yes | See each skill § *Completion (spawned)* |
-| `phase-plan` | Yes | Same canonical stop sentence as **`pr-plan`** |
+| `phase-planner` | Yes | Same canonical stop sentence as **`pr-plan`** |
 
 When authoring or reviewing a skill, duplicating the canonical sentence under **`## Completion (spawned)`** is encouraged but **not** required if this README is in **`warmUpRules`** or the spawn request passes it.
 
