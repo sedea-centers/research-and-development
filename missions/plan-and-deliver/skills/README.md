@@ -2,6 +2,25 @@
 
 This mission uses **three execution shapes** (see **`.sedea/centers/sedea/skills/README.md`** for dual-mode authoring). Parent resume for the **Squad Leader** is in **`../plan.mdc`** § **Spawn, wait, and parent resume** (planning §§3–7) and § **8** (ship oversight). Host spawn/result protocol is in **`.sedea/centers/sedea/rules/4_mission.mdc`**.
 
+## Normative execution mode (plan-and-deliver)
+
+**Do not infer mode from the presence of `## Completion (spawned)` alone** — many skills document both sections for dual-mode authoring. Use this table for **plan and deliver** on the **research-and-development** center.
+
+| Skill | Normative mode on this mission | Invoker | Terminal / result |
+|-------|----------------------------------|---------|-------------------|
+| **`planner`** | **Spawned only** — new child lane | Squad Leader §5 (`AGENT_RUN_REQUEST_V1`) | **`AGENT_RESULT_RESPONSE_V1`** on child lane |
+| **`pr-plan`** | **Inline only** — same lane as invoker | **`new-plan`** step 4 (`parentAgentRole: new-plan-agent`) | **`## Completion (inline)`** — no `AGENT_RESULT_RESPONSE_V1` for **`pr-plan`** |
+| **`pr-plan`** → **`coding-session`** | Spawn after §5c **Start coding session** | **`pr-plan`** on its lane | Child **`coding-session`** uses **`AGENT_RESULT_RESPONSE_V1`** |
+| **`ad-hoc-prd`** | Spawned | Squad Leader §3 | Child terminal |
+| **`delivery-phases`**, **`pr-breakdown`**, **`new-plan`** | Inline on **`planner`** / **`phase-planner`** lane | Parent planning skill | Inline completion merged into parent |
+| **`phase-planner`** | Spawned from inline **`new-plan`** (optional) | **`new-plan`** | Child terminal |
+| **`coding-session`** | Spawned (from **`pr-plan`** §5d) or detached entry | **`pr-plan`**, developer, dispatch | Child terminal + inline ship skills |
+| **`pr-review`**, **`create-pr`**, **`deploy-walk`**, **`plan-reconcile`** | **Inline only** on active **`coding-session`** | **`coding-session`** | Prose to coding-session — no child lane |
+
+**Common mistake:** Spawning **`planner`** from **`new-plan`** or running **`pr-plan`** on a standalone child lane without **`new-plan-agent`** — wrong unless the mission protocol explicitly says otherwise.
+
+Glossary for colliding step labels: **`.sedea/centers/research-and-development/docs/development-process.md`** § *Agent glossary — step and section labels*.
+
 ## Inline execution (same lane)
 
 When a skill runs **inline** on the invoker’s lane (not spawned via **`AGENT_RUN_REQUEST_V1`**):
@@ -42,7 +61,7 @@ Mission Control delivery for skills that mix long plan output with structured us
 
 ## Planning spawn (Squad Leader §3, §5, decomposition tree)
 
-Squad Leader steps **§3** and **§5** spawn child lanes for **`ad-hoc-prd`** and **`planner`**. **`planner`** runs **`delivery-phases`**, **`pr-breakdown`**, and **`new-plan`** **inline**. **`phase-planner`** runs **`delivery-phases`** and **`pr-breakdown`** **inline** on its child lane. Inline **`new-plan`** runs **`pr-plan`** inline and may still spawn **`phase-planner`**. **Depth-first expansion:** parent lists show all rows; **`new-plan`** runs only for ship-eligible indices (phases sequential; PRs per **`### Sequencing`** stages) — see **development-process.md** § *Depth-first plan-tree traversal* and rule **30** § *Depth-first expansion eligibility*. Each dual-mode file has **`## Completion (spawned)`** and **`## Completion (inline)`**.
+Squad Leader steps **§3** and **§5** spawn child lanes for **`ad-hoc-prd`** and **`planner`**. **`planner`** runs **`delivery-phases`**, **`pr-breakdown`**, and **`new-plan`** **inline**. **`phase-planner`** runs **`delivery-phases`** and **`pr-breakdown`** **inline** on its child lane. Inline **`new-plan`** runs **`pr-plan`** inline and may still spawn **`phase-planner`**. **Depth-first expansion:** parent lists show all rows; **`new-plan`** runs only for ship-eligible indices (phases sequential; PRs per **`### Sequencing`** stages) — see **development-process.md** § *Depth-first plan-tree traversal* and rule **30** § *Depth-first expansion eligibility*. Skills that support both modes still document **`## Completion (spawned)`** and **`## Completion (inline)`** — use **§ Normative execution mode** above for which mode applies on this mission.
 
 | Skill | Typical invoker | Squad Leader ledger |
 |-------|-----------------|---------------------|

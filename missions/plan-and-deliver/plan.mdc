@@ -247,7 +247,7 @@ This subsection is the **Squad Leader** contract for §§3, 5, 6, and 7. Sedea h
 ### 1. Establish PRD source
 
 - **Type:** Branching logic
-- **Intent:** Capture requirements input before any planning artifacts (per **Setup** and § *PRD authoring — which path?* in `.sedea/centers/research-and-development/docs/development-process.md`: PRD is upstream to the Master Plan; use §1 **AskQuestion** options below — do not start the separate **`prd`** mission from this dispatch unless the developer explicitly switches).
+- **Intent:** Capture requirements input before any planning artifacts (per **Setup** and § *PRD routing (canonical)* in `.sedea/centers/research-and-development/docs/development-process.md`: PRD is upstream to the Master Plan; use §1 **AskQuestion** options below — do not start the separate **`prd`** mission from this dispatch unless the developer explicitly switches).
 - **Inputs:** Opening message matching `plan and deliver` (case-insensitive); optional remainder is context only.
 - **Expected output:** A PRD link or `@path`, or a short ad-hoc task description for ad-hoc PRD authoring.
 - **Next-step resolution:**
@@ -259,7 +259,7 @@ This subsection is the **Squad Leader** contract for §§3, 5, 6, and 7. Sedea h
 1. Match `plan and deliver` on the opening message (case-insensitive).
 2. Use **AskQuestion** (per Sedea conduct — includes the standard *More details for option _* escape hatch) to ask where the PRD will come from:
    1. **PRD link or file** — Confluence, Google Docs, or `@path` in the workspace.
-   2. **Ad-hoc task description** — Short blurb the agent uses to draft an ad-hoc PRD via **`ad-hoc-prd`** (see development-process § *PRD authoring — which path?* and protocol branches table — not **`create prd`** on the **`prd`** mission).
+   2. **Ad-hoc task description** — Short blurb the agent uses to draft an ad-hoc PRD via **`ad-hoc-prd`** (see development-process § *PRD routing (canonical)* and protocol branches table — not **`create prd`** on the **`prd`** mission).
 3. Apply the branch for the confirmed choice (see **Next-step resolution** above). Do not engage downstream protocol branches from partial or ambiguous answers.
 
 **Out of scope for this step:** **`new-plan`** indexed-child expansion (and downstream **`phase-planner`** / **`pr-plan`**) — those use **AskQuestion** per **30_planning-target-resolution** § *Sedea input channel* and often a separate session command (not `plan and deliver` §1–2 PRD intake).
@@ -269,7 +269,7 @@ This subsection is the **Squad Leader** contract for §§3, 5, 6, and 7. Sedea h
 ### 2. Validate linked PRD
 
 - **Type:** Branching logic
-- **Intent:** Resolve the developer-provided PRD link or file into a readable PRD artifact before the mission engages **`planner`**. Intake routing vs the **`prd`** mission: **`.sedea/centers/research-and-development/docs/development-process.md`** § *PRD intake — plan and deliver §2 vs prd mission*.
+- **Intent:** Resolve the developer-provided PRD link or file into a readable PRD artifact before the mission engages **`planner`**. Intake routing vs the **`prd`** mission: **`.sedea/centers/research-and-development/docs/development-process.md`** § *PRD routing (canonical)* (intake boundaries).
 - **Inputs:** Confirmed §1 option **1**; PRD URL, absolute path, or workspace `@path`; optional title or related-document hints from the opening message.
 - **Expected output:** A readable PRD body plus the original PRD reference to pass into the **`planner`** seed.
 - **Next-step resolution:**
@@ -290,7 +290,7 @@ This subsection is the **Squad Leader** contract for §§3, 5, 6, and 7. Sedea h
 
 **Auth-blocked or unreadable PRD (§2 step 3)**
 
-When fetch fails (auth, VPN, paywall, or empty body), use **AskQuestion** once. Point to **`.sedea/centers/research-and-development/docs/development-process.md`** § *PRD authoring — which path?* for the full routing table. Minimum options:
+When fetch fails (auth, VPN, paywall, or empty body), use **AskQuestion** once. Point to **`.sedea/centers/research-and-development/docs/development-process.md`** § *PRD routing (canonical)* for the full routing table. Minimum options:
 
 | Option | Action |
 |--------|--------|

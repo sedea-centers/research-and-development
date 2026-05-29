@@ -53,25 +53,52 @@ Exit **0** when manifest and disk match; **1** prints paths only on disk or only
 
 **Scripts vendor trees.** Any `node_modules/` or other tooling-only trees under `missions/*/scripts/` are **not** center governance assets — do not link-audit or gap-report them as protocol. Hosting repos document audit scope in **`.cursor/rules/`** (not in this center repo).
 
-### PRD authoring — which path?
+### PRD routing (canonical)
 
-Two R&D flows produce requirements upstream of **`planner`**. Pick **one** row; do not run both for the same feature unless the developer explicitly switches (for example after **`manage prd`** on an existing doc, then **`plan and deliver`** with that `@path`).
+One decision before **`planner`**. Squad Leader procedure: **`.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`** §§1–2. PRD mission procedure: **`.sedea/centers/research-and-development/missions/prd/plan.mdc`**.
 
-| Situation | Start here | Mission command phrase | Artifact | Typical next step |
+```mermaid
+flowchart TD
+  START[Requirements before planner] --> HAS{Readable PRD exists?}
+  HAS -->|yes file URL path| PAD[plan and deliver §1 opt 1 → §2]
+  HAS -->|no short blurb on plan and deliver| ADHOC[§1 opt 2 → spawn ad-hoc-prd]
+  HAS -->|no full structured doc| PRD[prd create prd / manage prd]
+  HAS -->|URL blocked in §2| AQ[plan and deliver §2 AskQuestion]
+  PRD --> LATER[New plan and deliver + @path]
+  ADHOC --> SEED[§4 seed → §5 spawn planner]
+  PAD --> SEED
+  LATER --> PAD
+```
+
+| Route | When | Mission / phrase | Artifact | Next |
 | --- | --- | --- | --- | --- |
-| **Full PRD** — create or revise a structured Product or Feature Requirements Document **outside** an active `plan and deliver` planning dispatch | **`prd`** mission | **`create prd`** / **`manage prd`** | **`.sedea/operations/<operationsUserId>/docs/`** — path from **`author-prd`** (flexible sections) | When **`planningReadiness`** is sufficient, developer starts **`plan and deliver`** with PRD link or `@path` → Squad Leader §2 |
-| **Ad-hoc PRD** — bug, small improvement, or short blurb **inside** **`plan and deliver`** (no existing PRD file yet) | **`plan and deliver`** Squad Leader §1 | **`plan and deliver`** (then §1 **AskQuestion** option 2) → spawn **`ad-hoc-prd`** | **`ad_hoc_<slug>_<hex>.ad-hoc-prd.md`** only under **`<operationsUserId>/docs/`** (never **`joint/docs/`** from this skill) | **Ad-Hoc PRD agent** lane: approve / revise → terminal handoff → Squad Leader §4 seed → §5 **`planner`** |
-| **Existing external PRD** — Confluence, Google Docs, or workspace file **already authored** | **`plan and deliver`** Squad Leader §1 | **`plan and deliver`** (then §1 option 1) | Link, URL, or `@path` (may live outside **`operations/`**) | §2 validate readable body → §4 seed → §5 **`planner`** |
-| **Existing Ad-Hoc PRD file** on disk | **`plan and deliver`** | **`plan and deliver`** with `@path` to **`.ad-hoc-prd.md`** | Treat as §1 option 1 local file — same as external PRD for §2 | §2 read → §4–§5 |
-| **External URL auth-blocked** during **`plan and deliver`** §2 | Stay on **`plan and deliver`** or **`prd`** | §2 **AskQuestion** (paste body, ad-hoc branch, **`create prd`** first, or new `@path`) | Readable artifact required before **`planner`** | Per **`plan.mdc`** §2 *Auth-blocked or unreadable PRD* |
+| **A — Full PRD** | Structured doc **outside** active **`plan and deliver`** planning | **`prd`** — **`create prd`** / **`manage prd`** | **`.sedea/operations/<operationsUserId>/docs/`** via **`author-prd`** | New **`plan and deliver`** + `@path` → §2 |
+| **B — Ad-hoc PRD** | Short blurb; **already on** **`plan and deliver`** | **`plan and deliver`** §1 opt **2** → spawn **`ad-hoc-prd`** | **`ad_hoc_<slug>_<hex>.ad-hoc-prd.md`** under **`<operationsUserId>/docs/`** only | Child approves → §4–§5 spawn **`planner`** |
+| **C — Existing PRD** | File, `@path`, or fetchable URL | **`plan and deliver`** §1 opt **1** → §2 | Link or path (may be outside **`operations/`**) | §4 seed → §5 spawn **`planner`** |
+| **D — Blocked URL** | §2 cannot fetch external PRD | **`plan and deliver`** (or **`prd`** per modal) | Readable body required | **`plan.mdc`** §2 *Auth-blocked or unreadable PRD* |
+
+**Intake boundaries (do not conflate missions)**
+
+- **`plan and deliver` §2** validates or loads an **existing** readable PRD for the **`planner`** seed — it does **not** spawn **`author-prd`** or run **`create prd`** / **`manage prd`** inline.
+- **`prd`** mission owns **`author-prd`** drafting and **`manage prd`** revision — it does **not** perform Squad Leader §2 fetch for **`planner`**; return with **`@path`** after the PRD dispatch.
+- **No PRD yet on `plan and deliver`:** §1 opt **2** → **`ad-hoc-prd`**, not **`create prd`** on the same dispatch.
 
 **Do not use**
 
-- **`create prd`** / **`manage prd`** when the developer is already on **`plan and deliver`** §1 option 2 — use **`ad-hoc-prd`** spawn instead (lighter template, same dispatch).
-- **`ad-hoc-prd`** for a full multi-section PRD that needs **`author-prd`** section policy and iterative **`manage prd`** — use the **`prd`** mission first.
-- **`joint/docs/`** for new Ad-Hoc PRD writes — **`ad-hoc-prd`** is personal **`operationsUserId`** only; move the file manually to share.
+- **`create prd`** / **`manage prd`** when already on **`plan and deliver`** §1 option 2 — use **`ad-hoc-prd`** spawn.
+- **`ad-hoc-prd`** for a full multi-section PRD — use **`prd`** mission first.
+- **`joint/docs/`** for new Ad-Hoc PRD writes — **`ad-hoc-prd`** is **`operationsUserId`**-scoped only.
 
-**Referenced skills:** **`ad-hoc-prd`**, **`author-prd`**; missions **`plan-and-deliver/plan.mdc`** §§1–2, **`prd/plan.mdc`**.
+**Handoff phrase examples**
+
+| Developer says (paraphrase) | Route |
+| --- | --- |
+| “Here’s the PRD `@path` — start planning” | **`plan and deliver`** → §2 |
+| “Write a PRD from these notes, then we’ll plan” | **`create prd`** → later **`plan and deliver`** + `@path` |
+| “Small fix, plan and deliver” (no file) | **`plan and deliver`** §1 option **2** → **`ad-hoc-prd`** |
+| “This Confluence link won’t load” | **`plan and deliver`** §2 **AskQuestion** (not invented body text) |
+
+**Referenced skills:** **`ad-hoc-prd`**, **`author-prd`**.
 
 ### Sedea Hub Start New Plan vs Centers dispatch
 
@@ -83,31 +110,6 @@ Two R&D flows produce requirements upstream of **`planner`**. Pick **one** row; 
 
 **Contract:** Only **`plan and deliver`** declares **`## Hub missionInputs`** in **`plan.mdc`** (keys `parentSlug`, `parentPlanPath`). Hub host reads that block generically; Mission Control renders **Parent** in the opening message when `missionInputs` is present (merged PRs **hub-start-new-plan**, **mc-parent-opening**). This PR (**plan-deliver-hub-intake**) adds §4 skip logic and Squad Leader echo — not Hub menu or MC template code.
 
-### PRD intake — `plan and deliver` §2 vs `prd` mission
-
-The table above chooses **how to author** a PRD. This table chooses **which mission validates or loads** requirements before **`planner`**.
-
-| Developer situation | Where to work | What the agent does |
-| --- | --- | --- |
-| **Readable PRD already exists** — workspace `@path`, local file, or URL the agent can fetch | **`plan and deliver`** §1 option **1** → **§2** | Squad Leader collects the reference, reads or fetches the body, acknowledges title/source, passes the artifact into the **`planner`** seed. **Do not** open a **`prd`** dispatch for intake alone. |
-| **No PRD yet; needs a full structured doc** — sections, evidence, iterative revision via **`manage prd`** | **`prd`** mission first (**`create prd`** / **`manage prd`**) | **`author-prd`** writes under **`.sedea/operations/<operationsUserId>/docs/`**. When the developer is satisfied, start a **separate** **`plan and deliver`** dispatch with **`@path`** (or link) to that file → §2 treats it like any existing PRD. |
-| **No PRD yet; short blurb; already on `plan and deliver`** | Same dispatch — §1 option **2** → §3 **`ad-hoc-prd`** | Spawn **`ad-hoc-prd`** on this dispatch. **Not** **`create prd`** / **`manage prd`** (those belong to the **`prd`** mission). |
-| **External URL auth-blocked or unreadable in §2** | Stay on **`plan and deliver`** (or switch per AskQuestion) | §2 **AskQuestion**: paste body, switch to ad-hoc (§1 option 2), **`create prd` mission first** (then return with `@path`), or a different readable `@path`. See **`plan.mdc`** §2 *Auth-blocked or unreadable PRD*. |
-| **PRD needs more depth before planning** | **`prd`** **`manage prd`** | Finish or revise the doc on the **`prd`** dispatch; resume **`plan and deliver`** only when the developer supplies a readable `@path` or link. |
-
-**`plan and deliver` §2 does not:** spawn **`author-prd`**, run **`create prd`** / **`manage prd`** inline, or replace option **1** (existing PRD) with **`ad-hoc-prd`**.
-
-**`prd` mission does not:** perform Squad Leader §2 link validation or Confluence/Google fetch for the **`planner`** seed — that is **`plan and deliver`** only.
-
-**Handoff phrase examples**
-
-| Developer says (paraphrase) | Route |
-| --- | --- |
-| “Here’s the PRD `@path` — start planning” | **`plan and deliver`** → §2 |
-| “Write a PRD from these notes, then we’ll plan” | **`create prd`** → later **`plan and deliver`** + `@path` |
-| “Small fix, plan and deliver” (no file) | **`plan and deliver`** §1 option **2** → **`ad-hoc-prd`** |
-| “This Confluence link won’t load” | **`plan and deliver`** §2 **AskQuestion** (not invented body text) |
-
 ### Agent UX pitfalls (easy mis-runs)
 
 | Pitfall | Correct surface |
@@ -117,8 +119,25 @@ The table above chooses **how to author** a PRD. This table chooses **which miss
 | **Commit and push cadence** step 3 | Rule **20** step 3 = **`pr-review` Step 5 — GitHub only** after push when Steps 1–4 already ran — not a second full triage |
 | **High complexity** Master Plan (score **> 20**) | Omit §6 decomposition routes until score **≤ 20**; Squad Leader never runs **`delivery-phases`** / **`pr-breakdown`** |
 | Branch/PR/chat titles | **`.sedea/centers/research-and-development/rules/10_plan-naming-convention.mdc`** — benefit verbs only; never the forbidden busy-work prefix |
-| **`create prd`** while already on **`plan and deliver`** §1–2 | §1 option **2** → **`ad-hoc-prd`**, or finish **`prd`** first then new **`plan and deliver`** + `@path` — § *PRD intake — plan and deliver §2 vs prd mission* |
+| **`create prd`** while already on **`plan and deliver`** §1–2 | §1 option **2** → **`ad-hoc-prd`**, or finish **`prd`** first then new **`plan and deliver`** + `@path` — § *PRD routing (canonical)* |
 | Squad Leader collects **title only**, spawns **`author-prd`**, child invents scope | **`prd/plan.mdc`** §**2.5** intake on Squad Leader; §3 handoff includes **`prdDescription`** + **`sourceMaterials`** |
+| Spawn **`planner`** from **`new-plan`** or run **`pr-plan`** on a standalone child without **`new-plan-agent`** | **`planner`** = Squad Leader §5 **spawn only**; **`pr-plan`** = **inline** under **`new-plan`** — **`skills/README.md`** § *Normative execution mode* |
+
+### Agent glossary — step and section labels
+
+Labels reuse numbers and § symbols across documents. **Read the owning doc** before acting.
+
+| Label | Owns it | Meaning |
+| --- | --- | --- |
+| **`plan.mdc` §1–§10** | Squad Leader dispatch | Mission protocol sections (PRD intake, spawn **`planner`**, §8 ship ledger, resolution). |
+| **`planner` Step 1–7** | **`planner/SKILL.md`** on **planner child lane** | Master Plan scaffold §§1–5; Step **7b** = structured next moves after §§1–5. |
+| **`pr-plan` §5a–§5e** | **`pr-plan/SKILL.md`** on **inline** lane | §5c = planning handoff modal; §5d = spawn **`coding-session`** (child lane). |
+| **`new-plan` step 4 / 5b** | **`new-plan/SKILL.md`** | Step 4 = inline **`pr-plan`**; 5b = merge child **`coding-session`** results. |
+| **Rule 20 — cadence step 3** | **`20_efficient-pr-shipping.mdc`** | After commit+push on **`coding-session`**: **`pr-review` Step 5 — GitHub only** when Steps 1–4 already ran — not a full new triage. |
+| **`pr-review` Steps 1–5** | **`pr-review/SKILL.md`** inline on **`coding-session`** | Full comment triage; Step 5 = GitHub reconciliation. |
+| **Per-PR plan §§1–8** | Plan file template | §§1–4 = planning; §§5–8 = implementation/ship (often filled on **`coding-session`** lane). |
+| **§8 `shipPhase` / `rowStatus`** | Squad Leader **`plan.mdc` §8** | Ship ledger on leader dispatch — updated via host sync or **Ship recap** block. |
+| **Sedea rule 6 / rule 30** | **`.sedea/centers/sedea/rules/`** | Git consent gate vs planning-target resolution — not R&D skill step numbers. |
 
 ### Agents and roles
 
@@ -136,7 +155,7 @@ The table above chooses **how to author** a PRD. This table chooses **which miss
 - **Plan board** — Where **developers** open and review planning-mode `.plan.md` files in the plans folder `.sedea/operations/**/plans/**`).
 - **Path placeholders (`...`)** — In this document and R&D governance, `` `...` `` inside path examples (e.g. `.sedea/operations/.../plans/`) denotes **omitted segments**, not a folder named `...`. Substitute **`joint`**, **`operationsUserId`**, or a real **`slug`**. See **`.sedea/centers/research-and-development/rules/31_operations-user-id.mdc`** § *Path placeholders in documentation*.
 - **`.plan.md` files** — Standalone plan files at each hierarchy level (Master Plan, phase plans, PR plans); canonical location is under `.sedea/operations/**/plans/**`.
-- **PRD** — Product (or feature) Requirements Document — the prime input for the one-shot **Master Plan** (mode #1). **Which authoring flow** (`prd` mission vs **`plan and deliver`** + **`ad-hoc-prd`**) is decided in § *PRD authoring — which path?* above — not by filename alone.
+- **PRD** — Product (or feature) Requirements Document — the prime input for the one-shot **Master Plan** (mode #1). **Which authoring flow** (`prd` mission vs **`plan and deliver`** + **`ad-hoc-prd`**) is decided in § *PRD routing (canonical)* above — not by filename alone.
 - **Git worktree** — Isolated worktree used by the **`coding-session`** protocol branch when spinning up a coding agent.
 - **Protocol** — The **plan and deliver** mission (`.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`, command phrase *plan and deliver*) — protocol branches and skills under `missions/plan-and-deliver/skills/` implement this document's cadence. 
 

@@ -42,6 +42,8 @@ warmUpRules:
 
 # Planner: §§ 1–5 from the PRD
 
+**Normative execution (plan and deliver):** **Spawned only** on a **new child lane** — Squad Leader §5 emits **`AGENT_RUN_REQUEST_V1`**. End with **`AGENT_RESULT_RESPONSE_V1`** per **`## Completion (spawned)`**. Do **not** run as an inline skill on the Squad Leader lane. Decomposition skills (**`delivery-phases`**, **`pr-breakdown`**, **`new-plan`**) run **inline on the planner child lane** after §§1–5. See **`../README.md`** § *Normative execution mode*.
+
 This skill drives the **first** step of feature planning: read a PRD, **scaffold the Master Plan file**, draft sections 1 through 5 (Background, Benefits, Related features, Architectural design, Changes) directly into that file, then compute a **plan-scope complexity score** from what was written under §§ 4–5, persist it under § 5, and stop. Sections 6 (Delivery phases | PR breakdown) and 7 (Caveats) are filled in in follow-up turns once the user has reviewed the initial draft — **unless complexity is high**, in which case defer **§6 decomposition** until the scope is split (see Step 6c).
 
 The agent has enough context after step 4 to draft §§ 1–5 without further input from the user — these sections are inferable from the PRD plus the loaded architectural rules. Stopping at § 5 is deliberate: § 6 (Delivery phases | PR breakdown) is a separate planning conversation that benefits from a settled architectural picture first, and § 7 (Caveats) often only emerges once § 6 reveals constraints.

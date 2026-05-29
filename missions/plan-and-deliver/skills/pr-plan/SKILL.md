@@ -57,6 +57,8 @@ warmUpRules:
 
 # PR plan: §§ 1–4 from the parent plan
 
+**Normative execution (plan and deliver):** **Inline only** on the invoker lane — **`new-plan`** step 4 with **`parentAgentRole: "new-plan-agent"`**. Report **`## Completion (inline)`**; do **not** emit **`AGENT_RESULT_RESPONSE_V1`** for **`pr-plan`**. **Exception:** §5d may emit **`AGENT_RUN_REQUEST_V1`** for **`coding-session`** on a **new** child lane. A standalone spawned **`pr-plan`** child is non-default. See **`../README.md`** § *Normative execution mode*.
+
 This skill drives the **per-PR planning move** under Sedea's New Feature Development Process: take a freshly-spawned PR plan stub (indexed child from the parent's **`### PR list`** under **`PR breakdown`**, typically right after the **`new-plan`** protocol branch) and populate §§ **1–4** of the **per-PR template** — Single concern, Background, Change scope, Reasoning. §§ **5–8** and the § 7 deploy scaffold stay **`_TBD_`** for **`coding-session`** and later turns unless the **developer** explicitly asks for a **fill** sketch here.
 
 The agent has enough context after step 3 to draft §§ 1–4 from the parent's **`### PR list`** row, **`### Single-concern strategy`**, **`### Sequencing`**, and earlier parent sections (diagrams / changes as *context* — PR plans do **not** embed parent diagrams in the body). § 4 is consumed by **a coding agent** (PR description) and **pre-pr-review** / **a reviewer agent**; keep sentences unambiguous. This skill reports planning readiness; **worktrees and ship execution** belong to **`coding-session`** on a **separate** lane.

@@ -352,7 +352,7 @@ Run only **after** [Pre-worktree validation](#pre-worktree-validation-plan-compl
    - Always branch from **`origin/main`**, not **`main`** (same failure mode as in **efficient-pr-shipping**).
    - Branch naming: **`.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`** § *Branch naming* (primary **hosting repo** → Sedea **`7_stacked-pr-branch-naming`**; **hosting repo worktree** → `feat/`, `improve/`, `fix/`, …).
    - **Dirty-tree gate (hosting repo)** — Before `git worktree add`, run `git status --porcelain` in the repo that receives the worktree (`HOSTING_ROOT` when branching from the primary hosting repo).
-     - **Submodule gitlink-only (non-blocking)** — When the active hosting repo pins `.sedea/` via git submodules (see [`.cursor/rules/dot-sedea.mdc`](.cursor/rules/dot-sedea.mdc) § *Submodule pins*, for example **`sedea-ai/app`**), and **every** porcelain line is a **modified submodule gitlink** under `.sedea/` (paths under `.sedea/centers/` or `.sedea/operations/`), verify pointer-only drift before proceeding:
+     - **Submodule gitlink-only (non-blocking)** — When the active hosting repo pins `.sedea/` via git submodules (see **`.cursor/rules/dot-sedea.mdc`** § *Submodule pins* on the active hosting repo, for example **`sedea-ai/app`**), and **every** porcelain line is a **modified submodule gitlink** under `.sedea/` (paths under `.sedea/centers/` or `.sedea/operations/`), verify pointer-only drift before proceeding:
        ```bash
        git diff --stat -- <submodule-path>
        ```
