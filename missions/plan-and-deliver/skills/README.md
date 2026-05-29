@@ -42,7 +42,7 @@ Mission Control delivery for skills that mix long plan output with structured us
 
 ## Planning spawn (Squad Leader §3, §5, decomposition tree)
 
-Squad Leader steps **§3** and **§5** spawn child lanes for **`ad-hoc-prd`** and **`planner`**. **`planner`** runs **`delivery-phases`** and **`pr-breakdown`** **inline** (no child lanes for those skills). Further decomposition may still spawn **`new-plan`** and populator lanes per skill contracts. Each dual-mode file has **`## Completion (spawned)`** and **`## Completion (inline)`**.
+Squad Leader steps **§3** and **§5** spawn child lanes for **`ad-hoc-prd`** and **`planner`**. **`planner`** runs **`delivery-phases`** and **`pr-breakdown`** **inline** (no child lanes for those skills). Further decomposition may still spawn **`new-plan`** child lanes; **`new-plan`** runs **`pr-plan`** **inline** and may still spawn **`phase-planner`**. Each dual-mode file has **`## Completion (spawned)`** and **`## Completion (inline)`**.
 
 | Skill | Typical invoker | Squad Leader ledger |
 |-------|-----------------|---------------------|
@@ -50,9 +50,9 @@ Squad Leader steps **§3** and **§5** spawn child lanes for **`ad-hoc-prd`** an
 | `planner` | Squad Leader §5 | Seed ledger; §6 ack when `continuationOwner: master-plan-agent` |
 | `delivery-phases` | **`planner` inline** | Planner merges `childRows`, `spawnedPlans`, `activeLanes`; leader §7 from planner terminal |
 | `pr-breakdown` | **`planner` inline** | Same as delivery-phases |
-| `new-plan` | decomposition agents | Register child plan path/slug per row index |
-| `phase-planner` | `new-plan` / decomposition | Populator lane; route fields for next branch |
-| `pr-plan` | `new-plan` / decomposition | Layer 1: `readyForImplementation`, `implementationHandoffStatus`; may spawn **`coding-session`** after **AskQuestion** **Start coding session** (§5d) |
+| `new-plan` | decomposition agents | Register child plan path/slug per row index; **`pr-plan`** inline on this lane |
+| `phase-planner` | `new-plan` spawn / decomposition | Populator lane; route fields for next branch |
+| `pr-plan` | **`new-plan` inline** | Layer 1: `readyForImplementation`, `implementationHandoffStatus`; may spawn **`coding-session`** after **AskQuestion** **Start coding session** (§5d) |
 
 Field-level `outputs` and `continuationStatus` rules: each skill’s **`## Completion (spawned)`**.
 
@@ -137,9 +137,9 @@ After emitting **`AGENT_RESULT_RESPONSE_V1`**, **stop on that lane** for the cur
 | Skill | Explicit “Stop after the terminal line” in `## Completion (spawned)`? | Notes |
 |-------|------------------------------------------------------------------------|--------|
 | `author-prd` (prd mission) | Yes | Also forbids downstream planning spawns |
-| `pr-plan` | Yes | May spawn **`coding-session`** in §5d before terminal; one spawn per turn |
+| `pr-plan` | Yes | May spawn **`coding-session`** in §5d before terminal (standalone) or inline under **`new-plan`**; one spawn per turn |
 | `planner` | Yes | Procedure stop before terminal when `continuationStatus: active`; Step 7 runs **`delivery-phases`** / **`pr-breakdown`** inline on **later** user messages only |
-| `delivery-phases`, `pr-breakdown`, `new-plan`, `ad-hoc-prd` | Yes | `ad-hoc-prd`: active result after write, terminal only after developer approval; see each skill § *Completion (spawned)* |
+| `delivery-phases`, `pr-breakdown`, `new-plan`, `ad-hoc-prd` | Yes | `new-plan`: inline **`pr-plan`**; `ad-hoc-prd`: active result after write, terminal only after developer approval; see each skill § *Completion (spawned)* |
 | Ship chain (`coding-session`, `pre-pr-review`, `create-pr`, `deploy-walk`, `plan-reconcile`) | Yes | See each skill § *Completion (spawned)* |
 | `phase-planner` | Yes | Same canonical stop sentence as **`pr-plan`** |
 

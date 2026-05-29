@@ -6,10 +6,10 @@ description: >-
   (name, overview, todos, isProject) and `parent` only in the sidecar. Resolves
   parent per planning-target-resolution; confirms parent before write except on
   indexed child spawn when parent + index N are already locked by session context.
-  After an indexed spawn, may hand off to **phase-planner** or **pr-plan** via
-  initiating-agent ignition when those skills exist. When spawned from an upstream
-  decomposition agent that already approved the parent list, skips the child-stub
-  populator approval modal and spawns the populator immediately. Use under mission dispatch or
+  After an indexed spawn, may hand off to **phase-planner** (spawned child lane) or
+  **pr-plan** (inline on this lane). When spawned from an upstream decomposition
+  agent that already approved the parent list, skips the child-stub populator approval
+  modal and runs the populator immediately. Use under mission dispatch or
   when the developer asks to scaffold a plan via **new-plan** (standalone) or expand
   a parent list item **N** (indexed-child) from a numbered dual-title list.
 inputs:
@@ -87,6 +87,23 @@ Invocation context examples (mission dispatch and structured choices):
 - Free-form (“I need a plan for …”) — confirm scope, then **`new-plan`** standalone or indexed-child per **30_planning-target-resolution**.
 
 The **developer** selects continuation per **30_planning-target-resolution** § *Sedea input channel*.
+
+### Inline handoff — **new-plan** → **`pr-plan`** (step 4)
+
+When `requestedPopulatorSkill` is **`pr-plan`**, run that skill **inline on this lane** — **do not** emit **`AGENT_RUN_REQUEST_V1`** for **`pr-plan`**. Load `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/pr-plan/SKILL.md`, construct inline context from the table below, follow that skill’s steps, and merge its **`## Completion (inline)`** fields into this skill’s ledger (`spawnedPlans`, `activeLanes`, `openLedgerEntries`, `remainingTasks`, `readyForImplementation`, `implementationHandoffStatus`). Inline **`pr-plan`** may still spawn **`coding-session`** per **`pr-plan`** §5d; this lane aggregates that child result per step **5b**.
+
+| Inline context field | Value |
+|----------------------|--------|
+| `targetPlanPath` | Absolute path to the child stub `.plan.md` just written |
+| `targetPlanSlug` | Slug from filename |
+| `parentPlanPath` | Absolute path to the parent `.plan.md` |
+| `parentPlanSlug` | Parent slug from spawn inputs |
+| `parentIndex` | `index` from spawn inputs |
+| `parentAgentRole` | `"new-plan-agent"` |
+| `ledgerParent` | `ledgerParent` from spawn inputs when present |
+| `upstreamSkill` | `"new-plan"` |
+
+When `requestedPopulatorSkill` is **`phase-planner`**, emit **`AGENT_RUN_REQUEST_V1`** per step **4** (spawned populator lane — unchanged).
 
 ## Indexed child spawn (parent list item **N**)
 
@@ -245,7 +262,7 @@ When **all** of the following are true, **skip** step 3 and go straight to step 
 
 Rationale: **`delivery-phases`** and **`pr-breakdown`** already run a structured-choice gate (**Approve … and spawn children** / **Approve PR breakdown and spawn PR plans**) over the parent numbered list. Item **N** prose (scope sentence, decomposition hint) is reviewed there — re-asking on this lane is redundant.
 
-Set `outputs.populatorApprovalStatus: "waived-upstream"` and one line: *Parent list approved upstream — spawning `<requestedPopulatorSkill>` on the child stub.*
+Set `outputs.populatorApprovalStatus: "waived-upstream"` and one line: *Parent list approved upstream — hand off to `<requestedPopulatorSkill>` on the child stub* (`pr-plan` inline; `phase-planner` spawned).
 
 **Still use step 3** when:
 
@@ -260,25 +277,40 @@ Set `outputs.populatorApprovalStatus: "waived-upstream"` and one line: *Parent l
    - **Abandon this child**
    - **More details for option _**
 
-   Only **Approve child stub and populate now** authorizes a populator spawn. If the developer defers, return `partial` or `success` with `continuationStatus: "active"` and a `remainingTasks` item naming the deferred populator.
+   Only **Approve child stub and populate now** authorizes populator handoff (inline **`pr-plan`** or spawn **`phase-planner`**). If the developer defers, return `partial` or `success` with `continuationStatus: "active"` and a `remainingTasks` item naming the deferred populator.
 
    **Do not** open this gate when auto-authorize applies — proceed to step 4 in the same turn after the stub and `Plan:` link verify.
 
-4. **Populator handoff (indexed spawn only).** If the parent heading is **`Delivery phases`**, the next step is the **`phase-planner`** protocol branch on the new child; if **`PR breakdown`**, the **`pr-plan`** protocol branch. When `requestedPopulatorSkill` is set and either auto-authorize applies **or** the developer approved step 3, emit exactly one child-spawn request for that populator skill in the **same turn** after the child stub and parent `Plan:` line are written and verified (do **not** stop for a stub-approval modal when auto-authorized).
+4. **Populator handoff (indexed spawn only).** When `requestedPopulatorSkill` is set and either auto-authorize applies **or** the developer approved step 3, hand off after the child stub and parent `Plan:` line are written and verified (do **not** stop for a stub-approval modal when auto-authorized).
 
-   Populator skill paths:
+   **`pr-plan`** (`childKind: "pr-plan"` or parent **`PR breakdown`**):
 
-   - `phase-planner` → `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/phase-planner/SKILL.md`
-   - `pr-plan` → `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/pr-plan/SKILL.md`
+   1. Run **`pr-plan`** **inline** on this lane per [Inline handoff](#inline-handoff--new-plan--pr-plan-step-4).
+   2. Merge inline completion fields; set `outputs.populatorSkill: "pr-plan"`, `outputs.populatorStatus` from inline handoff.
+   3. If inline **`pr-plan`** offered the §5c handoff menu or spawned **`coding-session`**, keep `continuationStatus: "active"` on this lane — follow-up turns continue inline **`pr-plan`** (§5c–§5e) before terminal **`AGENT_RESULT_RESPONSE_V1`**.
+   4. Do **not** emit **`AGENT_RUN_REQUEST_V1`** for **`pr-plan`**.
 
-   Inputs must include `targetPlanPath`, `targetPlanSlug`, `parentPlanPath`, `parentPlanSlug`, `parentIndex`, `ledgerParent`, and `upstreamSkill: "new-plan"`. Announce that this agent is waiting for the populator result and stop. **`pr-breakdown`**, nested decomposition, and **`plan-reconcile`** happen in their own mission steps after this skill finishes. If a center populator `SKILL.md` is ever absent, end after stub + parent link and point at **`development-process.md`**.
+   **`phase-planner`** (`childKind: "phase-planner"` or parent **`Delivery phases`**):
 
-5. **Aggregate populator result.** When Mission Control delivers the populator child result, match by correlation id first, then by `outputs.targetPlanPath` / `outputs.targetPlanSlug`.
+   1. Emit exactly one child-spawn request for `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/phase-planner/SKILL.md`.
+   2. Inputs: `targetPlanPath`, `targetPlanSlug`, `parentPlanPath`, `parentPlanSlug`, `parentIndex`, `ledgerParent`, `upstreamSkill: "new-plan"`.
+   3. Announce that this agent is waiting for the **`phase-planner`** child result and stop.
+
+   **`pr-breakdown`**, nested decomposition, and **`plan-reconcile`** happen in their own mission steps after this skill finishes. If a center populator `SKILL.md` is ever absent, end after stub + parent link and point at **`development-process.md`**.
+
+5. **Aggregate spawned `phase-planner` result.** When Mission Control delivers a **`phase-planner`** child result (spawned path only), match by correlation id first, then by `outputs.targetPlanPath` / `outputs.targetPlanSlug`.
 
    - `success` with no remaining tasks → set this `new-plan` result to `terminal`; include the child plan in `spawnedPlans`.
    - `partial` → keep this `new-plan` result `active`; copy the populator `remainingTasks`, `activeLanes`, and `openLedgerEntries`.
    - `failure`, `aborted`, or `abandoned` → return the same status upstream with the child stub path and the populator errors; the upstream decomposition agent decides retry/defer/abandon for that row.
    - Missing or malformed populator outputs → return `partial` and keep the row open; silence is not completion.
+
+5b. **Aggregate `coding-session` child result (inline `pr-plan` path).** When inline **`pr-plan`** spawned **`coding-session`** (§5d) and Mission Control delivers the child result:
+
+   1. Match by `correlationId` from inline **`pr-plan`** `spawnCorrelationId`, then `outputs.targetPlanPath` / `outputs.targetPlanSlug`.
+   2. Merge child `activeLanes`, `openLedgerEntries`, and `remainingTasks` into this skill’s ledger.
+   3. Continue inline **`pr-plan`** §5e semantics on this lane (summarize for the developer; re-offer handoff when appropriate).
+   4. Return `partial` or `active` while the child lane is open; `terminal` only when inline **`pr-plan`** handoff is complete and no **`coding-session`** child remains open.
 
 6. **Non-indexed spawns:** no populator handoff table — suggest filling stubs or choosing the next **protocol branch** via **AskQuestion** / **`MC_PHASED_RESPONSE_V1`** per **30_planning-target-resolution** § *Sedea input channel* and **`../README.md`** § *Recap, structured choice, act*.
 
@@ -286,7 +318,7 @@ Set `outputs.populatorApprovalStatus: "waived-upstream"` and one line: *Parent l
 
 ## Scope guard
 
-This skill writes `.plan.md` + `.state.yaml`, optionally updates one `Plan:` line under the parent’s dual-title list (indexed spawn), and may spawn the requested **`phase-planner`** / **`pr-plan`** populator. Worktree creation, PR prompts, archive bullets, and expanding the dual-title list beyond the chosen item **N** sit in **`coding-session`**, **`plan-reconcile`**, **`delivery-phases`**, and **`pr-breakdown`** as applicable.
+This skill writes `.plan.md` + `.state.yaml`, optionally updates one `Plan:` line under the parent’s dual-title list (indexed spawn), may spawn **`phase-planner`**, and runs **`pr-plan`** **inline** on this lane. Worktree creation, PR prompts, archive bullets, and expanding the dual-title list beyond the chosen item **N** sit in **`coding-session`**, **`plan-reconcile`**, **`delivery-phases`**, and **`pr-breakdown`** as applicable.
 
 ## Completion (spawned)
 
@@ -303,9 +335,10 @@ Required `outputs` fields:
 - `outputs.populatorSkill`, `outputs.populatorApprovalStatus` (`waived-upstream` | `approved` | `deferred` | `not-requested`), `outputs.populatorStatus`
 - `outputs.spawnedPlans`, `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.remainingTasks`
 - `outputs.continuationOwner`: `"new-plan-agent"`
-- `outputs.continuationStatus` — `active` while populator approval, a populator lane, or row repair remains; `terminal` when stub, parent link, and optional populator handoff are complete
+- `outputs.continuationStatus` — `active` while populator approval, inline **`pr-plan`** handoff, a **`phase-planner`** child lane, a **`coding-session`** child from inline **`pr-plan`**, or row repair remains; `terminal` when stub, parent link, and populator handoff are complete
+- `outputs.readyForImplementation`, `outputs.implementationHandoffStatus` — when inline **`pr-plan`** ran (echo from inline completion)
 
-Complete write + parent confirmation (when required) + parent `Plan:` update (indexed) + optional populator spawn / wait announcement **before** the terminal line. Stop after the terminal line. Do not emit another `AGENT_RUN_REQUEST_V1` or run the next protocol step in the same turn (see **`../README.md`** § *Terminal stop (normative)*).
+Complete write + parent confirmation (when required) + parent `Plan:` update (indexed) + populator handoff (inline **`pr-plan`** or **`phase-planner`** spawn / wait) **before** the terminal line. Do **not** emit **`AGENT_RUN_REQUEST_V1`** for **`pr-plan`**. Stop after the terminal line. Do not emit another `AGENT_RUN_REQUEST_V1` (except **`coding-session`** from inline **`pr-plan`** §5d) or run the next protocol step in the same turn (see **`../README.md`** § *Terminal stop (normative)*).
 
 ## Completion (inline)
 

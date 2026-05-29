@@ -75,7 +75,7 @@ warmUpRules:
 
 # PR breakdown — mode #3 decomposition
 
-This skill drives **mode #3** (set-level **PR breakdown**) under Sedea's New Feature Development Process. **Input:** a target **Master Plan** or **Phase plan** whose dual-title section (`Delivery phases | PR breakdown`) is undecided or is already **`PR breakdown`**. **Output:** that section drafted as **`### Single-concern strategy`**, **`### Sequencing`**, and **`### PR list`** (numbered child PRs). Each row is expanded into its own PR plan via the **`new-plan`** protocol branch (indexed child), then the **`pr-plan`** protocol branch on each new child (see [`new-plan/SKILL.md`](../new-plan/SKILL.md) populator handoff).
+This skill drives **mode #3** (set-level **PR breakdown**) under Sedea's New Feature Development Process. **Input:** a target **Master Plan** or **Phase plan** whose dual-title section (`Delivery phases | PR breakdown`) is undecided or is already **`PR breakdown`**. **Output:** that section drafted as **`### Single-concern strategy`**, **`### Sequencing`**, and **`### PR list`** (numbered child PRs). Each row is expanded into its own PR plan via the **`new-plan`** protocol branch (indexed child), then **`pr-plan`** **inline on the `new-plan` lane** (see [`new-plan/SKILL.md`](../new-plan/SKILL.md) populator handoff).
 
 The procedure below is a hard contract — do **not** skip steps, re-order them, or start drafting before stage is verified.
 
@@ -351,12 +351,12 @@ When Mission Control delivers a child result from a spawned **`new-plan`** lane:
 
 1. Match it to the ledger entry by correlation id first, then by `outputs.parentPlanSlug` + `outputs.parentIndex`.
 2. If the result reports a created child plan (`outputs.planPath` / `outputs.planSlug`), add it to `spawnedPlans` and mark that row `created`.
-3. If the result reports an active populator lane (`pr-plan`), keep the row open and add the populator lane to `activeLanes`.
+3. If the result reports inline **`pr-plan`** handoff or an active **`coding-session`** child from inline **`pr-plan`**, keep the row open and add the lane to `activeLanes`.
 4. If the result reports terminal completion with no remaining tasks, close that row as `completed`.
 5. If the result is `partial`, keep the row open and copy its `remainingTasks`.
 6. If the result is `failure`, `aborted`, or `abandoned`, mark the row blocked and ask the developer whether to retry that row, defer it, accept partial resolution, or abandon the branch.
 
-Only return `continuationStatus: "terminal"` when every row is explicitly `completed`, `deferred`, `abandoned`, or `out_of_scope`, and no active populator lanes remain. Silence or a missing row is not completion.
+Only return `continuationStatus: "terminal"` when every row is explicitly `completed`, `deferred`, `abandoned`, or `out_of_scope`, and no active **`new-plan`** / inline **`pr-plan`** / **`coding-session`** lanes remain for those rows. Silence or a missing row is not completion.
 
 ## One primary choice per turn — surface observations
 
