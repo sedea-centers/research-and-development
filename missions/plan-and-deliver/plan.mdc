@@ -70,7 +70,7 @@ This diagram is the **dispatch ownership map**. It answers: which agent on this 
 | Role | Lane | Spawns | Does not |
 |------|------|--------|----------|
 | **Squad Leader** | Mission dispatch leader | `ad-hoc-prd` (§3), `planner` (§5) | PRD approval on leader lane (owned by **Ad-Hoc PRD** child); route menu for §6 decomposition; `delivery-phases`, `coding-session`, etc. |
-| **Master Plan agent** | Child lane after §5 | `delivery-phases`, `pr-breakdown` via **AskQuestion** + `AGENT_RUN_REQUEST_V1`; drafts §7 inline | Replace Squad Leader ledger; resolve dispatch |
+| **Master Plan agent** | Child lane after §5 | **`delivery-phases`**, **`pr-breakdown`** inline via **AskQuestion** + skill load; drafts §7 inline | Replace Squad Leader ledger; resolve dispatch |
 | **Downstream skill agents** | Further child lanes | Per skill: e.g. `new-plan` → `phase-planner` / `pr-plan`; `coding-session` → `pre-pr-review` | `MC_DISPATCH_RESOLVED_V1` |
 | **Detached branches** | Often separate session / phrase | Invoked via `development-process.md` branch names | Automatic Squad Leader spawn from §§1–5 |
 
@@ -101,21 +101,21 @@ flowchart TB
     S8 --> RES["MC_DISPATCH_RESOLVED_V1"]:::leader
   end
 
-  subgraph mpLane["Child lane — Master Plan agent"]
+  subgraph mpLane["Child lane — planner (Master Plan agent)"]
     MP["planner skill"]:::child
-    MP --> M6["AskQuestion → spawn dp or pb"]:::child
+    MP --> M6["AskQuestion → inline dp or pb"]:::child
     MP --> M7["AskQuestion → Caveats inline"]:::child
+    DP["delivery-phases inline"]:::child
+    PB["pr-breakdown inline"]:::child
+    M6 --> DP
+    M6 --> PB
   end
 
   S5 -.->|spawn| MP
 
-  subgraph planTree["Spawn tree — planning child lanes"]
-    DP["delivery-phases"]:::child
-    PB["pr-breakdown"]:::child
+  subgraph planTree["Spawn tree — planning child lanes (from inline dp/pb)"]
     NP["new-plan indexed"]:::child
     POP["phase-planner or pr-plan"]:::child
-    M6 --> DP
-    M6 --> PB
     DP --> NP
     PB --> NP
     NP --> POP
@@ -193,7 +193,7 @@ flowchart TD
 - **§§1–7** — Squad Leader **planning** steps on the leader lane (see prose subsections below).
 - **§8** — Squad Leader **ship oversight** on the leader lane; detached skills run elsewhere.
 - **Spawn nodes** — emit `AGENT_RUN_REQUEST_V1`; stop until `AGENT_RESULT_RESPONSE_V1`.
-- **§6** — **not** decomposition routing (that lives on the **Master Plan agent** lane — **AskQuestion** + spawn in `planner/SKILL.md` Step 7). See §6 *Forbidden on the Squad Leader lane*.
+- **§6** — **not** decomposition routing (that lives on the **planner** child lane — **AskQuestion** + inline **`delivery-phases`** / **`pr-breakdown`** in `planner/SKILL.md` Step 7). See §6 *Forbidden on the Squad Leader lane*.
 - **§7** — register **planning** downstream lanes/plans from child `outputs`; do not infer completion from silence.
 - **§8** — register **ship** progress per PR plan; **do not** propose **`resolved`** dispatch while ship rows are open unless the developer explicitly closes planning-only (see §8).
 
@@ -378,7 +378,7 @@ Related (optional):
 - **Required rule context:** Sedea center always-apply rules, this mission plan, `development-process.md`, planning target resolution rule, and the `planner` skill.
 - **Expected output:** Child agent result with `status: success` or `partial`, `outputs.masterPlanPath`, `outputs.masterPlanSlug`, `outputs.complexityBand`, `outputs.complexityScore`, `outputs.continuationOwner`, `outputs.continuationStatus`, `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.spawnedPlans`, `outputs.remainingTasks`, and any recommended next action.
 - **Next-step resolution:**
-  - Child result `success` with Master Plan path and low/medium complexity plus active continuation ownership → continue to status acknowledgement and ledger tracking; the **Master Plan agent** owns downstream route prompts/spawns.
+  - Child result `success` with Master Plan path and low/medium complexity plus active continuation ownership → continue to status acknowledgement and ledger tracking; the **planner** lane owns downstream route prompts and inline decomposition.
   - Child result `success` with high complexity → acknowledge scope narrowing / split guidance and keep the **Master Plan agent** lane open; do not foreground decomposition from the **Squad Leader** lane.
   - Child result `partial` with usable Master Plan path → surface gaps and continue only if they do not block routing.
   - Child result `failure`, `aborted`, `abandoned`, or no plan path → stop and ask whether to retry, revise seed, or abandon.
@@ -419,7 +419,7 @@ Related (optional):
 
 1. Read the Master Plan agent result.
 2. If the result includes a usable plan path and indicates the **Master Plan agent** owns continuation, acknowledge status only.
-3. **Forbidden on the Squad Leader lane:** Do **not** present **Delivery phases**, **PR breakdown**, **Caveats**, or §6 decomposition **AskQuestion** menus here. Those routes live on the **Master Plan agent** child lane only (**`planner/SKILL.md`** Step 7 — recap + structured choice per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`skills/README.md`** § *Recap, structured choice, act*). The leader emits **no** `AGENT_RUN_REQUEST_V1` for **`delivery-phases`** or **`pr-breakdown`** from §6.
+3. **Forbidden on the Squad Leader lane:** Do **not** present **Delivery phases**, **PR breakdown**, **Caveats**, or §6 decomposition **AskQuestion** menus here. Those routes live on the **planner** child lane only (**`planner/SKILL.md`** Step 7 — recap + structured choice per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`skills/README.md`** § *Recap, structured choice, act*). The leader does **not** run **`delivery-phases`** or **`pr-breakdown`** inline or via spawn from §6.
 4. Pause the **Squad Leader** in a resumable wait state for downstream notifications.
 
 ### 7. Maintain planning closure ledger

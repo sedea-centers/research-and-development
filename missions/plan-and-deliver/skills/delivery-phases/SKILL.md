@@ -59,7 +59,7 @@ The procedure below is a hard contract — do **not** skip steps, re-order them,
 
 - Mission dispatch or explicit request to run the **`delivery-phases`** protocol branch.
 - Natural language: decompose phases, draft delivery phases, phase decomposition.
-- After **`planner`** when the developer has already chosen **`Delivery phases`** over **`PR breakdown`** for § 6 — **`planner`** spawns this skill; this skill drafts § 6 and owns indexed phase-child spawning for that branch.
+- After **`planner`** when the developer has already chosen **`Delivery phases`** over **`PR breakdown`** for § 6 — **`planner`** runs this skill **inline** on the same lane; this skill drafts § 6 and owns indexed phase-child spawning for that branch.
 
 The **developer** picks the next move per **30_planning-target-resolution** § *Sedea input channel*.
 
@@ -198,9 +198,9 @@ Required **`options`** (adapt labels; keep **K** visible in the **`prompt`** whe
 | `abandon` | Abandon this branch |
 | `more-details` | More details for option _ |
 
-**Spawned under `planner`:** Structured-choice approval is mandatory before indexed child spawns. Do **not** emit **`AGENT_RESULT_RESPONSE_V1`** in the structured-choice message.
+**Inline under `planner`:** Structured-choice approval is mandatory before indexed **`new-plan`** spawns. Do **not** emit **`AGENT_RESULT_RESPONSE_V1`** for this skill when **`parentAgentRole`** is **`master-plan-agent`** — report **`## Completion (inline)`** to the invoker instead. **`new-plan`** child lanes may still open from this inline run.
 
-**Standalone:** After structured-choice approval, **stop** and wait for the developer’s next message.
+**Standalone (spawned):** After structured-choice approval, emit **`AGENT_RESULT_RESPONSE_V1`** with `continuationStatus: "active"` when spawning children — **not** in the structured-choice message. **Stop** and wait for **`new-plan`** child results per step **6b**.
 
 ### Act after developer selects
 
@@ -208,12 +208,12 @@ In a **new** assistant turn after the developer selects an option in the approva
 
 | Choice | Action |
 | --- | --- |
-| **Approve phase list and spawn children** | Emit one **`AGENT_RUN_REQUEST_V1`** per phase row **1…K** for `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/new-plan/SKILL.md`. Record each spawned child in the ledger. Announce waiting for **K** results. Then emit **`AGENT_RESULT_RESPONSE_V1`** with `continuationStatus: "active"` — **not** in the recap-only pass or structured-choice message. |
+| **Approve phase list and spawn children** | Emit one **`AGENT_RUN_REQUEST_V1`** per phase row **1…K** for `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/new-plan/SKILL.md`. Record each spawned child in the ledger. **Inline under `planner`:** do **not** emit **`AGENT_RESULT_RESPONSE_V1`** — continue on the **planner** lane and aggregate per step **6b**. **Standalone spawned:** emit **`AGENT_RESULT_RESPONSE_V1`** with `continuationStatus: "active"` — **not** in the recap-only pass or structured-choice message. |
 | **Revise phase list first** | Apply one focused `StrReplace` on the list, then repeat recap → structured choice. |
 | **Defer / abandon** | Emit terminal result per labels; do not spawn. |
 | **More details for option _** | Elaborate (information-only), then run structured choice again. |
 
-When running as a spawned downstream agent under `planner`, each **`AGENT_RUN_REQUEST_V1`** in the act-after-select message must include `mode: "indexed-child"`, `parentPlanPath`, `parentPlanSlug`, `index`, `childKind: "phase-planner"`, `requestedPopulatorSkill: "phase-planner"`, `ledgerParent`, `upstreamSkill: "delivery-phases"`, and `decompositionKind: "delivery-phases"`. Record each spawned child in the ledger; announce waiting for **K** results.
+When running **inline under `planner`** or as a spawned downstream agent, each **`AGENT_RUN_REQUEST_V1`** in the act-after-select message must include `mode: "indexed-child"`, `parentPlanPath`, `parentPlanSlug`, `index`, `childKind: "phase-planner"`, `requestedPopulatorSkill: "phase-planner"`, `ledgerParent`, `upstreamSkill: "delivery-phases"`, and `decompositionKind: "delivery-phases"`. Record each spawned child in the ledger; announce waiting for **K** results on the active lane.
 
 If **K = 0**, treat that as a drafting failure: do not open structured-choice spawn paths; return failure or partial.
 
@@ -270,4 +270,4 @@ Complete the step 6 handoff block (or announce spawn wait) **before** the termin
 
 Report the fields below in prose to the invoker on the **same lane**. Do **not** emit `AGENT_RUN_REQUEST_V1`, `AGENT_RESULT_RESPONSE_V1`, or `MC_DISPATCH_RESOLVED_V1`. Do **not** add a **Host protocol line** under this section (see **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Inline completion* and **`.sedea/centers/sedea/skills/README.md`** § *Completion (inline)*).
 
-Spawned from the **Master Plan agent** or **plan and deliver** decomposition paths in normal flow. If run inline, use the same `outputs` semantics as **`## Completion (spawned)`** in prose only.
+**Primary path:** **`planner`** Step 7 runs this skill **inline** (`parentAgentRole: "master-plan-agent"`). Use the same `outputs` semantics as **`## Completion (spawned)`** in prose only — the **planner** lane merges ledger fields. **Standalone** mission dispatch may still spawn this skill on a child lane; then use **`## Completion (spawned)`** instead.
