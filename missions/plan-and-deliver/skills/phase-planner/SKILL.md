@@ -454,7 +454,7 @@ When they choose **`delivery-phases`** or **`pr-breakdown`** via **AskQuestion**
 When Mission Control delivers a child result from **`phase-planner`** or **`coding-session`** (spawned from inline decomposition on this lane):
 
 1. Match it by correlation id first, then by `outputs.targetPlanPath` / `outputs.targetPlanSlug`.
-2. Copy downstream `spawnedPlans`, `activeLanes`, `openLedgerEntries`, and `remainingTasks` into this skill's result.
+2. Copy downstream `spawnedPlans`, `activeLanes`, `openLedgerEntries`, and `remainingTasks` into this skill's result. When inline **`new-plan`** / **`pr-plan`** reports a new child plan, append `{ planPath, planSlug }` to **`outputs.spawnedPlans`** on the next terminal re-emit so Mission Control lane documents include PR plans created inline on this lane.
 3. When result carries **`outputs.prShipComplete: true`**: record the PR index on this phase; when **every** PR plan under this phase (per **`### PR list`** on this file or inline **`pr-breakdown`** subtree) is **`ship-complete`**, set **`outputs.phaseShipComplete: true`**, **`outputs.shipPhase: done`**, **`outputs.rowStatus: closed`** for this phase plan.
 4. **Re-emit updated terminal** (standalone spawned) or **`## Completion (inline)`** (when invoker runs this skill inline) with **`phaseShipComplete`** and **`parentPlanPath`**, **`parentPlanSlug`**, **`parentIndex`** from spawn **`inputs`** — so **`delivery-phases`** / **`planner`** can offer **`expand-next-eligible`** per **`../README.md`** § *Upstream ship-complete notification*.
 5. If downstream status is `success` and `continuationStatus: "terminal"`, this phase-planner lane may return `terminal` — unless **`phaseShipComplete`** should bubble upstream while **`continuationStatus: active`** on the parent decomposition lane.
@@ -519,7 +519,8 @@ Required `outputs` fields:
 - `outputs.routeApprovalStatus`, `outputs.prBreakdownShape` — `single` | `multi` | `unknown`
 - `outputs.hoistRequired` — boolean when single-PR default applies
 - `outputs.hoistAncestorPlanSlug` — when hoist inline handoff ran
-- `outputs.spawnedPlans`, `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.remainingTasks`
+- `outputs.spawnedPlans` — **required whenever** inline **`delivery-phases`** / **`pr-breakdown`** / **`new-plan`** / inline **`pr-plan`** created child `.plan.md` files under this phase subtree. Array of `{ "planPath": "<absolute path>", "planSlug": "<slug>" }` (string paths allowed). Include **every** accumulated child PR/phase plan on **each** terminal re-emit — Mission Control lane documents ingest `spawnedPlans` from terminal `outputs`.
+- `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.remainingTasks`
 - `outputs.continuationOwner`: `"phase-planner-agent"`
 - `outputs.continuationStatus` — `active` while route approval, inline decomposition, nested **`phase-planner`** / **`coding-session`** child lanes, or phase ship work remains; `terminal` only per **Phase delivery ownership** ( **`phaseShipComplete`**, explicit defer/abandon, or unrecoverable failure)
 - `outputs.phaseShipComplete` — `true` when every PR under this phase is ship-complete (§5e)
