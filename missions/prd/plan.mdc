@@ -114,13 +114,13 @@ flowchart TD
 - `next-step resolution`:
   - Child result `success` with readable PRD path -> continue to step 4.
   - Child result `partial` with readable PRD path and listed gaps -> continue to step 4 for review.
-  - Child result `partial` without a usable PRD -> ask whether to retry the Author PRD agent with revised inputs, switch target, or abandon.
-  - Child result `failure`, `aborted`, or `abandoned` -> stop and ask whether to retry, revise inputs, or abandon this PRD.
+  - Child result `partial` without a usable PRD -> close with **AskQuestion** or **`MC_PHASED_RESPONSE_V1`**: retry Author PRD with revised inputs, switch target, or abandon.
+  - Child result `failure`, `aborted`, or `abandoned` -> close with **AskQuestion** or **`MC_PHASED_RESPONSE_V1`**: retry, revise inputs, or abandon this PRD.
 - `handover procedure`:
   1. Compile the child `inputs` from step **2.5** (`prdTitle`, `prdDescription`, `operation`, `targetPath`, `sourceMaterials`, `sectionPolicy`, `existingPrdBody`, `operationsUserId`). `prdDescription` is required.
   2. Set `initiatingPrompt` with the user's description and a numbered source list; instruct the child to **extend** the source ledger via its evidence loop and **not** invent product scope from title alone.
   3. Emit exactly one **`AGENT_RUN_REQUEST_V1`** line for **author-prd** (include `warmUpRules` for this mission plan and **development-process** when not already on the skill).
-  4. Announce that the Squad Leader is waiting because the Author PRD agent owns drafting and gap-filling; review requires its generated or updated PRD artifact.
+  4. Emit **`AGENT_RUN_REQUEST_V1`**, announce that the Squad Leader is waiting because the Author PRD agent owns drafting and gap-filling, and close the turn with structured choice per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant**.
   5. Stop protocol execution until Mission Control delivers **`AGENT_RESULT_RESPONSE_V1`** for the same `correlationId`; parse `status`, `summary`, and `outputs` per **author-prd** **`## Completion (spawned)`** before step 4.
 
 ### 4. Review PRD completeness

@@ -144,7 +144,7 @@ Classify each unchecked step **before** acting. When classification is ambiguous
 
 ### Agent-executable (auto-run — no approval)
 
-Run **without** an **AskQuestion** approval gate. Use `worktreePath` from inline context when present; otherwise resolve cwd from plan anchor or chat.
+Run **without** an **AskQuestion** approval gate **before each agent-executable step** (mid-turn tool work). Use `worktreePath` from inline context when present; otherwise resolve cwd from plan anchor or chat. When an auto-run pass **ends the assistant turn** without chaining further steps, still close with structured choice per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant**.
 
 | Examples | Notes |
 |----------|--------|

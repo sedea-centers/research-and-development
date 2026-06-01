@@ -291,7 +291,7 @@ This subsection is the **Squad Leader** contract for §§3, 5, 6, and 7. Sedea h
   - Local file / `@path` read successfully → continue to the planning seed step for **`planner`**.
   - URL fetched successfully → continue to the planning seed step for **`planner`**.
   - URL is unavailable or auth-blocked → run **AskQuestion** per § *Auth-blocked or unreadable PRD* below (do not guess body text).
-  - PRD reference is missing or unreadable → stop and ask for a valid PRD link or file.
+  - PRD reference is missing or unreadable → close with **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** for a valid PRD link or file.
 
 **Procedure**
 
@@ -330,7 +330,7 @@ Do **not** invent PRD content from the URL alone. Do **not** call **`author-prd`
   - Child result with `continuationOwner: ad-hoc-prd-agent` and `continuationStatus: active` → acknowledge on the leader lane only; developer continues approve / revise on the **Ad-Hoc PRD** child lane.
   - Child result `terminal` with `developerApprovedPrd: true` and `prdRef` → continue to §4 planning seed for **`planner`**.
   - Child result `partial` with missing fields → collect missing inputs (child lane when the skill is active; leader lane only when the child cannot run), then retry or switch PRD source.
-  - Child result `failure`, `aborted`, `abandoned`, or no `prdRef` when approval was expected → stop and ask whether to retry, switch to linked PRD, or abandon this branch.
+  - Child result `failure`, `aborted`, `abandoned`, or no `prdRef` when approval was expected → close with **AskQuestion** or **`MC_PHASED_RESPONSE_V1`**: retry, switch to linked PRD, or abandon this branch.
 
 **Procedure**
 
@@ -408,7 +408,7 @@ Related (optional):
   - Child result `success` with Master Plan path and low/medium complexity plus active continuation ownership → continue to status acknowledgement and ledger tracking; the **planner** lane owns downstream route prompts and inline decomposition.
   - Child result `success` with high complexity → acknowledge **Route §6 → Delivery phases** recommendation on the **Master Plan agent** lane (high band triggers phase decomposition via **`delivery-phases`** / **`phase-planner`**, not a §6 withhold); keep the **Master Plan agent** lane open; do not foreground decomposition from the **Squad Leader** lane.
   - Child result `partial` with usable Master Plan path → surface gaps and continue only if they do not block routing.
-  - Child result `failure`, `aborted`, `abandoned`, or no plan path → stop and ask whether to retry, revise seed, or abandon.
+  - Child result `failure`, `aborted`, `abandoned`, or no plan path → close with **AskQuestion** or **`MC_PHASED_RESPONSE_V1`**: retry, revise seed, or abandon.
 
 **Procedure**
 
@@ -426,7 +426,7 @@ Related (optional):
    **Stop** and surface a one-line fix list when any required key is missing, renamed, or nested under the wrong parent key. Do **not** emit `AGENT_RUN_REQUEST_V1` until preflight passes.
 
 3. Emit exactly one `AGENT_RUN_REQUEST_V1` request for the **Master Plan agent** using the `planner` skill path, a **new** `correlationId`, dispatch-unique `slug`, and the preflight **`inputs`** from step 2. See **`planner/SKILL.md`** § *Spawn contract* for a valid example line and failure modes.
-4. Announce that the **Squad Leader** is waiting because later protocol steps need the produced plan path and complexity result.
+4. Emit **`AGENT_RUN_REQUEST_V1`**, announce that the **Squad Leader** is waiting because later protocol steps need the produced plan path and complexity result, and close the turn with structured choice per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant**.
 5. Stop protocol execution until Mission Control delivers `AGENT_RESULT_RESPONSE_V1` for the same `correlationId`.
 6. Validate that returned outputs include a readable Master Plan path, complexity band, continuation owner/status, and ledger-shaped arrays (`activeLanes`, `openLedgerEntries`, `spawnedPlans`, `remainingTasks`) before continuing.
 
@@ -439,7 +439,7 @@ Related (optional):
 - **Next-step resolution:**
   - Master Plan agent reports active continuation ownership → acknowledge status and enter a resumable wait state.
   - Master Plan agent reports terminal success and no remaining **planning** tasks → continue **§7** then **§8**; do **not** propose **`resolved`** dispatch from §6 alone (planning complete ≠ ship complete).
-  - Master Plan agent reports failure or no usable plan path → stop and ask whether to retry, revise seed, switch PRD source, or abandon.
+  - Master Plan agent reports failure or no usable plan path → close with **AskQuestion** or **`MC_PHASED_RESPONSE_V1`**: retry, revise seed, switch PRD source, or abandon.
   - Downstream agent result arrives → resume only when the result requires mission-level action.
 
 **Procedure**

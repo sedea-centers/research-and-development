@@ -231,7 +231,7 @@ Stop after the report. Do not run `git`, `gh`, source edits, commits, pushes, or
 
 ## Squad Leader bubble-up (detached lanes)
 
-Runs on a **detached** reviewer lane; the **plan and deliver** Squad Leader may not see this result. When the review finishes, ask the developer to post **Ship recap — plan and deliver** on the leader dispatch (**`../../plan.mdc`** §8).
+Runs on a **detached** reviewer lane; the **plan and deliver** Squad Leader may not see this result. When the review finishes, close with **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** on **this lane**: recap recommendation + options such as **Copy Ship recap phrase for leader dispatch**, **I'm done on this review lane**, or **More details for option _** — include the exact **Ship recap — plan and deliver** phrase the developer should post on the leader dispatch (**`../../plan.mdc`** §8). Do not prose-only “post recap when ready” without structured choice.
 
 | Outcome | `shipPhase` | `rowStatus` | Key `outputs` |
 |---------|-------------|-------------|---------------|

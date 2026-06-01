@@ -245,7 +245,7 @@ For standalone/non-spawned use, re-offer recap → structured choice after itera
 
 When the developer asks to revise the **`Delivery phases`** list, re-read that section, apply edits via `StrReplace`, echo the result, and return to the step 6 menu pattern.
 
-When the developer chooses to hand off or populate a child in standalone use, run **`new-plan`** inline or emit child-spawn requests for **`new-plan`** / **`phase-planner`** instead of impersonating those skills’ full procedures in the same turn. Stop after handoff if the result is needed for the next step.
+When the developer chooses to hand off or populate a child in standalone use, run **`new-plan`** inline or emit child-spawn requests for **`new-plan`** / **`phase-planner`** instead of impersonating those skills’ full procedures in the same turn. When the handoff ends the assistant turn while waiting for a child result, close with structured choice per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant** — do not prose-only stop after handoff.
 
 ## Step 6b — Aggregate indexed child results
 

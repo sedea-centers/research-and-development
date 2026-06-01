@@ -572,16 +572,11 @@ Do **not** draft §6 in **`planner`** prose without running the inline skill.
 
 Draft **`## 7. Caveats (optional)`** inline from PRD + §§1–5 (+ §6 when already drafted). **§7 requires an explicit developer approval gate** before this lane may report **`continuationStatus: terminal`** or imply planning complete to the Squad Leader.
 
-##### Act after `draft-7` select (turn 1 — write only)
+##### Act after `draft-7` select (one turn — write + §7 approval gate)
 
 1. **`StrReplace`** the §7 **`_TBD_`** (or empty body) under **`## 7. Caveats (optional)`** with caveats grounded in PRD + §§1–6 (constraints from decomposition or ship — not generic PRD worries alone).
-2. Echo the full **`## 7. Caveats`** block in chat for review.
-3. Set working ledger **`caveatsApprovalStatus: pending`**.
-4. **Stop without** emitting **`AGENT_RESULT_RESPONSE_V1`**. Approval **AskQuestion** is the **next** turn — not combined with a terminal line in the same message.
-
-##### §7 approval gate (turn 2 — structured choice)
-
-On the **next** assistant turn after §7 was written, use **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**:
+2. Set working ledger **`caveatsApprovalStatus: pending`**.
+3. Close the **same turn** with **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**: put the full **`## 7. Caveats`** block (or plan path + one-line summary) in **`display.markdown`** when phased; **`askQuestion`** options:
 
 | Option id (example) | Label (brief) | Action |
 |---------------------|---------------|--------|
@@ -589,6 +584,10 @@ On the **next** assistant turn after §7 was written, use **AskQuestion**, **`MC
 | `revise-caveats` | Revise §7 Caveats | Step **7e** on §7; keep **`pending`** until re-approved |
 | `skip-caveats` | Skip §7 Caveats | **`caveatsApprovalStatus: skipped`** → evaluate terminal eligibility |
 | `more-details` | More details for option _ | Elaborate; re-ask |
+
+4. **Stop without** emitting **`AGENT_RESULT_RESPONSE_V1`** on this turn — not combined with the approval modal. **Obsolete:** separate write-only turn with §7 echo and no structured choice.
+
+##### §7 approval gate (after developer selects)
 
 **Forbidden on the planner lane (binding):**
 
