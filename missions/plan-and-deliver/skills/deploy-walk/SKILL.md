@@ -256,7 +256,7 @@ If the Deploy test plan section uses **dash bullets** (`- ...`) instead of numbe
 
 ## Step 3 — Branch by command and execute
 
-Each command has its own contract. After agent-executable auto-runs, you may chain multiple steps in one turn. Stop and wait for the next user message when a **manual** step is presented, the walk is **blocked**, or a lifecycle **AskQuestion** gate applies.
+Each command has its own contract. After agent-executable auto-runs, you may chain multiple steps in one turn. When a **manual** step is presented, the walk is **blocked**, or a lifecycle gate applies, close with **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** (step status + next action) — do **not** prose-only “stop and wait for the next user message.”
 
 ### `deploy-walk present <N>` — process step N
 

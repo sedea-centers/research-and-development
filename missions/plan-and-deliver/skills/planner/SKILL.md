@@ -201,7 +201,7 @@ Use the title in line 1 to keep yourself grounded. Then resolve the PRD body:
 
  > "I can't fetch <link> directly — it's behind auth. Either make the doc world-readable, paste the PRD body inline below, or save it as a file under the workspace and reattach with `@<path>`."
 
- Wait for the user to provide the body.
+ Close with **AskQuestion** (paste body, attach file, make doc public, or **More details for option _**) — do not prose-only wait for the body.
 
 **Fail-fast on missing slots.** Before fetching anything, sanity-check the first message:
 

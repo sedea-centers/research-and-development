@@ -490,7 +490,7 @@ When **`AGENT_RESULT_RESPONSE_V1`** bubbles to inline **`new-plan`** / **`delive
 
 ## One choice per turn — surface observations
 
-Match the discipline in **`planner`**: perform exactly what was chosen; do not silently expand scope. If you notice gaps (parent Changes bullets that do not map to a phase, diagram simplifications, assessment vs parent hint mismatch), list them as short **numbered notes** in the chat reply; the developer addresses them by number on the next turn or folds them into a revise pass.
+Match the discipline in **`planner`**: perform exactly what was chosen; do not silently expand scope. If you notice gaps (parent Changes bullets that do not map to a phase, diagram simplifications, assessment vs parent hint mismatch), list them as short **numbered notes** in **`display.markdown`** (or brief prose) and close the **same turn** with **AskQuestion** (revise pass, accept as-is, or **More details for option _**).
 
 ## Scope guard
 

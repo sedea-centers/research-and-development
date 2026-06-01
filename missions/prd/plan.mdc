@@ -87,7 +87,7 @@ flowchart TD
   - **`create-prd`:** Use `AskQuestion` or `MC_PHASED_RESPONSE_V1` per `.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`. Collect **at minimum** title, description, and supporting materials. Supporting materials may be empty only when the user explicitly selects a **no sources yet** option (not silent skip).
   - **`manage-prd`:** Confirm target; use `AskQuestion` for update intent and **new or changed** sources before spawn.
 - `forbidden`: Emit `AGENT_RUN_REQUEST_V1` while `prdDescription` is missing or while the user has not confirmed the intake summary.
-- `default/fallback behavior`: After collection, present an **information-only** intake summary (title, description excerpt, source list), then **AskQuestion** only: proceed to Author PRD, revise intake, or **More details for option _**.
+- `default/fallback behavior`: After collection, present intake summary (title, description excerpt, source list) and **AskQuestion** in **one turn** (`MC_PHASED_RESPONSE_V1` when available): proceed to Author PRD, revise intake, or **More details for option _**. **Obsolete:** separate information-only summary turn.
 
 **Suggested intake fields (`create-prd`)** — separate modals or one phased form as the host allows:
 

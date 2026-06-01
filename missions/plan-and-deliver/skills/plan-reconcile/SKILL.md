@@ -270,9 +270,7 @@ node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/p
  --operations-user-id "$OPS_ID" --dry-run [--slug <slug>]
 ```
 
-Present the JSON **`actions`** list to the developer (information-only turn when the report is long).
-
-**AskQuestion** (required before **`--apply`**):
+Present the JSON **`actions`** list in the **same turn** as the required **AskQuestion** before **`--apply`** — put long reports in **`display.markdown`** (phased) when needed; do not end with a report-only turn.
 
 | Option id (illustrative) | Label (brief) |
 |--------------------------|---------------|

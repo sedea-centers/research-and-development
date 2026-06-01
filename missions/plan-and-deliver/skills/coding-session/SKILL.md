@@ -877,9 +877,7 @@ node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/p
  --operations-user-id "$OPS_ID" --dry-run [--slug <slug>]
 ```
 
-Present **`actions`**, **`skippedBranches`** (when branch delete waits on remote), and **`mergedPr`** per candidate (information-only when long).
-
-**AskQuestion** (required before **`--apply`**):
+Present **`actions`**, **`skippedBranches`** (when branch delete waits on remote), and **`mergedPr`** per candidate in the **same turn** as the required **AskQuestion** before **`--apply`** — use **`display.markdown`** when long.
 
 | Option id (illustrative) | Label (brief) |
 |--------------------------|---------------|

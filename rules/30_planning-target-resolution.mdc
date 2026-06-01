@@ -97,8 +97,8 @@ Squad Leader §8 ship rows advance **only** from Mission Control host sync on sh
 ## Standard flow
 
 1. Developer signals a planning-tree lane change — explicitly (*"where are we?"*, *"what's next?"*) or implicitly (*"back to plan"*, *"let's move on to …"*).
-2. Agent emits a **"Where we are now in the plan tree"** snapshot (§ *Snapshot format*) — information-only when a pick will follow.
-3. When a pick is required before continuing, use **AskQuestion** (§ *Sedea input channel*) with one option per **protocol branch + target plan** (brief `label`; put branch and path in `prompt` when needed).
+2. Agent emits a **"Where we are now in the plan tree"** snapshot (§ *Snapshot format*) in the **same turn** as **`AskQuestion`** when a pick is required — use **`MC_PHASED_RESPONSE_V1`** (`display.markdown` for the snapshot, `askQuestion` for options) per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant**. **Obsolete:** snapshot-only turn with no structured choice.
+3. When a pick is required before continuing, use **AskQuestion** (§ *Sedea input channel*) with one option per **protocol branch + target plan** (brief `label`; put branch and path in `prompt` when needed) — same turn as step 2 when both apply.
 4. Agent resolves the target from the **AskQuestion** response (selected `option` plus any modal free-form text per § *Resolution order* bullet 2), then invokes the relevant skill with the target pre-resolved.
 
 Mid-flow, when chat already unambiguously names the current lane (e.g. **`new-plan`** indexed-child just wrote `3_xxx_<hex>.plan.md` and the next step is clearly **phase-planner** on that file), the agent may continue without a new snapshot — see § *Resolution order* bullet 4.
@@ -111,7 +111,7 @@ Highest confidence first. Stop at the first match.
 2. **AskQuestion response.** The developer submitted **AskQuestion** (selected `option` `id` / `label` from the most recent planning pick, plus any **free-form text** Mission Control returns with that submission). Bind the target from that `option`; treat modal free-form text as scope or path hints when unambiguous.
 3. **Snapshot pinpoint.** The latest snapshot lists exactly one option matching the branch the user chose — use that target.
 4. **Mid-flow continuation.** Chat names the current lane unambiguously (e.g. child file just written; next skill is **phase-planner** on that path). Valid while snapshot freshness holds (§ *Snapshot freshness*).
-5. **Stop and emit fresh snapshot.** If still ambiguous, emit a new snapshot (information-only) and ask again via **AskQuestion** (§ *Sedea input channel*).
+5. **Stop and emit fresh snapshot.** If still ambiguous, emit snapshot + **AskQuestion** in **one turn** (phased envelope when available) — do not end with snapshot-only prose.
 
 Do **not** use `<open_and_recently_viewed_files>` as the primary resolver for planning targets.
 

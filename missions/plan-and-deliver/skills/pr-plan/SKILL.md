@@ -368,11 +368,11 @@ Per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../R
 - `display.markdown` — link + one-line readiness summary (below)
 - `askQuestion` — modal (`modalTitle`: *PR plan — next move*; options from the table)
 
-**Legacy split (when the tool and phased envelope are unavailable):** **recap-only** message, then a **separate** structured-choice message.
+**Legacy split (obsolete on Mission Control lanes):** Prefer **`MC_PHASED_RESPONSE_V1`** (recap in `display.markdown` + `askQuestion` same turn). If the tool is unavailable, still **must** close with structured choice — do not end with recap-only prose.
 
-#### Recap (information-only when split)
+#### Recap (same turn as structured choice)
 
-When using the legacy split, do **not** include **AskQuestion**,, **`AGENT_RUN_REQUEST_V1`**, or **`AGENT_RESULT_RESPONSE_V1`** in the recap-only message.
+When using the legacy split, do **not** include **`AGENT_RUN_REQUEST_V1`** or **`AGENT_RESULT_RESPONSE_V1`** in the recap message. Put recap content in **`display.markdown`** and **`askQuestion`** on the **same** turn per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant**. **Obsolete:** recap-only message with **AskQuestion** deferred to a separate turn.
 
 1. A **`file://`** link to the target `.plan.md` under `.sedea/operations/.../plans/...`.
 2. One-line summary: *Drafted per-PR §§ 1–4; implementation readiness: `<ready|not ready>`.*
