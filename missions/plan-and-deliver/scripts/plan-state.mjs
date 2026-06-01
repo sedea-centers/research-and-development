@@ -1499,9 +1499,10 @@ async function setSidecarStatus(planPath, status, { dryRun } = {}) {
 
 // `unarchive --slug <slug> [--dry-run]` — inverse of the drag-drop
 // archive gesture. Clears sidecar `archived:` on `<slug>.state.yaml` and
-// legacy frontmatter `archived:` when present; when sidecar `status` is
-// `completed` (set by archive/reconcile), promotes it to `started` so the
-// Plan Board lifecycle dot matches an active restored plan (rule 8).
+// legacy frontmatter `archived:` when present. Does **not** change sidecar
+// `status` — archive/reconcile set `status: completed` and unarchive keeps it
+// intentionally (restore = back in the active tree, not re-open delivery).
+// Use `set-plan-status` when the developer wants a different lifecycle dot.
 // Strips the matching `- \`<slug>\` archived...` bullet from the current
 // parent's `## Child plans` section when that parent is still active (not
 // archived). Leaves sidecar `parent:` untouched (gesture = "put it back where
@@ -1539,20 +1540,16 @@ async function cmdUnarchive(flags) {
   await setPlanArchivedFlag(plan.planPath, false, { dryRun });
 
   const { data } = await readSidecarPlain(plan.planPath);
-  let statusFrom = data.status;
-  let statusTo = statusFrom;
-  if (statusFrom === 'completed') {
-    statusTo = 'started';
-    await setSidecarStatus(plan.planPath, 'started', { dryRun });
-  }
+  const statusPreserved = data.status ?? null;
 
   log(JSON.stringify({
     unarchived: slug,
     parent: parentSlug,
     bulletRemoved,
-    statusFrom: statusFrom ?? null,
-    statusTo,
-    statusChanged: statusFrom === 'completed' && statusTo === 'started',
+    statusPreserved,
+    statusChanged: false,
+    lifecycleNote:
+      'unarchive clears archived only; completed from archive is intentional — use set-plan-status to change the Plan Board dot',
     dryRun,
   }));
 }
@@ -2034,10 +2031,11 @@ Subcommands:
 
   unarchive --slug <slug> [--dry-run]
       Clear sidecar archived: on the plan, remove legacy frontmatter archived:
-      when present, promote sidecar status from completed to started when
-      archive had set completed, and strip the matching "- <slug> archived..."
-      bullet from the current parent's ## Child plans section. Leaves sidecar
-      parent: alone. Idempotent on already-active plans.
+      when present, and strip the matching "- <slug> archived..." bullet from
+      the current parent's ## Child plans section. Sidecar status is preserved
+      (completed after archive is intentional; use set-plan-status to change
+      the lifecycle dot). Leaves sidecar parent: alone. Idempotent on
+      already-active plans.
 
   migrate-parent-to-sidecar [--dry-run]
       One-shot: for every plan under plans/ and plans/roadmap-topics/, copy
