@@ -22,6 +22,8 @@ If Mission Control opened a session whose only intent is **`pr-review`** / *tria
 
 **Required upstream context:** `prUrl` or `prNumber`, repository identity, worktree path, worktree name, linked PR plan when available, and coding-session ledger state. If this context is missing, return to `coding-session` to recover it before running PR review.
 
+**Worktree removal ownership (binding).** **Do not remove worktrees you do not own.** PR review runs in **`WORKTREE_ROOT`** for edits; it does **not** authorize **`git worktree remove`**, **`git worktree prune`**, or **`sedea_remove_worktree_folder`** on any other path. See [`.sedea/centers/sedea/rules/0_hosting-repo.mdc`](.sedea/centers/sedea/rules/0_hosting-repo.mdc) § *Worktree ownership* and rule **20** § *Worktree removal ownership (binding)*. **`git worktree list` is read-only** when ownership is unclear — **stop; do not remove**.
+
 ## Structured choice (Mission Control)
 
 Triage and fix loops use **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* on the **`coding-session`** lane — **preferred:** recap (comment summary) + modal in one message. **Act** (code/plan edits) only after developer approval per this skill.
