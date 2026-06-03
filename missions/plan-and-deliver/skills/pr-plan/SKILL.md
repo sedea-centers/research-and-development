@@ -74,6 +74,8 @@ The agent has enough context after step 3 to draft §§ 1–4 from the parent's 
 
 The procedure below is a hard contract — do **not** skip steps or start drafting before the target is verified as a PR plan stub.
 
+**Worktree removal ownership (binding).** This skill populates plans only — **do not remove worktrees you do not own.** Worktree create/remove belongs to **`coding-session`** after §5d handoff. **`git worktree list` is read-only** unless rule **0** § *Worktree ownership* preconditions hold. See [`.sedea/centers/sedea/rules/0_hosting-repo.mdc`](.sedea/centers/sedea/rules/0_hosting-repo.mdc) § *Worktree ownership*.
+
 ## Handoff to `coding-session` (spawned child lane)
 
 **`pr-plan`** and **`coding-session`** are **sequential skills on different lanes**. After planning handoff approval, **`pr-plan`** emits **`AGENT_RUN_REQUEST_V1`** for **`coding-session`**; the child owns worktrees, workspace attach, and **implements** the PR plan on that lane (default **spawned implementation lane** — see **`coding-session`** § *Execution mode after worktree attach*). When **`pr-plan`** runs **inline under `new-plan`**, §5d still spawns **`coding-session`** from the **`new-plan`** lane — only the **`pr-plan`** populator lane is eliminated.

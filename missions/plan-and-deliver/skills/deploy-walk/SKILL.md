@@ -84,6 +84,8 @@ If Mission Control opened a session whose only intent is **`deploy-walk`** / dep
 
 See [Agent-executable vs manual steps](#agent-executable-vs-manual-steps).
 
+**Worktree removal ownership (binding).** **Do not remove worktrees you do not own.** Deploy verification may read **`worktreePath`**; post-merge cleanup removes **only** **this pass’s** **`WORKTREE_ROOT`** after merge consent — see [`.sedea/centers/sedea/rules/0_hosting-repo.mdc`](.sedea/centers/sedea/rules/0_hosting-repo.mdc) § *Worktree ownership* and rule **20** § *Worktree removal ownership (binding)*. **`git worktree list` is read-only** when ownership is unclear — **stop; do not remove**.
+
 ## Structured choice (Mission Control)
 
 Target picks, deploy-with-gaps, and closure gates use **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* — recap + modal in **one turn** when practical; rule **2** priority **3** split only when a long recap was already sent. **Act** (checkbox flips, status lines) follows developer selection or explicit deploy-walk commands.

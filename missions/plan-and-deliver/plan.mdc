@@ -78,6 +78,10 @@ All artifacts under **`.sedea/operations/`** — plans (`*.plan.md`, `*.state.ya
 
 Worktrees are **ephemeral**; operations artifacts must **persist** on the durable main clone. When a worktree lacks **`.sedea/operations/`**, **do not** treat it as the write surface — resolve the main hosting root first. Normative baseline: [`.sedea/centers/sedea/rules/0_hosting-repo.mdc`](.sedea/centers/sedea/rules/0_hosting-repo.mdc) § **Operations persistence (main hosting root only)**; **`HOSTING_ROOT`** resolution: [`.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`](../../rules/20_efficient-pr-shipping.mdc) § *Resolve `HOSTING_ROOT`*.
 
+### Worktree removal ownership (binding)
+
+**Do not remove worktrees you do not own.** **`git worktree remove`**, **`git worktree prune`**, and **`sedea_remove_worktree_folder`** apply **only** to **`WORKTREE_ROOT`** **this pass** created when **all four** preconditions in [`.sedea/centers/sedea/rules/0_hosting-repo.mdc`](.sedea/centers/sedea/rules/0_hosting-repo.mdc) § *Worktree ownership* and rule **20** § *Worktree removal ownership (binding)* hold. **`git worktree list` is read-only** when ownership is unclear — including sidecar **`worktrees[]`** paths from another session. **Forbidden:** repo-wide cleanup; removing another developer’s, dispatch’s, or lane’s worktree; **`git worktree remove`** on **`HOSTING_ROOT`**. **If unsure — stop; do not remove.**
+
 ## Squad operations (`plan and deliver` dispatch)
 
 This diagram is the **dispatch ownership map**. It answers: which agent on this mission spawns whom, who waits, and what is **not** started from the Squad Leader lane. Written protocol steps **§§1–8** below: **§§1–7** are yellow **Squad Leader** planning steps; **§8** is leader-lane **ship oversight** (detached branches still run on other lanes).

@@ -77,6 +77,8 @@ If Mission Control opened a session whose only intent is **`create-pr`** / *open
 
 **Post-PR lifecycle:** merge checks, After-deploy **`deploy-walk`**, and inline **`plan-reconcile`** are owned by **`coding-session`** ([Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate), [After deploy deploy-walk handoff](../coding-session/SKILL.md#after-deploy-deploy-walk-handoff), [Plan-reconcile handoff (inline)](../coding-session/SKILL.md#plan-reconcile-handoff-inline)) — not this skill.
 
+**Worktree removal ownership (binding).** **Do not remove worktrees you do not own.** Opening a PR does **not** grant cleanup on other worktrees. **`git worktree remove`**, **`git worktree prune`**, and **`sedea_remove_worktree_folder`** apply **only** to **this pass’s** **`WORKTREE_ROOT`** when rule **0** § *Worktree ownership* and rule **20** § *Worktree removal ownership (binding)* preconditions hold. **`git worktree list` is read-only** when ownership is unclear — **stop; do not remove**.
+
 ## Structured choice (Mission Control)
 
 Gates use **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* on the **`coding-session`** lane — **preferred:** recap + modal in one message. **Act** (`gh pr create`, plan follow-up append) only after the developer selects.

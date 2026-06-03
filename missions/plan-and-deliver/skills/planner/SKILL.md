@@ -49,6 +49,8 @@ The agent has enough context after step 4 to draft §§ 1–5 without further in
 
 The procedure below is a hard contract — do **not** skip steps, re-order them, or start drafting before steps 1–5 are complete. Skipping a step here is the difference between a high-quality Master Plan and one that drifts from the documented process.
 
+**Worktree removal ownership (binding).** This skill is planning-only — it does **not** create or remove hosting-repo worktrees. **Do not remove worktrees you do not own.** **`git worktree list` is read-only** unless rule **0** § *Worktree ownership* preconditions hold for **that** path. Ship worktrees belong to **`coding-session`** on a separate lane.
+
 ## Spawn contract (`AGENT_RUN_REQUEST_V1`)
 
 Cross-check every emit against **`.sedea/centers/research-and-development/missions/plan-and-deliver/skills/README.md`** § *Universal spawn preflight* before the host parses the line.
