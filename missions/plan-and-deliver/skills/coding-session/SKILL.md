@@ -817,8 +817,9 @@ When `targetPlanPath` resolves to a PR plan:
 | `upstreamSkill` | `"coding-session"` |
 
 3. Follow **`deploy-walk`** procedure (including autonomous agent-executable pass for Before deploy). Merge **`## Completion (inline)`** into coding-session `outputs` (`beforeDeployStatus`, `deployStatus`, `shipPhase`, `rowStatus`, `remainingTasks`, …).
-4. When `beforeDeployStatus` is `complete`, all Before-deploy boxes are `[x]` or explicitly skipped, continue to [Auto-spawn pre-pr-review](#auto-spawn-pre-pr-review) on the **next** turn (or same turn when the walk finishes without a pending manual step). If a **manual** step awaits developer input, keep `continuationStatus: "active"` on this lane and close with **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** (step status + continue-walk / skip / more-details) — do not prose-only “resume via next message”; do not spawn **`pre-pr-review`** until Before deploy is satisfied or documented skip.
-5. Do **not** wait for a child **`AGENT_RESULT_RESPONSE_V1`** — there is no **`deploy-walk`** child lane.
+4. When inline **`deploy-walk`** sets **`outputs.returnToImplementation: true`**, stop the ship chain and run [Return to implementation from deploy walk (new worktree)](#return-to-implementation-from-deploy-walk-new-worktree) on the **next** turn — do **not** spawn **`pre-pr-review`** until the new worktree is bootstrapped and implementation resumes.
+5. When `beforeDeployStatus` is `complete`, all Before-deploy boxes are `[x]` or explicitly skipped, continue to [Auto-spawn pre-pr-review](#auto-spawn-pre-pr-review) on the **next** turn (or same turn when the walk finishes without a pending manual step). If a **manual** step awaits developer input, keep `continuationStatus: "active"` on this lane and close with **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** (step status + continue-walk / skip / more-details) — do not prose-only “resume via next message”; do not spawn **`pre-pr-review`** until Before deploy is satisfied or documented skip.
+6. Do **not** wait for a child **`AGENT_RESULT_RESPONSE_V1`** — there is no **`deploy-walk`** child lane.
 
 **Legacy / exceptional second modal:** use a separate **AskQuestion** for inline walk **only** when the developer returns mid-chain without a prior cut-point pick (for example after *more-changes* and a new review pass) and Before-deploy items remain — same options as [Combined authorization](#combined-authorization) Before-deploy rows (`spawn-before-deploy-walk`, `skip-before-deploy`, …). **Do not** use this when the combined cut-point modal already ran in the same review pass.
 
@@ -1155,7 +1156,35 @@ Run from [Act after post-create-pr pick](#act-after-post-create-pr-pick) when th
 | `upstreamSkill` | `"coding-session"` |
 
 4. Follow **`deploy-walk`** procedure (post-merge §7, lifecycle to `done`). Merge **`## Completion (inline)`** into coding-session `outputs`. Do **not** run inline **`plan-reconcile`** in the same turn.
-5. When the walk completes with **`deployStatus: done`** and **`deployTodoStatus: done`** (developer confirmed the last After-deploy §7 step, or the walk reported no remaining manual steps), continue to [Post–After deploy remainder authorization](#post-after-deploy-remainder-authorization) on the **next** turn when [remainder inventory](#post-after-deploy-remainder-inventory) is non-empty. When inventory is empty, re-open [Post-create-pr handoff gate](#post-create-pr-handoff-gate) or offer [Plan-reconcile handoff (inline)](#plan-reconcile-handoff-inline) defer per developer message. Do **not** wait for a child **`AGENT_RESULT_RESPONSE_V1`** — there is no **`deploy-walk`** child lane.
+5. When inline **`deploy-walk`** sets **`outputs.returnToImplementation: true`**, stop the ship tail and run [Return to implementation from deploy walk (new worktree)](#return-to-implementation-from-deploy-walk-new-worktree) on the **next** turn — do **not** open [Post–After deploy remainder authorization](#post-after-deploy-remainder-authorization) until implementation resumes or the developer defers.
+6. When the walk completes with **`deployStatus: done`** and **`deployTodoStatus: done`** (developer confirmed the last After-deploy §7 step, or the walk reported no remaining manual steps), continue to [Post–After deploy remainder authorization](#post-after-deploy-remainder-authorization) on the **next** turn when [remainder inventory](#post-after-deploy-remainder-inventory) is non-empty. When inventory is empty, re-open [Post-create-pr handoff gate](#post-create-pr-handoff-gate) or offer [Plan-reconcile handoff (inline)](#plan-reconcile-handoff-inline) defer per developer message. Do **not** wait for a child **`AGENT_RESULT_RESPONSE_V1`** — there is no **`deploy-walk`** child lane.
+
+### Return to implementation from deploy walk (new worktree)
+
+Run on the **spawned coding-session lane** when inline **`deploy-walk`** reports **`outputs.returnToImplementation: true`**, or when the developer picks **`return-to-implementation-new-worktree`** at [Post–After deploy remainder authorization](#post-after-deploy-remainder-authorization).
+
+**Purpose:** During deploy verification (Before deploy, After deploy, or post-deploy tail), the developer found a product defect **after code already shipped or merged**. Open a **fresh** worktree from **`origin/main`** on **`HOSTING_ROOT`** — **do not** reuse the removed session worktree from [Post-merge workspace cleanup](#post-merge-workspace-cleanup).
+
+**Preconditions:**
+
+1. `targetPlanPath` or `targetPlanSlug` resolves (same PR plan anchor as the ship chain).
+2. **`HOSTING_ROOT`** resolves per [Worktree bootstrap (mandatory)](#worktree-bootstrap-mandatory).
+3. Prior session worktree may already be removed — that is **expected** after merge cleanup.
+
+**Procedure (next turn after handback pick):**
+
+1. **Audit note** — Append one dated line under the plan **`## Follow-ups`** (or §7 deploy note when Follow-ups is absent): *Deploy verification — return to implementation (new worktree)* with the active deploy step or defect summary from chat.
+2. **Worktree name** — `fix/<short-description>` per **20_efficient-pr-shipping.mdc** § *Worktree naming* (hosting-repo worktree branch).
+3. Run [Generic flow](#generic-flow-single-repo) steps **1–4** from **`HOSTING_ROOT`**:
+ - **`git fetch origin main`** then **`git worktree add <sibling-path> -b <worktree-name> origin/main`**
+ - **`plan-state.mjs set-worktrees`** / **`set-session`** on **`HOSTING_ROOT`** for the **same** plan slug — append the new path; do not drop historical worktree entries unless the developer asks
+ - **`sedea_add_worktree_folder`** with absolute new path
+ - [Worktree bootstrap (inline mandatory)](#worktree-bootstrap-inline-mandatory) — wait for **`outputs.bootstrapStatus: success`**
+4. Set **`outputs.shipPhase: implementing`**, **`outputs.rowStatus: active`**, clear stale **`prState`** / merge-only outputs that no longer apply to the new fix pass when starting a post-merge fix (keep **`targetPlanPath`** / slug).
+5. Resume [Spawned implementation lane](#spawned-implementation-lane) on the **new** **`WORKTREE_ROOT`** — same plan §§ **5–8** scope unless the developer narrows the fix in chat.
+6. **Forbidden:** Re-opening the old session worktree path; **`git worktree add`** from a dirty non-gitlink tree; skipping MCP attach or bootstrap; treating deploy checklist closure as complete when **`returnToImplementation`** was set mid-walk.
+
+**After the fix ships:** Re-enter the [ship chain](#ship-chain-after-implementation-coding-session-lane) from [Ship cut-point gate](#ship-cut-point-gate-approve-commit-before-deploy) — Before deploy / After deploy walks apply to the **new** PR cycle as usual.
 
 ### Post–After deploy remainder authorization
 
@@ -1195,6 +1224,7 @@ When only step 3 remains (reconcile already done), list step 3 alone. When nothi
 |-----------|---------------|-----------------------------|
 | `confirm-all-remaining` | Confirm — perform all listed steps | Run every inventory step in order without further modals (except hard stops / errors) |
 | `next-step-only` | Approve next step only — [first step name] | Run inventory step 1 only |
+| `return-to-implementation-new-worktree` | Return to implementation — new worktree | [Return to implementation from deploy walk (new worktree)](#return-to-implementation-from-deploy-walk-new-worktree) — skip tail inventory |
 | `defer-tail` | Defer remaining ship work | Keep `continuationStatus: active`; no tail steps |
 | `more-details` | More details for option _ | Elaborate; re-open this gate |
 
@@ -1210,6 +1240,7 @@ Run on the **developer's response turn** — **not** in the same assistant turn 
 |------|---------|
 | **`confirm-all-remaining`** | For each inventory step in order: execute per [Execute remainder step](#execute-remainder-step); stop on hard failure with `partial` outputs |
 | **`next-step-only`** | [Execute remainder step](#execute-remainder-step) for step 1 only; then [Per-step continuation gate](#per-step-continuation-gate) |
+| **`return-to-implementation-new-worktree`** | [Return to implementation from deploy walk (new worktree)](#return-to-implementation-from-deploy-walk-new-worktree) |
 | **`defer-tail`** | Recap deferred steps; keep `continuationStatus: active` |
 | **`more-details`** | Clarify; re-open batch gate |
 
@@ -1328,6 +1359,7 @@ When this skill runs as a spawned child, end with a child result containing at l
 - `outputs.mergedAt`
 - `outputs.deployStatus`
 - `outputs.deployTodoStatus`
+- `outputs.returnToImplementation` — **`true`** when deploy verification routes to [Return to implementation from deploy walk (new worktree)](#return-to-implementation-from-deploy-walk-new-worktree)
 - `outputs.deployPlanStepsChecked` — step numbers flipped to `[x]` in §7 during this turn (when applicable)
 - `outputs.mainPullStatus` — from [Post-merge workspace cleanup](#post-merge-workspace-cleanup) or inline **`plan-reconcile`** §5 when applicable
 - `outputs.postMergeCleanupStatus` — `success` \| `partial` \| `skipped` \| `skipped_no_stale` when post-merge cleanup ran or was bypassed
