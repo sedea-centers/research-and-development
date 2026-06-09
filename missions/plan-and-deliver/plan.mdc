@@ -549,6 +549,47 @@ When an explicit developer override applies, replace the **`Parent:`** line with
 
 **`deploy-walk` entry points:** **coding-session** runs Before deploy inline pre-merge; **coding-session** runs After deploy inline post-merge when the developer chooses **PR merged — start After deploy deploy-walk** at [Post-create-pr handoff gate](skills/coding-session/SKILL.md#post-create-pr-handoff-gate); deploy phrases on the active coding-session lane. Detached **`deploy-walk`** dispatch redirects to **`coding-session`**. **`plan-reconcile`** runs **inline** on **`coding-session`** when the developer explicitly chooses reconcile — see [Plan-reconcile handoff (inline)](skills/coding-session/SKILL.md#plan-reconcile-handoff-inline). Finishing deploy-walk does **not** auto-run **`plan-reconcile`**.
 
+**PR review cycle (cyclic — post-create-pr)**
+
+After **`create-pr`** opens a GitHub PR, **`coding-session`** owns a **repeatable review loop** until the PR merges or the developer defers. The Squad Leader **tracks** `pr-open` / `pr-review` phases via §8 host sync from **`coding-session`** re-emits — it does **not** run this loop.
+
+```mermaid
+flowchart TB
+  classDef gate fill:#fef3c7,stroke:#d97706,color:#78350f
+  classDef inline fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e
+  classDef external fill:#f1f5f9,stroke:#64748b,color:#0f172a
+
+  CPR["1 PR created<br/>create-pr inline"]:::inline
+  REV["2 Reviewers review<br/>GitHub — external"]:::external
+  GATE["Post-create-pr gate<br/>start-pr-review"]:::gate
+  PRV["3 coding-session runs pr-review<br/>Steps 1–5 inline"]:::inline
+  CLEAN{"4 Comments?"}
+  MERGE["Developer merges on GitHub<br/>not a skill modal"]:::external
+  FIX["5 Push fixes<br/>disposition → commit/push → Step 5 reconcile"]:::inline
+  WAIT["Post-create-pr gate<br/>check-pr-status / defer"]:::gate
+
+  CPR --> REV --> GATE --> PRV --> CLEAN
+  CLEAN -->|0 Must/Should/follow-up| MERGE
+  CLEAN -->|Must/Should| FIX --> REV
+  MERGE --> WAIT
+  PRV -->|skip-reject only| WAIT
+```
+
+| Cycle step | Normative owner | Skill / gate |
+|------------|-----------------|--------------|
+| **1 — PR created** | **`coding-session`** (inline **`create-pr`**) | [Post-create-pr handoff gate](skills/coding-session/SKILL.md#post-create-pr-handoff-gate) opens same turn |
+| **2 — Reviewers review** | Developer + GitHub reviewers (Slink, CodeRabbit, humans) | External — not a Sedea spawn |
+| **3 — Run `pr-review`** | **`coding-session`** (inline) | Developer picks **`start-pr-review`** at post-create-pr gate, or explicit *triage PR comments* on the lane |
+| **4 — No actionable comments** | Developer | **`pr-review`** skip-only path: **`skip-reject`** → Step 5 GitHub reconciliation. **Merge is on GitHub** — there is no **Merge PR** modal in `pr-review` or `coding-session`. After merge, pick **`check-pr-status`** or **`spawn-after-deploy-walk`** at post-create-pr gate |
+| **5 — Push fixes** | **`coding-session`** + inline **`pr-review`** | Disposition gate → approved edits → commit/push gate (rule **6**) → **`pr-review`** Step 5 (reply, resolve, minimize, re-request `slink-ai` when **CHANGES_REQUESTED**) |
+| **6 — Loop to step 2** | Developer + reviewers | After Step 5, **`coding-session`** re-opens [Post-create-pr handoff gate](skills/coding-session/SKILL.md#post-create-pr-handoff-gate). When new comments land, pick **`start-pr-review`** again. **`continuationStatus: active`** until comments are resolved, skipped, follow-up-captured, or deferred |
+
+**Binding references:** [pr-review/SKILL.md](skills/pr-review/SKILL.md) (triage + reconciliation); [coding-session/SKILL.md § Inline PR review after PR creation](skills/coding-session/SKILL.md#inline-pr-review-after-pr-creation); rule **20** § *Commit and push cadence* step 3.
+
+**§8 phase hints:** `pr-open` after PR URL exists; advance to `pr-review` when **`coding-session`** re-emits with `prReviewStatus` terminal + `githubReconciliationStatus`. Repeated rounds stay on `pr-review` until merge moves toward `deploy-walk`.
+
+**Known contract gaps (documented, not invented):** No skill-owned **Merge PR** action; merge is developer/GitHub. Loop-back after reconciliation is via post-create-pr gate + **`start-pr-review`**, not auto-spawn.
+
 **Start `coding-session`:** Detached lane only — not a Squad Leader spawn from §§1–7. Entry paths, required inputs, and anti-patterns: **`.sedea/centers/research-and-development/docs/development-process.md`** § *Start implementation (`coding-session` entry)*.
 
 **Pre-review verification:** Before developer review on **`coding-session`**, run hosting-repo **pre-review verification** per applicable **`.cursor/rules/`** (curated **Project rules** / plan **§5** — commands stay in hosting rules only). See [Ship cut-point gate](skills/coding-session/SKILL.md#ship-cut-point-gate-approve-commit-before-deploy) and rule **20** § *Review before commit*.
