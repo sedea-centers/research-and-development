@@ -193,9 +193,19 @@ Populate `outputs` from the skill’s **`## Completion (spawned)`** and any refe
 
 **Host protocol:** emit **exactly one** line — sentinel and **valid JSON on the same line** (no fence, no text after the JSON). Required keys: `version` (1), `correlationId` (spawn UUID), `status`, `summary`, `outputs`, `errors` (`[]` when none). Full format: **`.sedea/centers/sedea/skills/README.md`** § *Spawned terminal line* and **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Agent session closure*.
 
+## Definitive `bootstrapRules` (R&D layer — plan and deliver)
+
+When Mission Control dispatches **`centerSlug === research-and-development`**, the host merges this path into **`effectiveWarmUp`** after the Sedea bootstrap layer (PRD §5.4; host resolver ships in phase 6 PR 3):
+
+| Path | Purpose |
+|------|---------|
+| `.sedea/centers/research-and-development/rules/bootstrap.mdc` | Sole R&D `alwaysApply: true` bootstrap (≤10 KB) — mirrors **`.sedea/centers/sedea/rules/bootstrap.mdc`** pattern |
+
+Spawned skill **`SKILL.md`** § *Warm-up manifest* tables document this row under **`bootstrapRules`**. **`laneRules`** and **`skillWarmUp`** tables in the same section are unchanged by bootstrap authoring alone — numbered R&D rules stay **`alwaysApply: true`** until the flip PR lands.
+
 ## Definitive `laneRules` (plan and deliver)
 
-Normative minimum **`laneRules`** paths per lane role — merged into **`effectiveWarmUp`** after **`bootstrapRules`** per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea/docs/lane-manifest-contract.md). Host-owned storage; invokers supply on **`AGENT_RUN_REQUEST_V1`** when skill frontmatter alone does not carry role minimums (see **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Lane warm-up manifest*).
+Normative minimum **`laneRules`** paths per lane role — merged into **`effectiveWarmUp`** after Sedea and R&D **`bootstrapRules`** per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea/docs/lane-manifest-contract.md). Host-owned storage; invokers supply on **`AGENT_RUN_REQUEST_V1`** when skill frontmatter alone does not carry role minimums (see **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Lane warm-up manifest*).
 
 | Lane role | Definitive `laneRules` (in addition to bootstrap) |
 |-----------|---------------------------------------------------|
