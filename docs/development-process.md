@@ -88,7 +88,7 @@ Exit **0** when manifest and disk match; **1** prints paths only on disk or only
 node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/verify-lane-warmup-parity.mjs --bootstrap full
 ```
 
-Exit **0** when every **plan and deliver** lane role's manifest **`effectiveWarmUp`** covers today's legacy baseline (**sedea `alwaysApply` scan ∪ skill `warmUpRules`**). **`--bootstrap slim`** is the **§5.3 `alwaysApply` flip merge gate** (single bootstrap rule only) — expected to fail until phase 5 ships bootstrap-only **`alwaysApply`**. Hosting-repo CI: **`./scripts/verify-center-governance.sh`** (runs skill manifest + parity **full** + warm-up/parity integration tests).
+Exit **0** when every **plan and deliver** lane role's manifest **`effectiveWarmUp`** covers today's legacy baseline (**sedea `alwaysApply` scan ∪ skill `warmUpRules`**). **`--bootstrap slim`** is the **§5.3 `alwaysApply` flip merge gate** (single bootstrap rule only). Hosting-repo CI: **`./scripts/verify-center-governance.sh`** (runs skill manifest + parity **full** + parity **slim** + warm-up/parity integration tests).
 
 **Center governance CI (hosting repo).** GitHub Actions workflow **`.github/workflows/center-governance.yml`** runs on every PR and push to **`main`**. The job checks out the hosting repo with **recursive submodules**, installs script dependencies, then runs **`./scripts/verify-center-governance.sh`**.
 
@@ -110,7 +110,7 @@ npm ci --prefix .sedea/centers/research-and-development/missions/plan-and-delive
 HOSTING_ROOT="$(pwd)" node --test .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/verify-center-governance-integration.test.mjs
 ```
 
-Asserts **`verify-skill-manifest.mjs`** exit **0**, parity **`--bootstrap full`** exit **0**, and parity **`--bootstrap slim`** exit **1** (§5.3 merge gate smoke).
+Asserts **`verify-skill-manifest.mjs`** exit **0**, parity **`--bootstrap full`** exit **0**, and parity **`--bootstrap slim`** exit **0** (§5.3 merge gate).
 
 **Scripts vendor trees.** Any `node_modules/` or other tooling-only trees under `missions/*/scripts/` are **not** center governance assets — do not link-audit or gap-report them as protocol. Hosting repos document audit scope in **`.cursor/rules/`** (not in this center repo).
 

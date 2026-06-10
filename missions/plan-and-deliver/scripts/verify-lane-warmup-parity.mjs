@@ -25,7 +25,7 @@ import { parse as parseYaml } from 'yaml';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CENTER_ROOT = path.resolve(__dirname, '../../..');
 const SEDEA_RULES_DIR = '.sedea/centers/sedea/rules';
-const FUTURE_BOOTSTRAP_RULE = '.sedea/centers/sedea/rules/0_hosting-repo.mdc';
+const FUTURE_BOOTSTRAP_RULE = '.sedea/centers/sedea/rules/bootstrap.mdc';
 
 /** @type {Record<string, { laneRules: string[], skillRelPath?: string }>} */
 const ROLE_MANIFESTS = {
