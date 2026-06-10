@@ -67,8 +67,15 @@ async function pathExists(relPath) {
 }
 
 function runVitest(packageDir, testPattern) {
+  const pkgRoot = path.join(hostingRoot, packageDir);
+  // CI center-governance workflow only npm ci's scripts/; install extension deps here.
+  execFileSync('npm', ['ci'], {
+    cwd: pkgRoot,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
   execFileSync('npm', ['test', '--', '--run', testPattern], {
-    cwd: path.join(hostingRoot, packageDir),
+    cwd: pkgRoot,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
   });
