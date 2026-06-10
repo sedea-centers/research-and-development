@@ -88,7 +88,19 @@ Exit **0** when manifest and disk match; **1** prints paths only on disk or only
 node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/verify-lane-warmup-parity.mjs --bootstrap full
 ```
 
-Exit **0** when every **plan and deliver** lane role's manifest **`effectiveWarmUp`** covers today's legacy baseline (**sedea `alwaysApply` scan ∪ skill `warmUpRules`**). **`--bootstrap slim`** is the **§5.3 `alwaysApply` flip merge gate** (single bootstrap rule only) — expected to fail until phase 4 parity sign-off. Hosting-repo CI: **`./scripts/verify-center-governance.sh`** (runs skill manifest + parity **full**).
+Exit **0** when every **plan and deliver** lane role's manifest **`effectiveWarmUp`** covers today's legacy baseline (**sedea `alwaysApply` scan ∪ skill `warmUpRules`**). **`--bootstrap slim`** is the **§5.3 `alwaysApply` flip merge gate** (single bootstrap rule only) — expected to fail until phase 5 ships bootstrap-only **`alwaysApply`**. Hosting-repo CI: **`./scripts/verify-center-governance.sh`** (runs skill manifest + parity **full** + warm-up/parity integration tests).
+
+**§5.6 operational sunset (L1–L5).** Before the legacy H8 directory-scan fallback is turned off in production, all gates in **`.sedea/centers/sedea/docs/lane-manifest-contract.md`** § *Legacy fallback operational sunset (PRD §5.6 L1–L5)* must pass. L2 is partially machine-enforced today via parity **`--bootstrap full`** in CI; L1/L3–L5 remain operator/host milestones documented in that section.
+
+**Spawn warm-up byte budget.** `verify-skill-manifest.mjs` sums on-disk bytes for each spawned skill's frontmatter **`warmUpRules` ∪ `laneRules`**, emits **`WARN:`** lines when over **256 KiB**, and reports **`spawn byte budget smoke`** in the OK line. Pass **`--enforce-spawn-byte-budget`** to exit **1** on over-cap skills (strict gate for post-flip manifest trimming).
+
+**Warm-up/parity integration tests.** From the hosting repo root after `npm ci` in `missions/plan-and-deliver/scripts/`:
+
+```bash
+HOSTING_ROOT="$(pwd)" node --test .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/verify-center-governance-integration.test.mjs
+```
+
+Asserts **`verify-skill-manifest.mjs`** exit **0**, parity **`--bootstrap full`** exit **0**, and parity **`--bootstrap slim`** exit **1** (§5.3 merge gate smoke). **`./scripts/verify-center-governance.sh`** runs the same suite in CI.
 
 **Scripts vendor trees.** Any `node_modules/` or other tooling-only trees under `missions/*/scripts/` are **not** center governance assets — do not link-audit or gap-report them as protocol. Hosting repos document audit scope in **`.cursor/rules/`** (not in this center repo).
 

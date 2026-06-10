@@ -25,6 +25,8 @@ const PLAN_AND_DELIVER_PREFIX = 'missions/plan-and-deliver/skills/';
 
 const SKILL_WARMUP_HEADING = '### `skillWarmUp` — frontmatter `warmUpRules`';
 const LANE_RULES_HEADING = '### `laneRules` — frontmatter `laneRules`';
+/** Host spawn cap — `.sedea/centers/sedea/rules/4_mission.mdc` § Spawned execution */
+const WARM_UP_BYTE_CAP = 256 * 1024;
 
 /** Definitive laneRules rows from skills/README.md § Definitive laneRules (spawn preflight row 11). */
 const DEFINITIVE_LANE_RULES_BY_SKILL = {
@@ -47,6 +49,14 @@ const DEFINITIVE_LANE_RULES_BY_SKILL = {
     '.sedea/centers/research-and-development/missions/plan-and-deliver/skills/coding-session/SKILL.md',
   ],
 };
+
+/** @type {{ repoRelativePath: string, bytes: number }[]} */
+const byteBudgetReports = [];
+let enforceSpawnByteBudget = false;
+
+function parseMainArgs(argv) {
+  return { enforceSpawnByteBudget: argv.includes('--enforce-spawn-byte-budget') };
+}
 
 function die(msg) {
   process.stderr.write(`${msg}\n`);
@@ -175,6 +185,27 @@ function parseManifestTablePaths(sectionText) {
 function samePathOrder(a, b) {
   if (a.length !== b.length) return false;
   return a.every((p, i) => p === b[i]);
+}
+
+function dedupeOrderedPaths(paths) {
+  const seen = new Set();
+  const out = [];
+  for (const raw of paths) {
+    const p = normalizeRepoPath(String(raw));
+    if (!p || seen.has(p)) continue;
+    seen.add(p);
+    out.push(p);
+  }
+  return out;
+}
+
+async function combinedWarmUpBytes(hostingRoot, paths) {
+  let total = 0;
+  for (const rel of dedupeOrderedPaths(paths)) {
+    const st = await fs.stat(path.join(hostingRoot, rel));
+    total += st.size;
+  }
+  return total;
 }
 
 function diffSets(label, frontmatter, table, repoRelativePath) {
@@ -315,6 +346,22 @@ async function validateWarmUpManifest(repoRelativePath, hostingRoot) {
       'laneRules',
     );
     if (pathErrLane) errors.push(pathErrLane);
+
+    if (!errors.length) {
+      const mergedPaths = dedupeOrderedPaths([...warmUpFm, ...laneRulesFm]);
+      const bytes = await combinedWarmUpBytes(hostingRoot, mergedPaths);
+      byteBudgetReports.push({ repoRelativePath, bytes });
+      if (bytes > WARM_UP_BYTE_CAP) {
+        process.stderr.write(
+          `WARN: ${repoRelativePath}: frontmatter warmUpRules ∪ laneRules is ${bytes} bytes (host spawn cap ${WARM_UP_BYTE_CAP}) — trim frontmatter or use README cap exceptions before --enforce-spawn-byte-budget\n`,
+        );
+        if (enforceSpawnByteBudget) {
+          errors.push(
+            `${repoRelativePath}: frontmatter warmUpRules ∪ laneRules is ${bytes} bytes (cap ${WARM_UP_BYTE_CAP})`,
+          );
+        }
+      }
+    }
   }
 
   return errors;
@@ -354,6 +401,7 @@ async function validateSkillFrontmatter(repoRelativePath) {
 }
 
 async function main() {
+  ({ enforceSpawnByteBudget } = parseMainArgs(process.argv));
   const hostingRoot = await resolveHostingRoot();
   const yamlText = await fs.readFile(CENTER_YAML, 'utf8');
   const listed = parseSkillEntriesFromYaml(yamlText);
@@ -384,9 +432,13 @@ async function main() {
   const onlyDisk = [...disk].filter((p) => !listed.has(p)).sort();
 
   if (onlyYaml.length === 0 && onlyDisk.length === 0) {
+    const overCap = byteBudgetReports.filter((r) => r.bytes > WARM_UP_BYTE_CAP);
     process.stdout.write(
       `OK: center.yaml skillEntries (${listed.size}) matches disk (${disk.size}); ` +
-        `frontmatter valid; warmUp/laneRules manifest parity passed on plan-and-deliver spawned skills\n`,
+        `frontmatter valid; warmUp/laneRules manifest parity passed on plan-and-deliver spawned skills; ` +
+        `spawn byte budget smoke: ${overCap.length} skill(s) over ${WARM_UP_BYTE_CAP} bytes` +
+        (enforceSpawnByteBudget ? ' (--enforce-spawn-byte-budget)' : '') +
+        `\n`,
     );
     process.exit(0);
   }
