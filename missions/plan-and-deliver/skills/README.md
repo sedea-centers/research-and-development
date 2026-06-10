@@ -199,7 +199,9 @@ node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/v
 node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/verify-lane-warmup-parity.mjs --bootstrap slim
 ```
 
-**`--bootstrap full`** — today's host scan (must pass on manifest table changes). **`--bootstrap slim`** — §5.3 merge gate before **`alwaysApply` frontmatter flip** (expected fail until phase 4).
+**Roles covered (7):** **`squad-leader`**, **`author-prd`**, **`planner`**, **`coding-session`**, **`phase-planner`**, **`pre-pr-review`**, **`worktree-bootstrap`**. Each role's manifest uses skill frontmatter **`laneRules`** + **`warmUpRules`** merged per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea/docs/lane-manifest-contract.md). Sign-off record: same doc § *Parity sign-off record*.
+
+**`--bootstrap full`** — today's host scan (must pass on manifest table changes). **`--bootstrap slim`** — §5.3 merge gate before **`alwaysApply` frontmatter flip** (expected fail until phase 5 bootstrap + flip).
 
 ## Universal spawn preflight (all plan-and-deliver spawners)
 
