@@ -64,6 +64,33 @@ const ROLE_MANIFESTS = {
     ],
     skillRelPath: 'missions/plan-and-deliver/skills/coding-session/SKILL.md',
   },
+  'phase-planner': {
+    laneRules: [
+      '.sedea/centers/sedea/rules/2_ask-question-instructions.mdc',
+      '.sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc',
+      '.sedea/centers/research-and-development/missions/plan-and-deliver/skills/phase-planner/SKILL.md',
+      '.sedea/centers/research-and-development/missions/plan-and-deliver/skills/README.md',
+    ],
+    skillRelPath: 'missions/plan-and-deliver/skills/phase-planner/SKILL.md',
+  },
+  'pre-pr-review': {
+    laneRules: [
+      '.sedea/centers/sedea/rules/2_ask-question-instructions.mdc',
+      '.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc',
+      '.sedea/centers/research-and-development/missions/plan-and-deliver/skills/pre-pr-review/SKILL.md',
+      '.sedea/centers/research-and-development/missions/plan-and-deliver/skills/README.md',
+    ],
+    skillRelPath: 'missions/plan-and-deliver/skills/pre-pr-review/SKILL.md',
+  },
+  'worktree-bootstrap': {
+    laneRules: [
+      '.sedea/centers/sedea/rules/2_ask-question-instructions.mdc',
+      '.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc',
+      '.sedea/centers/research-and-development/missions/plan-and-deliver/skills/worktree-bootstrap/SKILL.md',
+      '.sedea/centers/research-and-development/missions/plan-and-deliver/skills/README.md',
+    ],
+    skillRelPath: 'missions/plan-and-deliver/skills/worktree-bootstrap/SKILL.md',
+  },
 };
 
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
