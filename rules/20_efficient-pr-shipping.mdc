@@ -239,7 +239,6 @@ BASE_REF="origin/main"
 |---------|------|--------|
 | **Center setup (default)** | **`.sedea/centers/sedea/scripts/worktree-setup.sh`** on **`HOSTING_ROOT`** | Setup creates worktree + fast bootstrap; parse JSON hints |
 | **Inline retry (exception)** | Setup failed or documented break-glass | **`worktree-bootstrap`** inline only — see deprecated skill + **`coding-session`** retry section |
-| **Hosting overlay fallback** | dot-sedea documents modes without center script | See dot-sedea § *Worktree bootstrap mode* — phase 5 owns overlay fallback removal |
 
 **Push order (all profiles):** [`.cursor/rules/dot-sedea.mdc`](.cursor/rules/dot-sedea.mdc) § *Push before worktrees (mandatory)* and § *Submodule pins* when present; after center **`defaultBranch`** merges, § *Center submodule pin promotion (hosting repo)* below. Submodule init in a worktree uses the **committed** gitlink on that worktree's base ref — not an uncommitted pointer on the primary clone.
 

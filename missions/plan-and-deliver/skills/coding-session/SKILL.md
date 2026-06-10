@@ -552,7 +552,7 @@ After Generic flow step **3** (`sedea_add_worktree_folder`) succeeds, **`outputs
 3. **Do not** advance into implementation or the ship chain (`git commit`, [Ship cut-point gate](#ship-cut-point-gate-approve-commit-before-deploy), Before deploy **`deploy-walk`**, **`pre-pr-review`**, **`create-pr`**) until bootstrap succeeds.
 4. Offer re-run inline per [Worktree bootstrap (inline mandatory)](#worktree-bootstrap-inline-mandatory); **`--skip-*`** only after developer attestation.
 5. **Same-turn stop:** Emit **`MC_PHASED_RESPONSE_V1`** as the first line of the response (spawned lane sentinel-first). **Forbidden in this turn:** any hosting-repo file edit, plan §§5–8 updates, tests run for implementation validation, ship cut-point, or commit.
-6. **AskQuestion options (minimum):** Retry full bootstrap · Retry with developer-attested `--skip-*` · Defer · More details for option _.
+6. **AskQuestion options (minimum):** Retry center setup · Retry inline worktree-bootstrap · Retry with developer-attested `--skip-*` · Defer · More details for option _.
 
 The partial terminal in step 2 may accompany the modal but does **not** replace the structured retry choice.
 
