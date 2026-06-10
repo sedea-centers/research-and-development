@@ -539,7 +539,7 @@ After Generic flow step **3** (`sedea_add_worktree_folder`) succeeds, **`outputs
 
 **Normative path:** center **`worktree-setup.sh`** in Generic flow step **1** — bootstrap runs inside the shell; map hint **`bootstrapStatus`** to **`outputs`**.
 
-**Retry / exception path:** [Worktree bootstrap (inline mandatory)](#worktree-bootstrap-inline-mandatory) — inline **`worktree-bootstrap`** only when setup failed and the developer attests retry, or when a future protocol step explicitly requires spawned bootstrap. **Not** the default after successful setup.
+**Retry / exception path:** [Worktree bootstrap (inline mandatory)](#worktree-bootstrap-inline-mandatory) — inline **`worktree-bootstrap`** only when setup failed and the developer attests retry. **Not** the default after successful setup.
 
 **`--skip-*` flags** — Use only when the developer attests partial setup. Record flags in chat and in `outputs.bootstrapSkipFlags`.
 
