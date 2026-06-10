@@ -269,10 +269,13 @@ Every **spawned** plan-and-deliver skill lists the paths below in frontmatter **
 
 **Warm-up cap exceptions (256 KiB host budget):**
 
+Each spawned ship skill documents its manifest in **`SKILL.md`** § *Warm-up manifest (spawned)* or § *Warm-up manifest (inline)*. Frontmatter must match the documented table — PR 3 **`verify-skill-manifest.mjs`** will lint against these paths.
+
 | Skill | Frontmatter omits (vs table above) | Runtime reads remain |
 |-------|-----------------------------------|----------------------|
 | **`pre-pr-review`** | `plan.mdc`, `development-process.md` | Step 3 reads **`development-process.md`**; Step 4 loads **`inputs.targetPlanPath`** (PR plan, not Squad Leader **`plan.mdc`**) |
 | **`coding-session`** | rule **30** only | Explicit **`Read`** of rule **30** when resolving ambiguous `.sedea` paths |
+| **`deploy-walk`**, **`plan-reconcile`** | All frontmatter warm-up keys (inline-only) | Inherit **`coding-session`** **`effectiveWarmUp`** — see each skill § *Warm-up manifest (inline)* |
 
 Do **not** re-add omitted paths to **`pre-pr-review`** frontmatter without re-checking combined warm-up size — spawn rejects with **`warm-up-too-large`** when frontmatter + merged run-request rules exceed the host cap (see **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Run-request line*).
 

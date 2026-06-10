@@ -84,6 +84,7 @@ laneRules:
 warmUpRules:
   - ".sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc"
   - ".sedea/centers/research-and-development/missions/plan-and-deliver/skills/README.md"
+  - ".sedea/centers/research-and-development/docs/development-process.md"
   - ".sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc"
 ---
 
@@ -94,6 +95,28 @@ Hand off a unit of work into a **dedicated git worktree**, with the worktree vis
 **Owns:** per-PR plan §§ **5–8** during implementation (repo rules impact, tests, deploy plan, caveats); center **`worktree-setup.sh`**, JSON hint parsing, `plan-state.mjs set-worktrees` / `set-session`, Mission Control worktree attach, bootstrap status from setup hints (`outputs.bootstrapStatus: success` before implementation — no default-path inline **`worktree-bootstrap`**), pre-worktree validation + worktree-open gate; **spawned-lane implementation** or curated **prompt-only** session prompt emission; post-merge **center `worktree-cleanup.sh`** after MCP detach; [Ship chain after implementation](#ship-chain-after-implementation-coding-session-lane) ([Ship cut-point gate](#ship-cut-point-gate-approve-commit-before-deploy) — one modal approve + commit + Before deploy **`deploy-walk`** inline → **auto-spawn **`pre-pr-review`** → **auto inline **`create-pr`** on clean **go** → **auto** [Post-merge workspace cleanup](#post-merge-workspace-cleanup) when merged → After deploy **`deploy-walk`** inline).
 
 **Out of scope:** drafting per-PR §§ **1–4** ( **`pr-plan`** ); implementing hosting repo code when this run is **prompt-only** (see [Prompt-only handoff](#prompt-only-handoff)); opening PRs from the planning lane; **`plan-reconcile`** archive cadence except where this skill references it for cleanup narrative.
+
+## Warm-up manifest (spawned)
+
+Per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea/docs/lane-manifest-contract.md) and **`../README.md`** § *Default warm-up* / *Warm-up cap exceptions*. Host merge: `effectiveWarmUp = dedupe(bootstrapRules → laneRules → skillWarmUp)`. Frontmatter matches this table; spawners may omit run-request **`laneRules`** when identical (README spawn preflight row 11). **256 KiB cap:** frontmatter omits rule **30** only — explicit **`Read`** of **`30_planning-target-resolution.mdc`** when resolving ambiguous `.sedea` paths. **No `alwaysApply` frontmatter flip.**
+
+### `skillWarmUp` — frontmatter `warmUpRules`
+
+| Path | Purpose |
+|------|---------|
+| `.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc` | Squad Leader ledger, spawn/wait; §8 ship bubble-up |
+| `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/README.md` | Spawn contracts, terminal stop, cap exceptions |
+| `.sedea/centers/research-and-development/docs/development-process.md` | NFD process, ship chain glossary |
+| `.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc` | Worktree naming, ship chain, bootstrap |
+
+### `laneRules` — frontmatter `laneRules`
+
+| Path | Purpose |
+|------|---------|
+| `.sedea/centers/sedea/rules/2_ask-question-instructions.mdc` | Structured choice, AskQuestion / phased sentinels |
+| `.sedea/centers/sedea/rules/6_git-commit-push-gate.mdc` | Commit/push gate before ship cut-point |
+| `.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc` | Ship lane minimum (role row in README) |
+| `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/coding-session/SKILL.md` | This skill procedure |
 
 ## Worktree create → attach → bootstrap (ownership)
 
