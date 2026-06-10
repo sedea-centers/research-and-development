@@ -52,9 +52,10 @@ test('verify-lane-warmup-parity.mjs --bootstrap full exits 0 for all roles', () 
   assert.match(out, /bootstrap=full/);
 });
 
-test('verify-lane-warmup-parity.mjs --bootstrap slim exits 1 (§5.3 merge gate)', () => {
-  const code = runScriptExit('verify-lane-warmup-parity.mjs', ['--bootstrap', 'slim']);
-  assert.equal(code, 1);
+test('verify-lane-warmup-parity.mjs --bootstrap slim exits 0 (§5.3 merge gate)', () => {
+  const out = runScript('verify-lane-warmup-parity.mjs', ['--bootstrap', 'slim']);
+  assert.match(out, /OK: lane warm-up parity passed/);
+  assert.match(out, /bootstrap=slim/);
 });
 
 test('lane-manifest-contract.md documents PRD §5.6 L1–L5 sunset gates', async () => {
