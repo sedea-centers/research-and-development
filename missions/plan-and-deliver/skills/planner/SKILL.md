@@ -611,6 +611,8 @@ Execute **only** what the user selected in **AskQuestion** (or the matching **`o
 
 **Spawn-chain ship notifications:** When Mission Control delivers **`agent-result-response delivered`** with **`outputs.prShipComplete`** or **`outputs.phaseShipComplete`** (bubbled from **`coding-session`** → **`pr-plan`** / **`new-plan`** → **`pr-breakdown`** / **`phase-planner`** → **`delivery-phases`**), merge into the ledger per **`../README.md`** § *Upstream ship-complete notification*, **re-emit updated** **`AGENT_RESULT_RESPONSE_V1`** (same **`correlationId`**) when this lane is standalone spawned, then return to Step **7b** with expand options when indices unlock.
 
+**Spawn-chain parent follow-up notifications:** When a bubbled child terminal carries **`outputs.parentPlanningFollowUpNotification: "sent"`** and non-empty **`parentPlanningFollowUps`**, append each item to the **master plan** (or resolved **`parentPlanPath`**) **`## Follow-ups`** section via **`StrReplace`**; record **`pendingParentFollowUps[]`** on the working ledger. **Do not** offer **`expand-eligible`** / **`expand-next-eligible`** solely because follow-ups arrived — depth-first expand still requires **`prShipComplete`** / **`phaseShipComplete`**. **Re-emit updated** terminal when standalone spawned so upstream receives merged follow-up fields.
+
 Do **not** draft §6 in **`planner`** prose without running the inline skill.
 
 #### Draft §7 Caveats (`draft-7`)
@@ -709,6 +711,7 @@ Required `outputs` fields:
 - `outputs.remainingTasks` — pending user or agent actions; empty only when `continuationStatus` is `terminal`
 - `outputs.expandEligibleIndices`, `outputs.expandNextEligibleIndex` — echo from inline decomposition after spawn-chain ship-complete merges
 - `outputs.prShipComplete`, `outputs.phaseShipComplete` — when this lane merged bubbled ship terminals from nested **`coding-session`** / **`phase-planner`** chains
+- `outputs.parentPlanningFollowUpNotification`, `outputs.parentPlanningFollowUps`, `outputs.pendingParentFollowUps` — when bubbled from nested **`coding-session`** with parent follow-up notification (**`../README.md`** § *Upstream parent follow-up notification*)
 
 Stop after the terminal line. Do not emit another `AGENT_RUN_REQUEST_V1` for **`delivery-phases`**, **`pr-breakdown`**, or **`new-plan`** or run the next protocol step in the same turn (see **`../README.md`** § *Terminal stop (normative)*). While `continuationStatus` is `active`, the **Squad Leader** acknowledges only (**`.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`** §6); this lane owns **AskQuestion** + inline decomposition (Step 7) on follow-up user messages. On turns that emit **`AGENT_RESULT_RESPONSE_V1`**, also emit **`MC_PHASED_RESPONSE_V1`** in the **same** message (phased line 1, terminal last line) per rule **2** § *Same message as spawn terminal* — Step **7b** options may be in that phased block on the initial draft turn.
 

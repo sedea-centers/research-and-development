@@ -174,16 +174,54 @@ When **`outputs.shipPhase`** is **`done`** and **`outputs.rowStatus`** is **`clo
 
 Each parent **must** handle **`Mission Control: agent-result-response delivered.`** for its spawned children:
 
-| Parent | Child | On **`prShipComplete`** | On **`phaseShipComplete`** |
-|--------|-------|-------------------------|----------------------------|
-| **`pr-plan`** | **`coding-session`** | Merge child ship fields; **re-emit updated** `AGENT_RESULT_RESPONSE_V1` (standalone) or **`## Completion (inline)`** (under **`new-plan`**) | — |
-| **`new-plan`** (inline) | **`coding-session`** via inline **`pr-plan`** | Merge §5b; propagate **`prShipComplete`** + index to **`pr-breakdown`** / **`phase-planner`** invoker | — |
-| **`pr-breakdown`** | inline **`new-plan`** / **`pr-plan`** chain | Mark **`childRows[N].status: ship-complete`**; compute **`expandEligibleIndices`**; **re-emit updated** terminal or offer **`expand-eligible`** on next turn | — |
-| **`phase-planner`** | **`coding-session`** (nested) or inline **`pr-breakdown`** rows | Track per-PR ship on phase subtree | When **all** PRs under phase are ship-complete → **`phaseShipComplete: true`** → notify **`new-plan`** / **`planner`** parent |
-| **`delivery-phases`** | **`phase-planner`** | — | Mark phase row **`ship-complete`**; offer **`expand-next-eligible`** for next phase index |
-| **`planner`** | **`pr-breakdown`** / **`delivery-phases`** inline + nested child results | Merge ledger; add **`expand-eligible`** / **`expand-next-eligible`** to Step **7b** when indices unlock | Same for next phase |
+| Parent | Child | On **`prShipComplete`** | On **`phaseShipComplete`** | On **`parentPlanningFollowUpNotification: "sent"`** |
+|--------|-------|-------------------------|----------------------------|-----------------------------------------------------|
+| **`pr-plan`** | **`coding-session`** | Merge child ship fields; **re-emit updated** `AGENT_RESULT_RESPONSE_V1` (standalone) or **`## Completion (inline)`** (under **`new-plan`**) | — | Bubble **`parentPlanningFollowUps`**; **re-emit updated** |
+| **`new-plan`** (inline) | **`coding-session`** via inline **`pr-plan`** | Merge §5b; propagate **`prShipComplete`** + index to **`pr-breakdown`** / **`phase-planner`** invoker | — | Propagate **`parentPlanningFollowUps`** in **`## Completion (inline)`** |
+| **`pr-breakdown`** | inline **`new-plan`** / **`pr-plan`** chain | Mark **`childRows[N].status: ship-complete`**; compute **`expandEligibleIndices`**; **re-emit updated** terminal or offer **`expand-eligible`** on next turn | — | Append to parent plan **`## Follow-ups`**; track **`pendingParentFollowUps[]`** — no expand |
+| **`phase-planner`** | **`coding-session`** (nested) or inline **`pr-breakdown`** rows | Track per-PR ship on phase subtree | When **all** PRs under phase are ship-complete → **`phaseShipComplete: true`** → notify **`new-plan`** / **`planner`** parent | Append to phase/master parent **`## Follow-ups`**; no expand |
+| **`delivery-phases`** | **`phase-planner`** | — | Mark phase row **`ship-complete`**; offer **`expand-next-eligible`** for next phase index | Echo bubbled follow-ups to master plan when present |
+| **`planner`** | **`pr-breakdown`** / **`delivery-phases`** inline + nested child results | Merge ledger; add **`expand-eligible`** / **`expand-next-eligible`** to Step **7b** when indices unlock | Same for next phase | Append to master plan **`## Follow-ups`**; ledger **`pendingParentFollowUps[]`** |
 
 **Re-emit rule:** After merging a child ship-complete result, the parent **updates its own** terminal line (same **`correlationId`**) before stopping — so *its* parent receives fresh **`outputs`**. Silence on the child lane is **not** ship-complete.
+
+## Upstream parent follow-up notification (spawn chain)
+
+Depth-first delivery plans phases and PRs as work starts. During PR development, **`coding-session`** may discover scope-adjacent items that belong in **future** phase or PR planning — not in the current PR scope. Those items live on the PR plan **`## Follow-ups`** during the session; **`plan-reconcile`** drains them at archive. **Before ship-complete**, parents (**`planner`**, **`phase-planner`**, and intermediate **`pr-plan`** / **`new-plan`** bubble chain) need a **notification** so they can schedule future rows without waiting for archive.
+
+| Channel | When | Parent action |
+|---------|------|---------------|
+| **Spawn `AGENT_RESULT_RESPONSE_V1` re-emit** | **`coding-session`** terminal when **`parentPlanningFollowUpNotification: "sent"`** | Parent appends to **parent plan** **`## Follow-ups`**; tracks **`pendingParentFollowUps[]`** on ledger — **does not** expand next PR/phase or run decomposition |
+| **Host sync on leader** | Unchanged — §8 ship ledger only | Squad Leader §8 — not parent follow-up routing |
+
+**Role boundary (binding):** **`coding-session`** **emits** structured follow-up items; it **must not** run **`delivery-phases`**, **`pr-breakdown`**, **`new-plan` expand**, edit master/phase **`### PR list`**, or perform planner / phase-planner / Squad Leader duties. Parents **schedule** future work on later turns — follow-ups inform planning; **`expand-eligible`** / **`expand-next-eligible`** still require **`prShipComplete`** / **`phaseShipComplete`** per § *Upstream ship-complete notification* above.
+
+### Required terminal fields — **`coding-session`** (parent follow-up notify)
+
+When **`outputs.parentPlanningFollowUpNotification`** is **`"sent"`**, also set:
+
+| Field | Value |
+|-------|--------|
+| **`parentPlanningFollowUps`** | Non-empty array of `{ "text", "sourcePlanPath", "suggestedTarget?", "discoveredAt" }` — items for **parent** scheduling |
+| **`parentPlanningFollowUpNotification`** | `"sent"` (first emit) or echo prior `"sent"` on re-emit until parent acknowledges upstream |
+| **`parentPlanPath`**, **`parentPlanSlug`**, **`parentIndex`** | From spawn **`inputs`** when present — **required** when notification is **`"sent"`** |
+
+When no parent-scheduling follow-ups this session, set **`parentPlanningFollowUpNotification: "none"`** and omit **`parentPlanningFollowUps`** or use `[]`.
+
+**Trigger gates (coding-session):** emit after developer approves PR-plan **`## Follow-ups`** append when the bullet has **`(target: …)`** outside current PR scope **or** the developer explicitly marks *schedule on parent*; re-emit on ship milestones (`pr-open`, `pr-review`, terminal re-emit) when **`parentPlanningFollowUps`** is non-empty and notification not yet **`"sent"`**. PR-only follow-ups with no parent target may stay on the PR plan until **`plan-reconcile`** without upstream notification.
+
+### Parent merge rules (normative)
+
+Each parent **must** handle **`agent-result-response delivered`** with **`parentPlanningFollowUpNotification: "sent"`**:
+
+| Parent | Child | Action |
+|--------|-------|--------|
+| **`pr-plan`** | **`coding-session`** | Merge **`parentPlanningFollowUps`**; bubble in **`outputs`**; **re-emit updated** terminal (standalone) or **`## Completion (inline)`** (under **`new-plan`**) |
+| **`new-plan`** (inline) | via inline **`pr-plan`** | Propagate follow-up fields to invoker **`## Completion (inline)`** or re-emit |
+| **`pr-breakdown`** / **`phase-planner`** | inline chain / nested **`coding-session`** | Append items to **parent plan** **`## Follow-ups`** (canonical sink); update **`pendingParentFollowUps[]`**; **do not** auto-expand next index |
+| **`planner`** | bubbled from **`pr-breakdown`** / **`phase-planner`** | Same append to master or phase parent plan; keep **`continuationStatus: active`**; Step **7b** expand options unchanged until ship-complete |
+
+**Re-emit rule:** Same as ship-complete — bubble **`parentPlanningFollowUps`** upward; parent **re-emits updated** terminal before stopping when standalone spawned.
 
 ## Required terminal line (all spawned children)
 
