@@ -486,7 +486,8 @@ When Mission Control delivers **`AGENT_RESULT_RESPONSE_V1`** for the spawn `corr
 2. Summarize for the developer: child status, whether worktrees were created, `developerApprovedImplementation`, `planCompleteness`, and `remainingTasks`.
 3. Copy `outputs.activeLanes`, `outputs.openLedgerEntries`, and child `remainingTasks` into this lane's result when reporting upstream.
 4. When child **`outputs.prShipComplete`** is **`true`**: merge **`shipPhase`**, **`rowStatus`**, **`mainPullStatus`**, **`archivedSlugs`**, and echo **`parentPlanPath`**, **`parentPlanSlug`**, **`parentIndex`** into this lane's **`outputs`**; set **`outputs.implementationHandoffStatus: "coding-session-terminal"`**; set **`outputs.codingSessionStatus`** from child **`status`**.
-5. **Re-emit updated terminal:** On a **standalone** spawned lane, emit a fresh **`AGENT_RESULT_RESPONSE_V1`** (same **`correlationId`**) with merged **`outputs`** including **`prShipComplete`** and parent index fields — so **`new-plan`** / **`pr-breakdown`** / **`planner`** receive ship-complete without manual **Ship recap**. **Inline under `new-plan`:** report merged fields in **`## Completion (inline)`** prose instead; the **`new-plan`** lane propagates per **`new-plan/SKILL.md`** step **5b**.
+4a. When child **`outputs.parentPlanningFollowUpNotification`** is **`"sent"`** with non-empty **`parentPlanningFollowUps`**: copy into this lane's **`outputs`**; bubble upward on **re-emit updated** terminal (standalone) or **`## Completion (inline)`** (under **`new-plan`**) — **`coding-session`** does not schedule parent work; this lane does not expand PR lists.
+5. **Re-emit updated terminal:** On a **standalone** spawned lane, emit a fresh **`AGENT_RESULT_RESPONSE_V1`** (same **`correlationId`**) with merged **`outputs`** including **`prShipComplete`**, **`parentPlanningFollowUps`** when present, and parent index fields — so **`new-plan`** / **`pr-breakdown`** / **`planner`** receive updates without manual **Ship recap**. **Inline under `new-plan`:** report merged fields in **`## Completion (inline)`** prose instead; the **`new-plan`** lane propagates per **`new-plan/SKILL.md`** step **5b**.
 6. Do **not** treat child `developerApprovedImplementation: true` as permission to edit code on the **`pr-plan`** lane.
 7. Re-offer §5c **AskQuestion** when the developer may revise the plan or spawn again after a failed/partial child run — unless **`prShipComplete: true`** and the developer defers follow-up on this lane (upstream owns **`expand-eligible`**).
 
@@ -527,6 +528,7 @@ Required `outputs` fields:
 - `outputs.spawnCorrelationId` — UUID from §5d when `implementationHandoffStatus` is `spawned-coding-session` or until child terminal is merged
 - `outputs.codingSessionStatus` — echo child `status` when §5e applies
 - `outputs.prShipComplete` — `true` when §5e merged child reconcile complete (archive + main pull)
+- `outputs.parentPlanningFollowUpNotification`, `outputs.parentPlanningFollowUps` — when §5e merged child parent follow-up notification
 - `outputs.mainPullStatus`, `outputs.archivedSlugs` — when §5e merged from child
 - `outputs.shipPhase`, `outputs.rowStatus` — echo child when **`prShipComplete: true`**
 - `outputs.activeLanes`, `outputs.openLedgerEntries`, `outputs.remainingTasks`

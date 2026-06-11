@@ -430,6 +430,12 @@ When the **developer** chooses hand off or populate children in standalone use, 
 4. **Re-emit updated terminal** (standalone spawned) or report **`## Completion (inline)`** (under **`planner`** / **`phase-planner`**) with fresh **`outputs`** — same **`correlationId`** — so upstream **`planner`** Step **7b** can surface **`expand-eligible`** when spawn-chain **`prShipComplete`** is present.
 5. On the **next** structured-choice turn after merge, include **`expand-eligible`** in the modal when **`expandEligibleIndices`** is non-empty (prefer **`MC_PHASED_RESPONSE_V1`** with one-line recap in `display.markdown`).
 
+**Parent follow-up merge (spawn chain):** When a delivered result carries **`outputs.parentPlanningFollowUpNotification: "sent"`** with non-empty **`parentPlanningFollowUps`**:
+
+1. Append each item to the **target master or phase plan** **`## Follow-ups`** (resolved from **`targetPlanPath`** on this skill or bubbled **`parentPlanPath`**).
+2. Track **`pendingParentFollowUps[]`** on this lane's ledger — **do not** treat follow-ups as **`expand-eligible`** or auto-expand the next **`### PR list`** row.
+3. **Re-emit updated** terminal or **`## Completion (inline)`** with merged follow-up **`outputs`** per **`../README.md`** § *Upstream parent follow-up notification*.
+
 **Standalone spawned `new-plan`:** When Mission Control delivers a child result from a spawned **`new-plan`** lane:
 
 1. Match it to the ledger entry by correlation id first, then by `outputs.parentPlanSlug` + `outputs.parentIndex`.

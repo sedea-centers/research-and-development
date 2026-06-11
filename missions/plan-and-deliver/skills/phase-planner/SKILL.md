@@ -526,6 +526,7 @@ When Mission Control delivers a child result from **`phase-planner`** or **`codi
 1. Match it by correlation id first, then by `outputs.targetPlanPath` / `outputs.targetPlanSlug`.
 2. Copy downstream `spawnedPlans`, `activeLanes`, `openLedgerEntries`, and `remainingTasks` into this skill's result. When inline **`new-plan`** / **`pr-plan`** reports a new child plan, append `{ planPath, planSlug }` to **`outputs.spawnedPlans`** on the next terminal re-emit so Mission Control lane documents include PR plans created inline on this lane.
 3. When result carries **`outputs.prShipComplete: true`**: record the PR index on this phase; when **every** PR plan under this phase (per **`### PR list`** on this file or inline **`pr-breakdown`** subtree) is **`ship-complete`**, set **`outputs.phaseShipComplete: true`**, **`outputs.shipPhase: done`**, **`outputs.rowStatus: closed`** for this phase plan.
+3a. When result carries **`outputs.parentPlanningFollowUpNotification: "sent"`** with non-empty **`parentPlanningFollowUps`**: append each item to the **phase plan** or bubbled **`parentPlanPath`** **`## Follow-ups`** (create section at EOF if missing); track **`pendingParentFollowUps[]`** on this lane's ledger. **Do not** expand next PR/phase index — scheduling stays on a later turn. Bubble merged fields upstream via **re-emit updated** terminal or **`## Completion (inline)`** per **`../README.md`** § *Upstream parent follow-up notification*.
 4. **Re-emit updated terminal** (standalone spawned) or **`## Completion (inline)`** (when invoker runs this skill inline) with **`phaseShipComplete`** and **`parentPlanPath`**, **`parentPlanSlug`**, **`parentIndex`** from spawn **`inputs`** — so **`delivery-phases`** / **`planner`** can offer **`expand-next-eligible`** per **`../README.md`** § *Upstream ship-complete notification*.
 5. If downstream status is `success` and `continuationStatus: "terminal"`, this phase-planner lane may return `terminal` — unless **`phaseShipComplete`** should bubble upstream while **`continuationStatus: active`** on the parent decomposition lane.
 6. If downstream status is `success` or `partial` with active lanes or remaining tasks, return `active`.
@@ -632,6 +633,7 @@ Required `outputs` fields:
 - `outputs.continuationStatus` — `active` while route approval, inline decomposition, nested **`phase-planner`** / **`coding-session`** child lanes, or phase ship work remains; `terminal` only per **Phase delivery ownership** ( **`phaseShipComplete`**, explicit defer/abandon, or unrecoverable failure)
 - `outputs.phaseShipComplete` — `true` when every PR under this phase is ship-complete (§5e)
 - `outputs.prShipComplete` — echo when aggregating a **`coding-session`** terminal for a PR under this phase
+- `outputs.parentPlanningFollowUpNotification`, `outputs.parentPlanningFollowUps`, `outputs.pendingParentFollowUps` — when §5e merged child parent follow-up notification
 
 Stop after the terminal line. Do not emit **`AGENT_RUN_REQUEST_V1`** for **`delivery-phases`** or **`pr-breakdown`** (see **`../README.md`** § *Terminal stop (normative)*).
 
