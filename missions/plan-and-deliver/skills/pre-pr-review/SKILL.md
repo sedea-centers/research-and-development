@@ -104,7 +104,7 @@ This skill does not own approval modals — **`coding-session`** collects develo
 
 Give developers a **consistent state snapshot** during pre-PR review so they can re-orient after reload or parallel work.
 
-**When required:** At every **Mandatory gate** below — render as the **first block** in `display.markdown` or the terminal report recap. **Forbidden:** omitting the table and substituting scattered one-liners.
+**When required:** At every **Mandatory gate** below — render as the **first block** in `display.markdown` (before step recap or checklist prose). **Forbidden:** omitting the table and substituting scattered one-liners on modal gates. The terminal **`AGENT_RESULT_RESPONSE_V1`** line uses the 1–3 sentence `summary` only — do **not** embed the markdown table in the terminal JSON.
 
 **Table shape (markdown):**
 
@@ -120,7 +120,7 @@ Give developers a **consistent state snapshot** during pre-PR review so they can
 
 **Population rules:** Same contract as [`.sedea/centers/research-and-development/missions/plan-and-deliver/skills/coding-session/SKILL.md`](../coding-session/SKILL.md) § *Session orientation table (binding)* — use spawn `inputs` and review outputs; never invent paths.
 
-**Mandatory gates (this skill):** terminal **`AGENT_RESULT_RESPONSE_V1`** summary preamble; any spawned turn that closes with **`MC_PHASED_RESPONSE_V1`** before terminal.
+**Mandatory gates (this skill):** any spawned turn that closes with **`MC_PHASED_RESPONSE_V1`** before terminal (for example lane closure after review).
 
 ## Step 1 — Validate spawned inputs
 

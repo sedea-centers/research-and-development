@@ -159,7 +159,7 @@ Give developers a **consistent state snapshot** during deploy verification so th
 | Branch | `<worktreeName>` or — |
 | PR | `<url>` (#N) or — |
 | Ship phase | parent `shipPhase` when inline on **`coding-session`**, or — |
-| Deploy scope | Before deploy · After deploy |
+| Deploy scope | Before deploy · After deploy · — |
 | Review | — (deploy walk does not own PR triage) |
 
 **Population rules:** Same as [`.sedea/centers/research-and-development/missions/plan-and-deliver/skills/coding-session/SKILL.md`](../coding-session/SKILL.md) § *Session orientation table (binding)* — use `—` when unknown; never invent paths or PR numbers.
