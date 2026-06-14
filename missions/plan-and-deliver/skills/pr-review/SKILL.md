@@ -348,13 +348,13 @@ Return results through the active **`coding-session`** lane, not as a child-agen
 Set **`outputs.mergeDelegationReady: true`** when **all** apply:
 
 1. Every fetched review comment has an approved disposition (fixed, skipped with rationale, or captured follow-up).
-2. **`outputs.githubReconciliationStatus: complete`** — Step 5 checklist passed (§ *Reconciliation completeness checklist*), or the skipped-only path completed with no pending Must fixes.
+2. **`outputs.githubReconciliationStatus: complete`** — Step 5 checklist passed (§ *Reconciliation completeness checklist*), or the skipped-only path completed with no pending Must fixes (skipped-only triage with no code edits also sets **`complete`** — no separate **`skipped`** value on the merge path).
 3. No open **Must fix** blockers remain on this PR.
 4. `outputs.prReviewStatus` is **`terminal`** for this triage pass.
 
 Otherwise set **`mergeDelegationReady: false`** — **`coding-session`** must not open [Pre-merge authorization gate](../coding-session/SKILL.md#pre-merge-authorization-gate) or run [Merge procedure](../coding-session/SKILL.md#merge-procedure) until a later pass clears blockers.
 
-**`githubReconciliationStatus` values:** `complete` (checklist passed), `pending` (Step 5 required or incomplete), `skipped` (no triage / no GitHub actions needed this pass).
+**`githubReconciliationStatus` values:** `complete` (checklist passed or skipped-only path with no GitHub actions required), `pending` (Step 5 required or incomplete). Do **not** use a separate **`skipped`** value when **`mergeDelegationReady`** must be true — map skipped-only to **`complete`**.
 
 Keep `continuationStatus: "active"` until every PR review comment is fixed, skipped with rationale, converted to follow-up, or explicitly deferred by the developer, and GitHub reconciliation has run when required.
 
