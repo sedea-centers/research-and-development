@@ -195,7 +195,7 @@ flowchart TB
 
 **Legend:** yellow = Squad Leader executable steps; blue = spawned child lanes and their spawns; purple = cadence branches outside §§1–5 (see **Cadence reference** and `development-process.md`).
 
-**Single-PR hoist:** after **`phase-planner`**, single-PR routes **default** to hoisting **PR-list drafting** to the ancestor (`hoistFromPhasePath`); the phase file keeps a § 5 **pointer note**, not a full **`PR breakdown`** list. That is **draft location** — while **`phase-planner-agent`** owns the lane, the phase `.plan.md` remains the **delivery anchor** in recaps. Override: **`decomposeOnPhasePlan: true`**. See `development-process.md` § *Single-PR hoist from a phase plan* and **`phase-planner`** § **5a-hoist**.
+**Single-PR on phase plans:** after **`phase-planner`**, single-PR routes draft the full § 5 **`PR breakdown`** block (**`### Single-concern strategy`**, **`### Sequencing`**, **`### PR list`**) on **this phase plan** — same as multi-PR. The ancestor Master Plan row **N** gets **link-only** updates (`Phase plan:` + `Plan:`); **forbidden:** row-scoped **`#### PR breakdown — row N`** or duplicate PR lists on the ancestor. See `development-process.md` § *Single-PR on a phase plan (draft location — binding)* and **`phase-planner`** Step **5b-decompose**.
 
 ## Hub missionInputs *(legacy — host-removed)*
 
