@@ -75,7 +75,7 @@ Three different signals appear in plan-and-deliver; advancing one does **not** a
 
 | Mistake | Correct behavior |
 |--------|------------------|
-| Edit hosting repo code on the **`pr-plan`** planning lane after `readyForImplementation: true` | **Stop** — spawn **`coding-session`** (§5d) or start it on a **detached** lane; layer 2 worktree-open gate runs on the **`coding-session`** lane |
+| Edit hosting repo code on the **`pr-plan`** planning lane after `readyForImplementation: true` | **Stop** — spawn **`coding-session`** (§5d); layer 2 worktree-open gate runs on the **`coding-session`** lane |
 | Open a worktree because **`pr-plan`** finished §§1–4 only | Run **`plan-ws-completeness.mjs`** on the **`coding-session`** lane — layer 1 + spawn handoff auto-authorizes when §§1–4 are drafted; detached entry still needs the worktree-open gate |
 | Set Squad Leader §8 `phase` to `worktree` / `implementing` from **`pr-plan`** outputs alone | Advance §8 only after host sync from **`coding-session`** terminal with `developerApprovedImplementation: true` |
 | Run **`git commit`** / **`git push`** while still on a planning skill lane | Ship cadence is **`coding-session`** (or rule **20** on an implementation lane) — see rule **20** § *AskQuestion vs git commit/push* |
