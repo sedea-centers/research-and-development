@@ -503,15 +503,15 @@ When the developer **confirms** a numbered step in the anchored PR plan’s **`#
 
 | Step kind | Ad-hoc behavior |
 |-----------|-----------------|
-| **Agent-executable only** | Run tools and verify **first** in the same turn; flip only after tool evidence per deploy-walk § *Tool evidence before flip*. Developer chat (“confirmed”, “looks good”) does **not** substitute for file/YAML/diff checks. |
-| **Mixed** (UI + file/YAML/diff) | Agent runs all agent-executable sub-assertions first; flip only the verified portions or the whole step only when every sub-assertion is satisfied (agent evidence + manual resolution for UI clauses). |
+| **Agent-executable only** | Run tools first; flip only after tool evidence. Developer chat does not substitute for file/YAML/diff checks. |
+| **Mixed** (UI + file/YAML/diff) | Run agent-executable sub-assertions first; flip only when every sub-assertion is satisfied. |
 | **Manual only** | Developer confirmation may authorize the flip; still patch the plan file in the same turn. |
 
-**Forbidden on ad-hoc path:** flip `[ ]` → `[x]` for filesystem reads, `dispatch.yaml` / bundle JSON checks, sidecar field assertions, grep/diff, or YAML/JSON parsing based on developer confirmation alone when the inventory covers that work.
+**Forbidden on ad-hoc path:** flipping filesystem, `dispatch.yaml`, bundle JSON, sidecar, grep/diff, or YAML/JSON checks from developer confirmation alone when the inventory covers that work.
 
 1. **Resolve `targetPlanPath`** — from spawn `inputs`, `plan-state.mjs resolve --cwd "<worktreePath>"`, or an explicit `@path` in the message. If multiple plans could apply, use **AskQuestion** once for **which plan** or **which step number** — not whether to persist.
 2. **Classify then act** — apply the classification gate above. When agent-executable work applies, run it before any plan edit.
-3. **Same-turn file edit** — before the reply ends, patch the matching §7 line: flip `[ ]` → `[x]` for that step number only when classification + evidence rules pass. Append a dated note citing tool evidence for agent-executable work (for example `*(YYYY-MM-DD: Read dispatch.yaml — trustLevel tool_execution.)*`) or developer resolution for manual-only steps.
+3. **Same-turn file edit** — before the reply ends, patch the matching §7 line only when classification + evidence rules pass. Append a dated note citing tool evidence or manual resolution.
 4. **Reply** — state the **absolute `targetPlanPath`**, step numbers checked, and one-line evidence per flipped step.
 5. **Do not** tell the developer “you can mark” or “likely done” without editing when you can write the operations plan. If you cannot write (permissions, wrong repo, missing path), say why and offer **`deploy-walk present 7`** / **`deploy-walk <N> done`** or a concrete absolute path.
 6. **Terminal `outputs`** — when you emit **`AGENT_RESULT_RESPONSE_V1`** in the same turn after edits, include `outputs.deployPlanStepsChecked` (array of step numbers, e.g. `[1,2,3]`) and `outputs.targetPlanPath`.
