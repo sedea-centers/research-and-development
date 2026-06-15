@@ -113,7 +113,7 @@ When **`parentAgentRole`** is **`phase-planner-agent`**, this skill runs **inlin
 - Prose redirect to the **`planner`** lane, **`planner`** Step **7**, or *"open the Master Plan agent"* to draft single-PR breakdown on the ancestor.
 - Treating ancestor file paths as permission to hand decomposition back to **`master-plan-agent`** while **`phase-planner-agent`** invoked this skill inline.
 
-**Required:** Report **`## Completion (inline)`** to the **phase-planner** invoker on the **same** child lane; merge fields per **`phase-planner/SKILL.md`** Step **5e**. After writing § 5 on the phase plan, update the ancestor **`Delivery phases`** row **N** with **link-only** changes (`Decomposition decision: PR breakdown`; **`Plan:`** PR link after **`new-plan`**) — **not** duplicate PR list content on the ancestor.
+**Required:** Report **`## Completion (inline)`** to the **phase-planner** invoker on the **same** child lane; merge fields per **`phase-planner/SKILL.md`** Step **5e**. After writing § 5 on the phase plan, update the ancestor **`Delivery phases`** row **N** with **link-only** changes (`Phase plan:` phase link; **`Plan:`** PR link after **`new-plan`**) — **not** duplicate PR list content on the ancestor.
 
 ### Inline handoff — **pr-breakdown** → **`new-plan`** (step 6 act-after-select)
 

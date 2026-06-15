@@ -151,7 +151,7 @@ Normative contract: **development-process.md** § *Depth-first plan-tree travers
 ### Phase rows (`Delivery phases` parent)
 
 1. List every numbered phase row in the snapshot (all indices visible).
-2. **Eligible for `new-plan` expand:** the lowest index **N** with `_TBD_` **`Plan:`** where **N = 1** or phase **N−1** is ship-complete (all PR plans under phase **N−1** closed on §8).
+2. **Eligible for `new-plan` expand:** the lowest index **N** with `_TBD_` **`Plan:`** where **N = 1** or phase **N−1** is ship-complete — meaning every PR plan under phase **N−1** meets the bar in § *Ship-complete definition* below (including explicit `deferred` / `abandoned` closures).
 3. **AskQuestion** `options` for expand: at most one phase index per turn (`expand-next-eligible`).
 
 ### PR rows (`### PR list` parent)

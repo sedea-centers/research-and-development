@@ -577,7 +577,7 @@ This skill writes the **body** of the target phase plan — replacing the **`new
 
 **Owns:** in-file §§ 1–4 + assessment; echo to chat for review.
 
-**Out of scope here:** target plan frontmatter (left as **`new-plan`** set it); **link-only** updates on the ancestor **`Delivery phases`** row **N** (`Plan:` PR link after **`new-plan`** — **not** row-scoped PR breakdown blocks on the ancestor); § 6 Caveats (**inline `delivery-phases`** / **`pr-breakdown`** own those); spawning **`delivery-phases`** or **`pr-breakdown`** child lanes — those skills run inline; **`new-plan`** after § 5 exists is owned by inline decomposition; git / commit automation.
+**Out of scope here:** target plan frontmatter (left as **`new-plan`** set it); **link-only** updates on the ancestor **`Delivery phases`** row **N** (`Phase plan:` phase link; **`Plan:`** PR link after **`new-plan`** — **not** row-scoped PR breakdown blocks on the ancestor); § 6 Caveats (**inline `delivery-phases`** / **`pr-breakdown`** own those); spawning **`delivery-phases`** or **`pr-breakdown`** child lanes — those skills run inline; **`new-plan`** after § 5 exists is owned by inline decomposition; git / commit automation.
 
 Wrong template stops live in step 1a — use **`planner`** or **`pr-plan`** protocol branches when the file is a Master Plan or PR plan.
 

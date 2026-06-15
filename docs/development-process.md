@@ -379,13 +379,13 @@ A non-PR-ready plan thus *only* lists short summaries pointing at child plans �
 
 | Parent list | Blocking rule |
 | --- | --- |
-| **`Delivery phases`** (phase rows) | **Always sequential.** Phase **N+1** is not eligible until phase **N** is ship-complete — meaning every PR plan under phase **N** has a closed §8 ship row. |
+| **`Delivery phases`** (phase rows) | **Always sequential.** Phase **N+1** is not eligible until phase **N** is ship-complete — meaning every PR plan under phase **N** meets the ship-complete bar above (`shipPhase: done` + `rowStatus: closed`, or explicit `deferred` / `abandoned`). |
 | **`### PR list`** (PR rows) | **Stage-aware** per **`### Sequencing`** below. |
 
 **PR stages (reuse set-level `### Sequencing`).** The mode #3 set-level template already records which PRs are chained vs parallel (bullet stages such as *Stage 1 (sequential): PR 1 → PR 2; Stage 2 (parallel): PR 3, PR 4*). Agents **parse** that subsection — do not invent a parallel syntax elsewhere.
 
 - **Sequential chain** (within one stage, or `→` between PR numbers): PR **k+1** is not eligible until PR **k** is ship-complete.
-- **Parallel stage** (comma-separated PRs in one stage label): all PRs in that stage may become eligible **together** once the **prior stage** is fully ship-complete (every PR in the prior stage closed on §8).
+- **Parallel stage** (comma-separated PRs in one stage label): all PRs in that stage may become eligible **together** once the **prior stage** is fully ship-complete (every PR in the prior stage meets the ship-complete bar above).
 - **Single PR** (`### Sequencing` notes one PR): only item **1** exists; no sibling gate.
 
 **List approval vs expand.** Structured choice on **`delivery-phases`** / **`pr-breakdown`** separates **approve list** (wording + order + sequencing) from **expand eligible row(s)** (run **`new-plan`** only for indices that pass the gate). On **`pr-breakdown`** inline under **`planner`** or **`phase-planner`**, **`approve-list`** may **auto-expand PR index 1** in the **same** act-after-select turn when depth-first eligible — then inline **`new-plan`** → inline **`pr-plan`** (§§1–4, verbatim **Single concern** from the list row). PR **2+** and re-expand still use **`expand-eligible`**. **`delivery-phases`** unchanged (approve list does not auto-expand). See those skills §6 and **`.sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc`** § *Depth-first expansion eligibility*.
