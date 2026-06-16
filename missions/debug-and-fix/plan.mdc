@@ -122,7 +122,7 @@ flowchart TD
 - `inputs`: `repoPath` / `outputs.hostingRoot`, existing `outputs.worktreePath` and `outputs.worktreeName` from debug child (worktree already created and modified), `developerApprovedImplementation: true`, `upstreamSkill: debug-and-fix`, required `targetPlanPath` and `targetPlanSlug` from step 5, plus `planningHandoffMode: "sections-1-4-complete"` and `planningHandoffApproved: true` when supplied by the **`pr-plan`** handoff.
 - `spawn run-request fields`: `inputs`, `laneRules` / `warmUpRules` per **`coding-session`** frontmatter, and `initiatingPrompt` — state that implementation is complete on the debug worktree and ship chain starts at cut-point / commit per **`coding-session`** authority.
 - `expected output`: Child terminal after ship chain milestones per **`coding-session`** **`## Completion (spawned)`** / inline ship skills.
-- `next-step resolution`: Continue to step 7 after child terminal or when developer parks external review per skill gates.
+- `next-step resolution`: Continue to step 7 after child terminal or when developer selects an external-wait resume option per skill gates.
 - **Note:** Ship steps (commit, deploy-walk, pre-pr-review, create-pr, pr-review, post-merge cleanup, plan-reconcile) are **owned by `coding-session`** — do not duplicate procedure here.
 
 ### 5c. Create Ad-Hoc PRD (spawned skill — Ad-Hoc PRD path only)
@@ -151,7 +151,7 @@ flowchart TD
 
 - `type`: Finish/stop logic.
 - `intent`: Propose dispatch closure after findings report or code-promotion chain completes.
-- `inputs`: All child terminal outputs, selected exit path, findings report from step 6 when applicable, any parked external-wait state.
+- `inputs`: All child terminal outputs, selected exit path, findings report from step 6 when applicable, any external-wait resume selection state.
 - `expected output`: Squad Leader recap and **`MC_DISPATCH_RESOLVED_V1`** when user signals done.
 - `next-step resolution`: Terminal when user accepts resolution or continues from resolution card per [`.sedea/centers/sedea/rules/4_mission.mdc`](.sedea/centers/sedea/rules/4_mission.mdc) § *Dispatch resolution*.
 - `terminal vs resumable`: **`resolved`** when code-promotion chain completed or findings report delivered; **`partial`** when fix verified but ship pending external action; **`aborted`** / **`abandoned`** on user stop or unrecoverable block.
