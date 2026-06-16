@@ -522,7 +522,10 @@ async function main() {
   }
 
   const sedeaPlannerSkills = await listSedeaPlannerSkillFiles(hostingRoot);
-  const spawnWirePaths = [...disk, ...sedeaPlannerSkills];
+  const rdPlannerSkills = [...disk].filter((rel) =>
+    /\/skills\/planner\/SKILL\.md$/.test(rel),
+  );
+  const spawnWirePaths = [...rdPlannerSkills, ...sedeaPlannerSkills];
   const spawnWireErrors = await validateNullableParentSpawnWire(
     hostingRoot,
     spawnWirePaths,
