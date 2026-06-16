@@ -24,6 +24,12 @@ If Mission Control opened a session whose only intent is **`pr-review`** / *tria
 
 **Worktree removal ownership (binding).** **Do not remove worktrees you do not own.** PR review runs in **`WORKTREE_ROOT`** for edits; it does **not** authorize **`git worktree remove`**, **`git worktree prune`**, or **`sedea_remove_worktree_folder`** on any other path. See [`.sedea/centers/sedea/rules/0_hosting-repo.mdc`](.sedea/centers/sedea/rules/0_hosting-repo.mdc) § *Worktree ownership* and rule **20** § *Worktree removal ownership (binding)*. **`git worktree list` is read-only** when ownership is unclear — **stop; do not remove**.
 
+## Global `gh` exception (binding)
+
+When a **global Cursor or developer rule** directs agents to use `gh` for GitHub tasks, that default **yields to this skill** for PR review-cycle operations. While inline **`pr-review`** is active on a **`coding-session`** lane, **`pr-review.py` is the only permitted interface** for comment collection, thread/review state, classification, reconciliation, replies, resolves, minimizes, and review re-requests — not generic `gh`, REST, or GraphQL substitutes.
+
+**Permitted `gh` on this skill (narrow allowlist):** Step 0 worktree/URL resolution in the **worktree**; **`merged-pr-proceed`** merge-state verify (`gh pr view` for **`state` / merge metadata only**); invoker-owned **`gh pr create`** upstream (not this skill). **`check-pr-status`**, manual review submission, rebase, and merge paths on **`coding-session`** may use `gh` for **status/control** only — they do **not** replace Step 1 collection or Step 5 reconciliation.
+
 ## Structured choice (Mission Control)
 
 Triage and fix loops use **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* on the **`coding-session`** lane — **preferred:** recap (comment summary) + modal in one message. **Act** (code/plan edits) only after developer approval per this skill.
@@ -102,11 +108,43 @@ Input format — **one object** (single command) or a **JSON array** of command 
 
 Supported `command` values: `threads`, `reply`, `resolve`, `minimize`, `pr-for-branch`, `reviews`, `review-comments`, `pull-reviews`, `issue-comments`, `request-review`, `summary`.
 
-### GitHub access
+### GitHub interface (binding)
 
-**All** GitHub reads and writes for this skill use **`pr-review.py`** via the two-step **`PR_REVIEW_INPUT`** workflow (§ *Input file and script*). In Step 0 you may use `git` / `gh` in the **worktree** for worktree name or URL resolution; prefer **`pr-for-branch`** in the script when resolving the PR from the current worktree name ref (`git branch --show-current` returns the worktree name).
+When this skill is active, **`pr-review.py` is the only permitted GitHub interface** for PR review comment collection, thread/review state used for classification, and reconciliation.
+
+| Operation | Required interface |
+|-----------|--------------------|
+| Collect comments (Step 1) | **`pr-review.py`** array only |
+| Re-fetch before reconcile (Step 2 / Step 5) | **`pr-review.py`** array only |
+| Reply / resolve / minimize / summary (Step 5) | **`pr-review.py`** array only |
+| PR identity in worktree (Step 0) | **`pr-for-branch`** script command or known **`prUrl`** |
+| Merge-state verify (`merged-pr-proceed`) | **`gh pr view`** for merge state only — no comment, thread, or review endpoints |
+
+**Forbidden when this skill is active:** **`gh api`**, **`gh api graphql`**, **`gh pr view --json reviews,comments`**, or any REST / GraphQL call whose purpose is to collect, classify, reconcile, or verify PR review comments, threads, or reviews.
+
+**First-action invariant:** If invoker context, user context, or an open gate references **`pr-review`**, the first GitHub-touching shell in that turn must be the Step 1 collect array:
+
+```bash
+cd "$HOSTING_ROOT" && PR_REVIEW_INPUT="<absolute-path>" python3 .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/pr-review.py
+```
+
+Checking PR status during an open **`pr-review`** cycle is **not** exempt from this invariant unless the active pick is **`merged-pr-proceed`** or **`check-pr-status`** on **`coding-session`** (merge metadata only).
+
+**Verification:** After Step 5, re-fetch using the same Step 1 script array. **Forbidden:** using **`gh api graphql`** for thread counts or review-state verification.
 
 Superseded paths (token/config lookup only — **not** for listing threads or posting replies): GitHub MCP server ids such as **`github`** or **`user-github`** in **`.sedea/mcp.json`**. Those tools duplicate **`pr-review.py`** and inflate agent context.
+
+## Cyclic review loop (binding)
+
+After inline **`create-pr`** opens a PR, **`coding-session`** runs this skill **in cycles** until **`continuationStatus`** is **`terminal`**:
+
+1. **Open PR** — inline **`create-pr`** records `prUrl` / `prNumber`; [Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate) opens same turn.
+2. **Developer picks `start-pr-review`** — load this skill; **Step 1 `pr-review.py` collect array is the first GitHub-touching action** (not generic `gh` inspection).
+3. **Triage** — Steps **1–4** below.
+4. **Developer gate** — structured choice for dispositions and commit/push depth per rule **6**.
+5. **Reconcile on GitHub** — Step **5** when required (same turn as push when fixes landed).
+6. **Wait for reviewers** — external; park with structured choice per rule **2** § *External-wait / parked continuation*.
+7. **Loop** — when new comments land, return to step **2** on the **same lane** until every comment is fixed, skipped with rationale, captured as deferred work, or explicitly deferred by the developer.
 
 ## When coding-session executes `pr-review`
 
@@ -153,7 +191,7 @@ Skip silently when `resolve` exits non-zero (session has no plan) or when `pull_
 
 **Capture the resolved slug + full `planPath`** (or the lack thereof) for Step 3a. After `resolve`, parse the path segment immediately after `.sedea/operations/` — it is either **`joint`** or the **user uuid** — and edit that same `<slug>.plan.md` (sidecar `<slug>.state.yaml` sits beside it). Re-running `resolve` later only to recover the path wastes a shell call.
 
-### Step 1 — Collect comments (**script only**)
+### Step 1 — Collect comments (`pr-review.py` only — no `gh` substitute)
 
 1. Use the resolved `owner`, `repo`, and `pull_number`.
 2. Run **`pr-review.py` once** with a JSON **array** of commands (same `PR_REVIEW_INPUT` two-step workflow as above), in this order:
