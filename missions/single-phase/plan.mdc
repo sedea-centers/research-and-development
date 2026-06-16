@@ -151,8 +151,10 @@ Parent: null
 - **Intent:** Draft Master Plan §§1–5 and complexity score via **`planner`**.
 - **Target agent role:** Master Plan agent
 - **Assigned skill:** [`.sedea/centers/research-and-development/missions/plan-and-deliver/skills/planner/SKILL.md`](.sedea/centers/research-and-development/missions/plan-and-deliver/skills/planner/SKILL.md)
-- **Inputs:** §4 seed (`seedBlock`, `featurePlanningTitle`, `prdRef`, `parent: null`, `related: []`).
+- **Inputs:** §4 seed (`seedBlock`, `featurePlanningTitle`, `prdRef`, `Parent: null`, `related: []`) compiled into spawn **`inputs`** per **`plan-and-deliver/plan.mdc`** §5 *Spawn preflight* — when seed has **`Parent: null`**, spawn **`"parent": "null"`** (JSON string), **not** JSON `null`.
 - **Expected output:** `outputs.masterPlanPath`, `outputs.complexityScore`, `outputs.complexityBand`, ledger fields, `outputs.continuationOwner`, `outputs.continuationStatus`.
+
+**Spawn preflight (binding):** Before **`AGENT_RUN_REQUEST_V1`**, read **`planner/SKILL.md`** frontmatter and **`plan-and-deliver/skills/README.md`** § *Universal spawn preflight* (row **1b**). **`Parent: null`** in the §4 seed is semantic; spawn wire uses **`"parent": "null"`**. Paste-ready example: **`planner/SKILL.md`** § *Spawn contract*.
 - **Next-step resolution:**
   - **`complexityScore` > 12** (≥ 13) → leader stops; structured choice: open **`plan and deliver`** dispatch (detached) or abandon — **do not** continue §6 on this dispatch.
   - **`complexityScore` ≤ 12** and continuation active on Master Plan lane → §6 ack on leader; Master Plan agent owns §6–§7 inline.

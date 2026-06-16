@@ -460,8 +460,10 @@ When an explicit developer override applies, replace the **`Parent:`** line with
    | `seedBlock` | Full §4 seed block text (`Feature planning`, `PRD`, `Parent`, optional `Related`) |
    | `featurePlanningTitle` | Title from §4 / PRD heading — **not** `featurePlanning` |
    | `prdRef` | Approved PRD link or `@path` from §3 **`author-prd`** outputs |
-   | `parent` | Resolved `Parent` slug, `@path`, absolute plan path, or `null` |
+   | `parent` | When §4 seed has **`Parent: null`**, set spawn **`"parent": "null"`** (JSON string sentinel). Otherwise resolved slug, `@path`, or absolute plan path. **Forbidden:** JSON `null` in spawn `inputs.parent` — **`planner`** frontmatter declares **`type: string`**. Sidecar **`parent: null`** is unrelated to spawn wire encoding. |
    | `related` | Array from §4 `Related` entries, or `[]` when none |
+
+   **Seed vs spawn (binding):** **`Parent: null`** in the §4 seed block is semantic (root delivery plan). The spawn line must still include **`"parent": "null"`** as a **string** in **`inputs`** — not JSON null and not omission of the key. See **`planner/SKILL.md`** § *Wire encoding — nullable `parent`* and **`skills/README.md`** § *Universal spawn preflight* row **1b**.
 
    **Stop** and surface a one-line fix list when any required key is missing, renamed, or nested under the wrong parent key. Do **not** emit `AGENT_RUN_REQUEST_V1` until preflight passes.
 

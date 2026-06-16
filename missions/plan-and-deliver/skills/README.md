@@ -297,6 +297,7 @@ Run this checklist **before** every `AGENT_RUN_REQUEST_V1` emit on any lane (Squ
 | Step | Check |
 |------|--------|
 | 1 | Read the target **`SKILL.md`** frontmatter **`inputs`** map. Every key with **`required: true`** must appear in the spawn line’s **`inputs`** object with a non-empty value (unless the skill documents an explicit empty default). |
+| 1b | **Nullable string inputs (`type: string` + null semantics):** when the skill documents null/absent meaning (for example **`planner`** **`parent`** for root delivery), emit the **wire string sentinel** in spawn JSON — **`"parent": "null"`** — never JSON **`null`**. Seed blocks and sidecars keep their own encodings (`Parent: null` in seeds; YAML `parent: null` in sidecars). See **`planner/SKILL.md`** § *Wire encoding — nullable `parent`*. |
 | 2 | **`inputs` keys must match frontmatter names exactly** (camelCase). Do **not** invent aliases (for example `featurePlanning` when the skill requires **`featurePlanningTitle`**). |
 | 3 | Top-level spawn JSON includes **`version`** (`1`), a **new** **`correlationId`** (UUID), workspace-relative **`skillPath`** ending in **`/SKILL.md`**, **`name`**, dispatch-unique **`slug`**, **`description`**, and **`inputs`** (object — use `{}` only when the skill allows no required keys). |
 | 4 | Optional keys only when needed: **`warmUpRules`** (repo-relative paths merged with skill frontmatter), **`laneRules`** (ordered paths per § *Definitive `laneRules`* above when not fully declared in skill frontmatter), **`initiatingPrompt`** (handover prose). |
