@@ -54,7 +54,7 @@ Give developers a **consistent state snapshot** during PR review cycles so they 
 
 **Population rules:** Same as [`.sedea/centers/research-and-development/missions/plan-and-deliver/skills/coding-session/SKILL.md`](../coding-session/SKILL.md) § *Session orientation table (binding)* — recover missing PR/worktree context from **`coding-session`** before triage.
 
-**Mandatory gates (this skill):** Step **3b** disposition gate; Step **4** report + commit/push gate; external-wait parking after push; each cycle reopen when new comments land.
+**Mandatory gates (this skill):** Step **3b** disposition gate; Step **4** report + disposition gate; external-wait next-step modal after push; each cycle reopen when new comments land.
 
 ## Helper script
 
@@ -230,7 +230,7 @@ Do **not** apply fixes yet. First report the classification; then open the Step 
 
 Run this gate only after Step 3a has prepared proposed follow-ups and Step **4** has printed the classification report.
 
-Before applying any code, plan, or GitHub changes, open the **parked disposition gate** in Step **4** (`MC_PHASED_RESPONSE_V1` or **AskQuestion** with the **contextual** option set in Step **4** § *Build disposition options*). **Do not** duplicate the gate in prose.
+Before applying any code, plan, or GitHub changes, open the **disposition gate** in Step **4** (`MC_PHASED_RESPONSE_V1` or **AskQuestion** with the **contextual** option set in Step **4** § *Build disposition options*). **Do not** duplicate the gate in prose.
 
 **Contextual options (binding):** List **only** disposition actions valid for this PR's Step 3 classification counts — see Step **4** § *Build disposition options*. **Forbidden:** showing **`apply-must`** or **`apply-must-should`** when **`mustCount`** and **`shouldCount`** are both **0**; showing **`follow-ups-only`** when **`followUpCount`** is **0**. **`more-details`** is always included.
 
@@ -258,7 +258,7 @@ Acknowledge: *"Prepared <K> Code Review Follow-ups for `<slug>.plan.md` § Follo
 
 Plan files live under **`.sedea/operations/`** on the primary hosting repo. In the Sedea `app` monorepo, see `.sedea/centers/sedea/rules/0_hosting-repo.mdc`: that tree is often its **own** git repository, gitignored or submodule-pinned from the monorepo. Edits to `*.plan.md` / `*.state.yaml` therefore may **not** appear in the hosting repo worktree's `git status`. Sync plan changes through whatever workflow owns the operations repository (for example a dedicated `operations` commit), not only the `app` PR — rule **20** § *Commit and push cadence* still commits hosting-repo source changes as usual when the developer requests *commit* / *push* in the same message.
 
-### Step 4 — Report and parked disposition gate
+### Step 4 — Report and disposition gate
 
 Print **every** comment in its original form (quote the body). For each one, state one of four dispositions:
 
@@ -269,7 +269,7 @@ Print **every** comment in its original form (quote the body). For each one, sta
 
 Do **not** reply to, resolve, or minimize any threads yet.
 
-**Parked continuation (binding):** After the report, emit **`MC_PHASED_RESPONSE_V1`** (preferred on **`coding-session`** spawned lanes — sentinel line **1**, report recap in **`display.markdown`**) or the **AskQuestion** tool with the **contextual** Step **3b** option set from § *Build disposition options* below. The developer may review on GitHub or inspect local diffs **while the modal stays open**; they resume by **selecting an option**, not free-form chat.
+**Next-step modal (binding):** After the report, emit **`MC_PHASED_RESPONSE_V1`** (preferred on **`coding-session`** spawned lanes — sentinel line **1**, report recap in **`display.markdown`**) or the **AskQuestion** tool with the **contextual** Step **3b** option set from § *Build disposition options* below. The developer may review on GitHub or inspect local diffs **while the modal stays open**; they continue by **selecting an option**, not free-form chat.
 
 #### Build disposition options (contextual — binding)
 
@@ -295,11 +295,11 @@ After Step 3 classification, compute:
 | `apply-must-should` | **`mustCount > 0` or `shouldCount > 0`** | Apply Must + Should fixes |
 | `follow-ups-only` | **`followUpCount > 0`** | Follow-ups only — no source edits |
 | `skip-reject` | Triage non-empty | When **`skippedOnly`**: *Skip / reject — reconcile on GitHub (recommended)*; else *Skip / reject selected comments* |
-| `submit-manual-review` | **`skippedOnly`** or (**`followUpCount > 0`** and **`mustCount === 0`** and **`shouldCount === 0`**) | Submit manual review on GitHub — park per **`coding-session`** [Manual review submission (external-wait)](../coding-session/SKILL.md#manual-review-submission-external-wait) |
+| `submit-manual-review` | **`skippedOnly`** or (**`followUpCount > 0`** and **`mustCount === 0`** and **`shouldCount === 0`**) | Submit manual review on GitHub — open **`coding-session`** [Manual review submission (external-wait)](../coding-session/SKILL.md#manual-review-submission-external-wait) |
 | `merged-pr-proceed` | **`prNumber`** or **`prUrl`** known (always during PR ship chain) | PR merged — proceed with cleanup — **Act** per § *Merged-forward act mapping* below |
 | `more-details` | Always | More details for option _ |
 
-**Merged-forward (binding):** Include **`merged-pr-proceed`** on **every** parked disposition gate, post-fix commit/push gate, and external-wait resume modal while **`prNumber`** or **`prUrl`** is set — **even when** last `gh pr view` showed **`OPEN`**. **Forbidden:** omitting **`merged-pr-proceed`** because merge status was stale; using **`check-pr-status`** alone as the only way to discover developer merge on GitHub.
+**Merged-forward (binding):** Include **`merged-pr-proceed`** on **every** disposition gate, post-fix commit/push gate, and external-wait resume modal while **`prNumber`** or **`prUrl`** is set — **even when** last `gh pr view` showed **`OPEN`**. **Forbidden:** omitting **`merged-pr-proceed`** because merge status was stale; using **`check-pr-status`** alone as the only way to discover developer merge on GitHub.
 
 **Act mapping:** selecting an option not shown in the modal is impossible; do not treat hidden options as implicit consent. When the developer picks **`submit-manual-review`**, run **`coding-session`** [Manual review submission (external-wait)](../coding-session/SKILL.md#manual-review-submission-external-wait) — do not run Step **5 — GitHub only** on that turn. When the developer picks **`merged-pr-proceed`**, run § *Merged-forward act mapping* below.
 
@@ -322,7 +322,7 @@ Run on the **developer's response turn** when they pick **`merged-pr-proceed`**:
 
 **Forbidden:** “Review the PR and tell me when to continue”, “wait for the user to review”, fixed five-option menus when counts make options inert, or ending the turn without structured choice when dispositions need approval.
 
-**Act** (edits, plan append, GitHub reconciliation) runs on the **developer's response turn** after modal selection — not in the same turn as the parked gate.
+**Act** (edits, plan append, GitHub reconciliation) runs on the **developer's response turn** after modal selection — not in the same turn as the disposition gate.
 
 When fixes are applied and ready to land, use a **separate** structured-choice gate before commit/push. Include at least:
 
