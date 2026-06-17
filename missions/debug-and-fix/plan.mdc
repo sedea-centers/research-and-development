@@ -59,7 +59,6 @@ flowchart TD
   1. Match `debug and fix` case-insensitively.
   2. When dispatch scope is readable from the opening message (command remainder), run **Dispatch display refresh** (above) — **skip** when current dispatch chrome already matches.
   3. Continue to step 2.
-- Re-run **Dispatch display refresh** after step 2 when **`issueSummary`** improves the dispatch title — skip when already accurate.
 
 ### 2. Collect issue context
 
@@ -73,6 +72,7 @@ flowchart TD
   2. Treat remaining text as initial `issueSummary` when present.
   3. Collect missing **`issueSummary`** via structured choice when empty.
   4. Optionally collect **`reproductionSteps`**, **`logHints`**, and **`repoPath`** (default hosting repo root when omitted).
+  5. When **`issueSummary`** improves the dispatch title, re-run **Dispatch display refresh** (§ above) — **skip** when current dispatch chrome already matches.
 - `valid early-exit conditions`: Stop without spawn if the user declines to provide an issue summary.
 
 ### 3. Debug and fix (spawned skill)

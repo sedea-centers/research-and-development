@@ -99,8 +99,7 @@ flowchart TB
 1. Match **`quick fix`** case-insensitively (longest phrase first per [`.sedea/centers/sedea/rules/4_mission.mdc`](.sedea/centers/sedea/rules/4_mission.mdc) § **Mission command phrases**).
 2. When dispatch scope is readable from the opening message (command remainder), run **Dispatch display refresh** (above) — **skip** when current dispatch chrome already matches.
 3. Strip the phrase; pass remainder as optional scope hint to §2.
-4. Re-run **Dispatch display refresh** when §2 intake confirms a title that improves the dispatch title — skip when already accurate.
-5. Continue to §2.
+4. Continue to §2.
 
 ### 2. Collect quick fix intake
 
@@ -117,7 +116,8 @@ flowchart TB
 3. **Complexity gate:** Confirm developer attests each item is complexity **6 or under**. When any item likely exceeds **6**, stop and offer redirect (see **Mission constraints**).
 4. Collect optional **title** for the plan tree (default from first bullet or user phrase).
 5. Present summary (title, bullet list, complexity attestation); structured choice to proceed to Quick Fix Plan agent, revise list, redirect scope, or pause.
-6. **Forbidden:** spawn before list is confirmed in scope and complexity.
+6. When intake confirms a **title** that improves the dispatch title, re-run **Dispatch display refresh** (§ above) — **skip** when current dispatch chrome already matches.
+7. **Forbidden:** spawn before list is confirmed in scope and complexity.
 
 ### 3. Spawn Quick Fix Plan agent
 

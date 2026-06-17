@@ -103,8 +103,7 @@ flowchart TB
 1. Match **`plan and deliver a single phase`** case-insensitively (only command phrase for this mission).
 2. When dispatch scope is readable from the opening message (command remainder), run **Dispatch display refresh** (above) — **skip** when current dispatch chrome already matches.
 3. Strip the phrase; pass remainder as optional scope hint to §2.
-4. Re-run **Dispatch display refresh** when §2 intake confirms a title that improves the dispatch title — skip when already accurate.
-5. Continue to §2.
+4. Continue to §2.
 
 ### 2. Collect ad-hoc scope intake
 
@@ -119,7 +118,8 @@ flowchart TB
 1. Collect **change-request description** (`details`) — required; do not infer from title alone.
 2. Collect optional **title**, **supporting paths/URLs**, or explicit **no sources yet**.
 3. Present intake summary; structured choice to proceed to Ad-Hoc PRD, revise, or pause.
-4. **Forbidden:** spawn before `details` confirmed.
+4. When intake confirms a **title** that improves the dispatch title, re-run **Dispatch display refresh** (§ above) — **skip** when current dispatch chrome already matches.
+5. **Forbidden:** spawn before `details` confirmed.
 
 ### 3. Ad-Hoc PRD via agent
 
