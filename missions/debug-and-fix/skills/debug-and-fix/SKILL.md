@@ -85,7 +85,7 @@ Follow [`.sedea/centers/sedea/rules/0_hosting-repo.mdc`](.sedea/centers/sedea/ru
 
 **Exception (inline retry only):** When step **1** fails or bootstrap is not success-class, stop product edits and offer retry per rule **20** § *Bootstrap profiles* — inline deprecated [`worktree-bootstrap/SKILL.md`](../../../plan-and-deliver/skills/worktree-bootstrap/SKILL.md) **only** when setup failed and the developer attests retry (not spawn-by-default).
 
-Do **not** edit product code before **`outputs.bootstrapStatus: success`** (or documented attested **`--skip-*`** in **`outputs.bootstrapSkipFlags`**).
+Do **not** edit product code before **`outputs.bootstrapStatus: success`**.
 
 ### 3 — Logs first (mandatory gate)
 
