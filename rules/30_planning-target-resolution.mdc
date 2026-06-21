@@ -52,7 +52,7 @@ Two different **step 3** labels appear in ship docs. **Do not** conflate them wi
 
 | Label | Where | Meaning |
 |-------|--------|---------|
-| **Rule 20 — cadence step 3** | [`.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`](20_efficient-pr-shipping.mdc) § *Commit and push cadence* → *Steps* item **3** | On a **`coding-session`** (implementation) lane, **after** commit and push: run **`pr-review`** skill **Step 5 — GitHub only** via `pr-review.py` — **only** when that skill’s Steps **1–4** already ran in this chat. **Skip** cadence step 3 when there was no **`pr-review`** triage. **Not** a second full triage from scratch. |
+| **Rule 20 — cadence step 3** | [`.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`](20_efficient-pr-shipping.mdc) § *Commit and push cadence* → *Steps* item **3** | On a **`coding-session`** (implementation) lane, **after** commit and push: run **`pr-review`** skill **Step 5 — GitHub only** via `pr-review.mjs` — **only** when that skill’s Steps **1–4** already ran in this chat. **Skip** cadence step 3 when there was no **`pr-review`** triage. **Not** a second full triage from scratch. |
 | **`pr-review` Steps 1–5** | [`pr-review/SKILL.md`](../missions/plan-and-deliver/skills/pr-review/SKILL.md) | Inline on the active **`coding-session`** lane. **Step 5** is the GitHub reconciliation that rule 20 cadence step 3 names. |
 
 Pitfall cross-reference: **`.sedea/centers/research-and-development/docs/development-process.md`** § *Agent UX pitfalls* — *Commit and push cadence step 3*.

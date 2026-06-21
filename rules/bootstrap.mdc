@@ -72,6 +72,14 @@ Mission **`plan.mdc`**, **`development-process.md`**, and skill **`SKILL.md`** p
 
 ---
 
+## Skill helper interfaces
+
+When an active skill names a **`scripts/*.mjs`** helper for a GitHub, API, or repository operation, that helper is the binding interface for the operation it covers. Do not substitute familiar CLI commands, raw REST, or GraphQL calls unless the skill explicitly allowlists that exact use.
+
+Cross-ref: [`.sedea/centers/sedea/rules/1_agent-code-of-conduct.mdc`](.sedea/centers/sedea/rules/1_agent-code-of-conduct.mdc) § *Skill helper interfaces* (Sedea platform rule **1** — same contract; R&D center is Node-only under **`.sedea/centers/`**).
+
+---
+
 ## Related
 
 - Lane manifest contract (Sedea doc): [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea/docs/lane-manifest-contract.md)
