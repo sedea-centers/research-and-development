@@ -12,7 +12,7 @@ Govern end-to-end delivery from idea to production using a **depth-first iterati
 |---------|---------|
 | **`plan and deliver`** | Full PRD → plan tree → implementation and ship chain for multi-PR initiatives. |
 | **`quick fix`** | Small, single-PR fixes with minimal planning overhead. |
-| **`plan and deliver a single phase`** | Simplified Master Plan for bounded work (≤3 PRs, complexity ceiling). |
+| **`plan and deliver a single phase`** | Simplified Master Plan for bounded single-phase work (1–6 PRs, complexity ≤ 20). |
 | **`debug and fix`** | Log-first diagnosis and targeted fixes; optional promotion into broader delivery. |
 
 ## License
