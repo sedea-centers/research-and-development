@@ -67,7 +67,7 @@ During **Phase 0** and **hybrid**, the host may still resolve internal filesyste
 
 Until Hub/CLI governance PR lands, **`plan-state.mjs`** may still accept **`--operations-user-id <id>`** for CLI-only flows without Mission Control context. On **Mission Control agent lanes**, prefer explicit plan paths from spawn **`inputs`**; do not treat the CLI flag as the primary scope contract.
 
-**Hosting repo cwd:** **`plan-state.mjs`**, **`plan-ws-completeness.mjs`**, and **`pr-review.py`** run from **`HOSTING_ROOT`** — see [`.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`](20_efficient-pr-shipping.mdc) § *Hosting repo cwd for scripts (canonical)*.
+**Hosting repo cwd:** **`plan-state.mjs`**, **`plan-ws-completeness.mjs`**, and **`pr-review.mjs`** run from **`HOSTING_ROOT`** — see [`.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`](20_efficient-pr-shipping.mdc) § *Hosting repo cwd for scripts (canonical)*.
 
 ```bash
 WORKTREE_ROOT="$(pwd)"   # hosting repo worktree (or primary hosting repo when same)

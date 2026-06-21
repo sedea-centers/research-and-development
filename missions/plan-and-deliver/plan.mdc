@@ -15,7 +15,7 @@ The outcomes below span the **full cadence** (PRD → plans → implementation �
 
 ### Cadence reference (all branches — not Squad Leader protocol steps)
 
-**Planning** milestones below are logical — not strict spawn order. **`coding-session` ship chain** is **normative step order** on the implementation lane (inline · spawn · gate · procedure). **`pr-review`** runs **inline** after **`create-pr`** while the PR is open — developer selection of **`start-pr-review`** loads **`pr-review/SKILL.md`** and runs **`pr-review.py`** Step 1 before generic review/wait/merge options. Generic **`gh`** PR inspection is **not** a substitute for that cycle. **`plan-reconcile`** requires an **explicit start** — not auto after **`deploy-walk`** (rule **20** § *deploy-walk vs plan-reconcile*).
+**Planning** milestones below are logical — not strict spawn order. **`coding-session` ship chain** is **normative step order** on the implementation lane (inline · spawn · gate · procedure). **`pr-review`** runs **inline** after **`create-pr`** while the PR is open — developer selection of **`start-pr-review`** loads **`pr-review/SKILL.md`** and runs **`pr-review.mjs`** Step 1 before generic review/wait/merge options. Generic **`gh`** PR inspection is **not** a substitute for that cycle. **`plan-reconcile`** requires an **explicit start** — not auto after **`deploy-walk`** (rule **20** § *deploy-walk vs plan-reconcile*).
 
 ```mermaid
 flowchart TB
@@ -593,9 +593,9 @@ flowchart TB
 | **5 — Push fixes** | **`coding-session`** + inline **`pr-review`** | Disposition gate → approved edits → commit/push gate (rule **6**) → **`pr-review`** Step 5 (reply, resolve, minimize, re-request `slink-ai` when **CHANGES_REQUESTED**) |
 | **6 — Loop to step 2** | Developer + reviewers | After Step 5, **`coding-session`** re-opens [Post-create-pr handoff gate](skills/coding-session/SKILL.md#post-create-pr-handoff-gate). When new comments land, pick **`start-pr-review`** again. **`continuationStatus: active`** until comments are resolved, skipped, follow-up-captured, or deferred |
 
-**Binding references:** [pr-review/SKILL.md](skills/pr-review/SKILL.md) (triage + reconciliation — **`pr-review.py`** Step 1 is the first GitHub-touching action after **`start-pr-review`**); [coding-session/SKILL.md § Inline PR review after PR creation](skills/coding-session/SKILL.md#inline-pr-review-after-pr-creation); rule **20** § *Commit and push cadence* step 3.
+**Binding references:** [pr-review/SKILL.md](skills/pr-review/SKILL.md) (triage + reconciliation — **`pr-review.mjs`** Step 1 is the first GitHub-touching action after **`start-pr-review`**); [coding-session/SKILL.md § Inline PR review after PR creation](skills/coding-session/SKILL.md#inline-pr-review-after-pr-creation); rule **20** § *Commit and push cadence* step 3.
 
-**Post-PR handoff (binding):** Inline **`create-pr`** opens the PR; [Post-create-pr handoff gate](skills/coding-session/SKILL.md#post-create-pr-handoff-gate) resumes the ship chain on the same **`coding-session`** turn. Generic **`gh`** PR inspection is **not** a substitute for inline **`pr-review`** — the lane must run **`pr-review.py`** Step 1 when the developer picks **`start-pr-review`**.
+**Post-PR handoff (binding):** Inline **`create-pr`** opens the PR; [Post-create-pr handoff gate](skills/coding-session/SKILL.md#post-create-pr-handoff-gate) resumes the ship chain on the same **`coding-session`** turn. Generic **`gh`** PR inspection is **not** a substitute for inline **`pr-review`** — the lane must run **`pr-review.mjs`** Step 1 when the developer picks **`start-pr-review`**.
 
 **§8 phase hints:** `pr-open` after PR URL exists; advance to `pr-review` when **`coding-session`** re-emits with `prReviewStatus` terminal + `githubReconciliationStatus`. Repeated rounds stay on `pr-review` until merge moves toward `deploy-walk`.
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Binding parity harness — pr-review.mjs vs both pr-review.py copies.
+ * Binding parity harness — pr-review.mjs vs Sedea pr-review.py.
  *
  * Compares exit codes and stderr/stdout for PR_REVIEW_INPUT contract paths that do
  * not require live GitHub credentials. Live API parity is covered separately when
@@ -28,13 +28,9 @@ const hostingRoot = process.env.HOSTING_ROOT
 const RUNNERS = {
   mjs: path.join(hostingRoot, '.sedea/centers/sedea/scripts/pr-review.mjs'),
   sedeaPy: path.join(hostingRoot, '.sedea/centers/sedea/scripts/pr-review.py'),
-  rdPy: path.join(
-    hostingRoot,
-    '.sedea/centers/research-and-development/missions/plan-and-deliver/scripts/pr-review.py',
-  ),
 };
 
-/** @typedef {'mjs' | 'sedeaPy' | 'rdPy'} RunnerId */
+/** @typedef {'mjs' | 'sedeaPy'} RunnerId */
 
 /**
  * @param {RunnerId} id
@@ -78,40 +74,35 @@ function runRunner(id, opts = {}) {
 function normalizeStderr(stderr) {
   return stderr
     .replaceAll('\\', '/')
-    .replace(/Error: /g, 'Error: ')
+    .replace(/:\/{2,}/g, ':/')
+    .replace(/([^:/])\/{2,}/g, '$1/')
     .trim();
 }
 
 /**
- * Assert mjs matches sedeaPy (canonical baseline) and rdPy for contract errors.
+ * Assert mjs matches sedeaPy (canonical baseline) for contract errors.
  * @param {string} label
  * @param {{ cwd?: string, env?: Record<string, string>, inputPath?: string }} opts
  */
 function assertParity(label, opts) {
   const mjs = runRunner('mjs', opts);
   const sedeaPy = runRunner('sedeaPy', opts);
-  const rdPy = runRunner('rdPy', opts);
 
   for (const [name, r] of [
     ['mjs', mjs],
     ['sedeaPy', sedeaPy],
-    ['rdPy', rdPy],
   ]) {
     assert.ifError(r.error, `${label} (${name}): spawn failed: ${r.error?.message}`);
   }
 
   assert.equal(mjs.status, sedeaPy.status, `${label}: mjs exit ${mjs.status} vs sedeaPy ${sedeaPy.status}`);
-  assert.equal(mjs.status, rdPy.status, `${label}: mjs exit ${mjs.status} vs rdPy ${rdPy.status}`);
 
   const mjsErr = normalizeStderr(mjs.stderr);
   const sedeaErr = normalizeStderr(sedeaPy.stderr);
-  const rdErr = normalizeStderr(rdPy.stderr);
 
   assert.equal(mjsErr, sedeaErr, `${label}: stderr mjs vs sedeaPy`);
-  assert.equal(mjsErr, rdErr, `${label}: stderr mjs vs rdPy`);
 
   assert.equal(mjs.stdout, sedeaPy.stdout, `${label}: stdout mjs vs sedeaPy`);
-  assert.equal(mjs.stdout, rdPy.stdout, `${label}: stdout mjs vs rdPy`);
 }
 
 test('runners exist on disk', () => {
@@ -130,8 +121,10 @@ test('parity — missing PR_REVIEW_INPUT and no cwd input files', () => {
 });
 
 test('parity — PR_REVIEW_INPUT points to missing file', () => {
-  const missing =
-    'C:/app-worktrees/app-feat-01-port-pr-review-mjs/.sedea/staging/nonexistent-pr-review-input.json';
+  const missing = path.join(
+    os.tmpdir(),
+    'nonexistent-pr-review-input-governance-sweep.json',
+  );
   assertParity('missing env file', {
     cwd: hostingRoot,
     inputPath: missing,
