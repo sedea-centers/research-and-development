@@ -243,7 +243,7 @@ After approved fixes are applied, open a **second** structured-choice gate (comm
 
 ### Step 3a — Propose out-of-scope flags as follow-ups
 
-Per [`development-process.md`](../../../../docs/development-process.md) § *Cadence — Feedback Collection*, items surfaced by **a reviewer-agent (Slink or Code Rabbit)** during PR review that aren't worth blocking the PR on land in the PR plan's `## Follow-ups` section as **Code Review Follow-ups** (Strategy #6 forbids the silent scope expansion; the follow-up is the safe escape valve). This step mirrors `pre-pr-review` runner Step 6 — same section, same bullet shape, same routing semantics — so **`plan-reconcile`** can drain both sources at archive time without distinguishing.
+Per [`development-process.md`](../../../../docs/development-process.md) § *Cadence — Feedback Collection*, items surfaced by **an automated reviewer agent (for example Code Rabbit)** during PR review that aren't worth blocking the PR on land in the PR plan's `## Follow-ups` section as **Code Review Follow-ups** (Strategy #6 forbids the silent scope expansion; the follow-up is the safe escape valve). This step mirrors `pre-pr-review` runner Step 6 — same section, same bullet shape, same routing semantics — so **`plan-reconcile`** can drain both sources at archive time without distinguishing.
 
 **Skip this step entirely** when Step 0's sub-step returned no slug (`resolve` exited non-zero, or no PR plan is linked yet). Acknowledge once: *"No plan linked to this PR; skipping follow-ups capture. Out-of-scope flags surface in the Step 4 report only — copy anything actionable into a new plan or follow-up issue if needed."*
 
@@ -356,7 +356,7 @@ If all comments were **Skipped (no follow-up)** with **no** code edits, the Step
 
 2. **Minimize** every top-level review (`PRR_` node) from **every** reviewer (CodeRabbit, Brin, humans) with `{"command":"minimize",...,"node_id":"PRR_...","classifier":"RESOLVED"}`. Use GraphQL `reviews` + REST `pull-reviews` from Step 1. One JSON **array** of `minimize` objects; one script invocation.
 
-3. **Re-request review** from `slink-ai` if any `pull-reviews` entry from `slink-ai` has `state` **CHANGES_REQUESTED** — `{"command":"request-review",...,"reviewers":["slink-ai"]}`.
+3. **Re-request review** from the **automated reviewer** when any `pull-reviews` entry from that reviewer has `state` **CHANGES_REQUESTED** — use the reviewer login from Step 1 `pull-reviews` (for example `{"command":"request-review",...,"reviewers":["<automated-reviewer-login>"]}`).
 
 4. **Summary** comment — `{"command":"summary",...}` with body shaped like:
 

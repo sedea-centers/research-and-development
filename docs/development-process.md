@@ -764,7 +764,7 @@ Runs **inline** on the active **`coding-session`** lane after a PR exists (not a
 | 2 | GitHub reviewers comment (external) |
 | 3 | Developer picks **`start-pr-review`** → **`coding-session`** runs **`pr-review`** inline (Steps 1–5) |
 | 4 | **No Must/Should/follow-up:** **`skip-reject`** → Step 5 GitHub reconciliation → developer **merges on GitHub** (no skill **Merge PR** modal) → **`check-pr-status`** or **`spawn-after-deploy-walk`** |
-| 5 | **Must/Should present:** disposition gate → fixes → commit/push → Step 5 reconcile (re-request `slink-ai` when **CHANGES_REQUESTED**) |
+| 5 | **Must/Should present:** disposition gate → fixes → commit/push → Step 5 reconcile (re-request automated reviewer when **CHANGES_REQUESTED**) |
 | 6 | Post-create-pr gate re-opens; pick **`start-pr-review`** again when new comments arrive |
 
 Loop continues until merge, defer, or all comments are resolved/skipped/follow-up-captured. **`continuationStatus: active`** on **`coding-session`** throughout.

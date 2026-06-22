@@ -587,10 +587,10 @@ flowchart TB
 | Cycle step | Normative owner | Skill / gate |
 |------------|-----------------|--------------|
 | **1 — PR created** | **`coding-session`** (inline **`create-pr`**) | [Post-create-pr handoff gate](skills/coding-session/SKILL.md#post-create-pr-handoff-gate) opens same turn |
-| **2 — Reviewers review** | Developer + GitHub reviewers (Slink, CodeRabbit, humans) | External — not a Sedea spawn |
+| **2 — Reviewers review** | Developer + GitHub reviewers (automated reviewers such as CodeRabbit, humans) | External — not a Sedea spawn |
 | **3 — Run `pr-review`** | **`coding-session`** (inline) | Developer picks **`start-pr-review`** at post-create-pr gate, or explicit *triage PR comments* on the lane |
 | **4 — No actionable comments** | Developer | **`pr-review`** skip-only path: **`skip-reject`** → Step 5 GitHub reconciliation. **Merge is on GitHub** — there is no **Merge PR** modal in `pr-review` or `coding-session`. After merge, pick **`check-pr-status`** or **`spawn-after-deploy-walk`** at post-create-pr gate |
-| **5 — Push fixes** | **`coding-session`** + inline **`pr-review`** | Disposition gate → approved edits → commit/push gate (rule **6**) → **`pr-review`** Step 5 (reply, resolve, minimize, re-request `slink-ai` when **CHANGES_REQUESTED**) |
+| **5 — Push fixes** | **`coding-session`** + inline **`pr-review`** | Disposition gate → approved edits → commit/push gate (rule **6**) → **`pr-review`** Step 5 (reply, resolve, minimize, re-request automated reviewer when **CHANGES_REQUESTED**) |
 | **6 — Loop to step 2** | Developer + reviewers | After Step 5, **`coding-session`** re-opens [Post-create-pr handoff gate](skills/coding-session/SKILL.md#post-create-pr-handoff-gate). When new comments land, pick **`start-pr-review`** again. **`continuationStatus: active`** until comments are resolved, skipped, follow-up-captured, or deferred |
 
 **Binding references:** [pr-review/SKILL.md](skills/pr-review/SKILL.md) (triage + reconciliation — **`pr-review.mjs`** Step 1 is the first GitHub-touching action after **`start-pr-review`**); [coding-session/SKILL.md § Inline PR review after PR creation](skills/coding-session/SKILL.md#inline-pr-review-after-pr-creation); rule **20** § *Commit and push cadence* step 3.
