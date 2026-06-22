@@ -122,11 +122,11 @@ flowchart TB
    - **`pause`**
    - **More details for option _**
 2. **`provide-list` path:** Collect **bullet list** of changes — required; may pre-fill from opening remainder when bullets are already present.
-3. **`description-of-fix` path:** Collect **free-form prose** (`changeDescription`) — required; do not infer missing details from title alone. Propose a **synthesized bullet list** derived from the prose; present for developer review with structured choice before scope/complexity gates.
+3. **`description-of-fix` path:** Collect **free-form prose** (`changeDescription`) — required; do not infer missing details from title alone. Propose a **synthesized bullet list** derived from the prose; present for developer review with structured choice before scope/complexity gates. When the developer chooses **revise intake** at that confirmation, return to step 1 — they may re-enter prose for re-synthesis, switch to **`provide-list`**, or edit the synthesized bullets inline before re-running steps 4–9.
 4. **Scope gate:** Confirm each item is a small fix — cosmetic UI/styling/copy **or** a **simple functional change** within this mission's line-count expectations. Reject items that need Master Plan decomposition, multiple PRs, or broad refactors.
 5. **Complexity gate:** Confirm developer attests each item is complexity **6 or under**. When any item likely exceeds **6**, stop and offer redirect (see **Mission constraints**).
 6. Collect optional **title** for the plan tree (default from first bullet, prose summary, or user phrase).
-7. Present summary (title, final bullet list, complexity attestation, intake mode used); structured choice to proceed to Quick Fix Plan agent, revise intake, redirect scope, or pause.
+7. Present summary (title, final bullet list, complexity attestation, intake mode used); structured choice to proceed to Quick Fix Plan agent, **revise intake** (return to step 1 per step 3), redirect scope, or pause.
 8. When intake confirms a **title** that improves the dispatch title, re-run **Dispatch display refresh** (§ above) — **skip** when current dispatch chrome already matches.
 9. **Forbidden:** spawn before list is confirmed in scope and complexity (both paths).
 
@@ -145,7 +145,7 @@ flowchart TB
 **Spawn preflight**
 
 - **`name`** / **`description`** from intake **title** or first bullet — not generic placeholders.
-- **`initiatingPrompt`:** confirmed bullet list, scope/complexity confirmation, and full `changeDescription` when the prose intake path was used.
+- **`initiatingPrompt`:** one narrative prompt string weaving the confirmed bullet list, scope/complexity confirmation, and full `changeDescription` when the prose intake path was used — not separate structured sub-fields.
 - **`warmUpRules`:** include **`quick-fix/plan.mdc`** instead of **`plan-and-deliver/plan.mdc`**.
 
 **Agent session closure:** Child **`AGENT_RESULT_RESPONSE_V1`**; leader waits for host delivery before §6.
