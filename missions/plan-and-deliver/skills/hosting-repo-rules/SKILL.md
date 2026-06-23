@@ -195,7 +195,10 @@ Render as the **first block** in `display.markdown` at every mandatory gate.
 
 ### 1. Pre-worktree validation
 
-- Read anchored PR plan §§1–4; confirm §5 describes rules work (may reference coding-session handoff).
+- **Read `inputs.targetPlanPath`** (anchored PR plan) §§1–4; confirm §5 describes rules work (may reference coding-session handoff).
+- **Read** `.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc` §§ relevant to ship ledger / row status before populating plan §§5–8 or emitting terminal outputs (384 KiB cap — not in frontmatter `warmUpRules`).
+- **Read** `.sedea/centers/research-and-development/docs/development-process.md` § *Ship chain* before cut-point, **`pre-pr-review`**, or merge steps (384 KiB cap — runtime `Read`).
+- **Read** `.sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc` when validating plan anchor or resolving target-path picks (384 KiB cap — runtime `Read`).
 - Worktree-open gate before **`worktree-setup`**.
 
 ### 2. Worktree-setup (inline)
