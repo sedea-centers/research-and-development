@@ -665,10 +665,10 @@ When Mission Control delivers a **`coding-session`** child **`AGENT_RESULT_RESPO
 | `repoRulesReconciliationStatus` | Echo from terminal — must be **`pending`** or deferral signal |
 | `ledgerParent` | **`outputs.masterPlanSlug`** or spawn **`inputs.ledgerParent`** |
 
-3. On the **existing product PR row** in this lane's ledger, set **`rulesUpdatesStatus: spawned`**, record **`hostingRepoRulesCorrelationId`**, and list rules-lane completion in **`remainingTasks`** until async terminal merge.
+3. On the **existing product PR row** in this lane's ledger, set **`rulesUpdatesStatus: spawned`** and record **`hostingRepoRulesCorrelationId`**. Let the async child update **`rulesUpdatesStatus`** / **`rulesPrUrl`** on return.
 4. **Continue depth-first expand** — offer Step **7b** **`expand-next-eligible`** when sequencing gates allow **without** waiting on rules PR merge.
 
-**Async rules child terminal merge:** When Mission Control later delivers **`hosting-repo-rules`** **`AGENT_RESULT_RESPONSE_V1`**, match by **`hostingRepoRulesCorrelationId`**. Update product row **`rulesUpdatesStatus`** (`complete` | `failed` | `abandoned`), optional **`rulesPrUrl`**, and remove rules-lane items from **`remainingTasks`** when terminal. **Re-emit updated** **`AGENT_RESULT_RESPONSE_V1`** (same **`correlationId`**) when standalone spawned.
+**Async rules child terminal merge:** When Mission Control later delivers **`hosting-repo-rules`** **`AGENT_RESULT_RESPONSE_V1`**, match by **`hostingRepoRulesCorrelationId`**. Update product row **`rulesUpdatesStatus`** (`complete` | `failed` | `abandoned`) and optional **`rulesPrUrl`**. **Re-emit updated** **`AGENT_RESULT_RESPONSE_V1`** (same **`correlationId`**) when standalone spawned.
 
 **Forbidden:** blocking next-row PR expand until rules PR merges; separate **`shipRows`** sub-row; adding rules lane to **`pendingByParent`**.
 
@@ -785,7 +785,7 @@ Required `outputs` fields:
 - `outputs.remainingTasks` — pending user or agent actions; empty only when `continuationStatus` is `terminal`
 - `outputs.expandEligibleIndices`, `outputs.expandNextEligibleIndex` — echo from inline decomposition after spawn-chain ship-complete merges
 - `outputs.prShipComplete`, `outputs.phaseShipComplete` — when this lane merged bubbled ship terminals from nested **`coding-session`** / **`phase-planner`** chains
-- Product PR row ledger (parallel rules fork) — per affected PR row when Step **7c** spawns or merges **`hosting-repo-rules`**: **`rulesUpdatesStatus`** (`not-spawned` | `spawned` | `in-progress` | `complete` | `failed` | `abandoned`), optional **`hostingRepoRulesCorrelationId`**, **`rulesPrUrl`**
+- Product PR row ledger (parallel rules fork) — per affected PR row when Step **7c** spawns or merges **`hosting-repo-rules`**: **`rulesUpdatesStatus`** (`not-spawned` | `spawned` | `in-progress` | `complete` | `failed` | `abandoned`), optional **`hostingRepoRulesCorrelationId`**, optional **`rulesPrUrl`**
 - `outputs.parentPlanningFollowUpNotification`, `outputs.parentPlanningFollowUps`, `outputs.pendingParentFollowUps` — when bubbled from nested **`coding-session`** with parent follow-up notification (**`../README.md`** § *Upstream parent follow-up notification*)
 - `outputs.implementationHandoffStatus` — `not-offered` | `offered` | `deferred` | `spawned-coding-session` merged from inline **`pr-plan`** (required when a PR plan handoff is pending or completed on this lane)
 - `outputs.spawnCorrelationId` — UUID from inline **`pr-plan`** §5d when **`implementationHandoffStatus`** is **`spawned-coding-session`**
