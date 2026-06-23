@@ -41,8 +41,9 @@ Squad Leader **§8** on the **`plan and deliver`** dispatch is updated **only** 
 
 | Source | Host sync? | Leader §8 action |
 |--------|------------|------------------|
-| **`coding-session`**, **`pre-pr-review`**, **`worktree-bootstrap`**, **`create-pr`**, **`deploy-walk`**, **`plan-reconcile`** child terminal with `outputs.targetPlanPath` and derivable `shipPhase` | **Yes** | Parse silent **`Mission Control: ship-ledger sync (section 8).`** — **`plan.mdc`** §8 |
-| **`pr-review`** (inline on **`coding-session`**) | Via **`coding-session`** re-emit | **`coding-session`** **must** re-emit with `shipPhase: pr-review` after triage — **`pr-review/SKILL.md`** § *§8 host sync (via coding-session)* |
+| **`coding-session`** or **`pre-pr-review`** spawned child terminal with `outputs.targetPlanPath` and derivable `shipPhase` | **Yes** | Parse silent **`Mission Control: ship-ledger sync (section 8).`** — **`plan.mdc`** §8 |
+| **`pr-review`**, **`create-pr`**, **`deploy-walk`**, **`plan-reconcile`** (inline on **`coding-session`**) | Via **`coding-session`** re-emit | **`coding-session`** **must** re-emit with §8 **`outputs`** after each inline milestone — see each skill § *Mission Control section 8 sync* / *§8 host sync* |
+| **`worktree-bootstrap`** (deprecated — inline exception retry on **`coding-session`** only) | Via **`coding-session`** re-emit | **Not** a separate host-sync child — report `bootstrapStatus` / `shipPhase: worktree` on **`coding-session`** terminal only |
 
 Do not report §8 as up to date, or propose dispatch **`resolved`**, because **`pr-review`** finished on a coding lane without a subsequent **`coding-session`** terminal that includes §8 **`outputs`**.
 
