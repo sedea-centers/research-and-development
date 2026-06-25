@@ -43,6 +43,8 @@ R&D delivery agents are governed by:
 
 **Lane warm-up manifest contract.** Per-lane warm-up semantics (`bootstrapRules`, `laneRules`, `skillWarmUp`, `effectiveWarmUp`, reload obligations) are normative in **`.sedea/centers/sedea/docs/lane-manifest-contract.md`**, with spawn/reload bindings in **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Lane warm-up manifest (spawn and reload)*. R&D plans and skills should reference that contract when declaring role-specific **`laneRules`**.
 
+**Checkpoint gate markers.** When authoring plan or skill steps for **`trustLevel: checkpoint`** dispatches, use explicit **`USER_CHECKPOINT`** markers per **`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`** — literal token, decision prose, step-level placement, and optional `defaultOptionId` or first-listed recommended option. Rule **2** § *Checkpoint trust level — partial rule 2 precedence* links the syntax spec; host `defaultOptionId` pre-selection is not shipped yet.
+
 | Layer | R&D dispatch path |
 |-------|-------------------|
 | **Sedea `bootstrapRules`** | **`.sedea/centers/sedea/rules/bootstrap.mdc`** (sole Sedea `alwaysApply: true` bootstrap) |
