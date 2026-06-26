@@ -212,18 +212,9 @@ USER_CHECKPOINT — pick which repo(s) this feature primarily touches for archit
 | `add-repo` | Add another repo path |
 | `more-details` | More details for option _ |
 
-- When **two or more** hosting repos remain after filtering → open this gate with **`AskQuestion`** (`allow_multiple: true`) or **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** — put each choosable path in modal `options`, not prose menus.
-- When **exactly one** hosting repo remains after filtering → **auto-advance** with the informational line below; do **not** open this gate.
-
-Then use the `AskQuestion` tool with `allow_multiple: true` to ask:
-
-> "Which repo(s) does this feature primarily touch? Architectural rules will be loaded from each one's `.cursor/rules/`."
-
-Each option's `id` is the absolute path; each `label` is the leaf folder name (e.g. `payments-web`, `platform-infra`).
-
-If the PRD or the title strongly implies a single repo (e.g. it mentions "merchant dashboard" or "push worker"), still surface the multi-select — but mention the implied repo in the prompt's preface so the user can accept the default with one click. Do not auto-select on the user's behalf; multi-repo features are common enough that the agent shouldn't presume.
-
-If only one repo remains after filtering, skip the AskQuestion and tell the user *"Only one hosting repo in this workspace — defaulting to <name>. Reply 'add <path>' if you want to include another."*
+- When **two or more** hosting repos remain after filtering → open this gate with **`AskQuestion`** (`allow_multiple: true`) or **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**. **`modalTitle`:** *Planner — pick target repo(s)*; **`prompt`:** *Which repo(s) does this feature primarily touch? Architectural rules will be loaded from each one's `.cursor/rules/`.* — one option per filtered repo (`id` = absolute path, `label` = leaf folder name) plus **`add-repo`** and **`more-details`**. Mention an implied default repo in recap when the PRD/title suggests one — do **not** auto-select.
+- When **exactly one** hosting repo remains after filtering → **auto-advance** with *"Only one hosting repo in this workspace — defaulting to \<name\>. Reply 'add \<path\>' if you want to include another."* — do **not** open this gate.
+- After a developer pick at this gate, continue to step **3b** with the selected repo path(s).
 
 ### 3b — Sync each selected repo to its default branch
 
