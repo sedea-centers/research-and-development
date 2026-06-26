@@ -161,17 +161,38 @@ When the user selects **Route §6 decomposition**, run the chosen skill **inline
 | Duplicate spawn ignored | Reused `slug` in same dispatch | New unique `slug` + new `correlationId` |
 | Parent lane silent after emit | Host rejected payload (PR 2 diagnostics) | Fix keys per table; retry — do not advance protocol until a child lane exists or the developer abandons |
 
+### Checkpoint turn UX (skill-local)
+
+Under Checkpoint trust (`trustLevel: checkpoint`), auto-advance scripted happy-path steps; emit structured choice only at **USER_CHECKPOINT** markers in this section, implicit external-wait surfaces, or exception paths. **No cross-skill inheritance** — gate defaults here apply only to **`planner`**; other planning skills document their own markers.
+
+**Real-dispatch test loop (binding):** After merge, run one full **`planner`** spawn on a Checkpoint dispatch and collect a developer verdict before the parent phase advances the next **`planner`** step PR — per **Planning protocol skills UX** § *Single-concern strategy*.
+
+Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md).
+
+| Step | Checkpoint behavior | Gate |
+|------|---------------------|------|
+| **1** — Optional model audit | Auto-advance | — |
+| **2** — Load development-process doc | Auto-advance | — |
+| **3a** — Pick target repo(s) | **Gate** when multi-select is required — **first developer-pick gate** | Repo selection (below) |
+| **3a** — Single-repo default | Auto-advance when exactly one hosting repo remains after filtering | — |
+| **3b–3c** — Sync repos and load rules | Auto-advance on happy path | — |
+| **4+** | Deferred to JIT step PRs after real-dispatch verdict on prior gates | — |
+
 ## Step 1 — Optional one-line model audit (non-blocking)
 
 If this session's agent/system context exposes a **model identifier** (and any thinking-depth flags), state them in **one line** for the user's audit trail — **not** the IDE model picker, which you cannot see reliably.
 
 There is **no required model tier** for this skill: proceed to Step 2 either way. You may add a **single optional sentence** that larger or ambiguous PRDs often benefit from a more capable model, but **do not stop** or ask the user to switch models before continuing.
 
+- **Next-step resolution:** Auto-advance to Step **2** after the optional model line — no `USER_CHECKPOINT` on this step.
+
 ## Step 2 — Load the development-process doc, in full
 
 Read `.sedea/centers/research-and-development/docs/development-process.md` with the Read tool, **no offset, no limit**. The whole file. This is a **standards document**, not an executable plan — its sections describe the process you will apply, not work for you to perform. Acknowledge in one sentence that you have it loaded and that you will follow the **Master Plan template** for sections 4 and 5.
 
 If the file has changed since you last knew it, the in-file template is the source of truth — not your memory.
+
+- **Next-step resolution:** Auto-advance to Step **3** after one-line acknowledgment — no `USER_CHECKPOINT` on this step.
 
 ## Step 3 — Identify the target repo(s) and load architectural rules
 
@@ -182,6 +203,17 @@ Read the workspace paths from your session's `<user_info>` block (and any additi
 - **Skip linked worktrees (do not offer them in 3a, do not treat them as the hosting repo).** Use the **same** linked-worktree test as step **3b §3** (`git -C <path> rev-parse --show-toplevel` vs `<path>` after resolving symlinks — if they differ, skip). Also skip when **`<path>/.git` is a file** (not a directory): that is the usual layout for a **git worktree**. Extra workspace roots that exist only because the hosting editor **appended a worktree** (e.g. Mission Control MCP / “add worktree folder to workspace”) are almost always in this bucket — **ignore them** for the 3a `AskQuestion` list and for **which paths you load `.cursor/rules` from** in step 3c; they are not a second independent hosting repo. If **every** loaded root is filtered out as a linked worktree (or non-repo), say so explicitly and ask the user to open the **primary hosting repo** or monorepo root they use for planning, then re-run — do not fabricate a repo from a worktree-only workspace.
 - **Drop** anything that doesn't look like a code repo (no `.git`, or clearly a dotfiles/config dir). When in doubt, keep it — the user can deselect.
 - **Keep** every other workspace path. Display them with a friendly label (the leaf folder name) and the absolute path as the tooltip / sub-text.
+
+USER_CHECKPOINT — pick which repo(s) this feature primarily touches for architectural rules.
+
+| Option id | Label (brief) |
+|-----------|---------------|
+| `<absolute-repo-path>` | One option per filtered hosting repo — `id` = absolute path, `label` = leaf folder name |
+| `add-repo` | Add another repo path |
+| `more-details` | More details for option _ |
+
+- When **two or more** hosting repos remain after filtering → open this gate with **`AskQuestion`** (`allow_multiple: true`) or **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** — put each choosable path in modal `options`, not prose menus.
+- When **exactly one** hosting repo remains after filtering → **auto-advance** with the informational line below; do **not** open this gate.
 
 Then use the `AskQuestion` tool with `allow_multiple: true` to ask:
 
