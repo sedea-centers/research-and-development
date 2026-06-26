@@ -89,6 +89,27 @@ Gather evidence, calibrate section policy, and draft or update a Product or Feat
 
 ## Procedure
 
+### Checkpoint turn UX (skill-local)
+
+Under Checkpoint trust (`trustLevel: checkpoint`), auto-advance scripted happy-path steps; emit structured choice only at **USER_CHECKPOINT** markers in this section, implicit external-wait surfaces, or exception paths. **No cross-skill inheritance** — gate defaults here apply only to **`author-prd`**; other planning skills document their own markers.
+
+**Real-dispatch test loop (binding):** After merge, run one full **`author-prd`** spawn on a Checkpoint dispatch and collect a developer verdict before the parent phase advances **`planner`** PR 2 — per **Planning protocol skills UX** § *Single-concern strategy*.
+
+Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md).
+
+| Step | Checkpoint behavior | Gate |
+|------|---------------------|------|
+| **1** — Validate operation | Auto-advance | — |
+| **1b** — Leader intake guard | Auto-advance on happy path; terminal **`failure`** when intake missing (exception) | — |
+| **2** — Initialize source ledger | Auto-advance | — |
+| **3** — Evidence-gathering loop | **Gate** when mandatory sections still need source material — **first developer-pick gate** | Evidence path (below) |
+| **4** — Calibrate section policy | Auto-advance when caller policy or defaults apply; **gate** when classification is required | Section policy (below) |
+| **5** — Identify gaps | Auto-advance when no mandatory gaps remain; **gate** when targeted questions are required | Gap resolution (below) |
+| **6–9** — Draft through lane display | Auto-advance | — |
+| **10** — Present for approval | **Gate** (always) | PRD approval (below) |
+| **10a** — Open-item resolution | Returns to step **10** gate shape | same as step **10** |
+| **11** — On approve | Auto-advance after **Approve PRD** pick | — |
+
 1. Validate the operation:
  - `create` drafts a new PRD.
  - `manage` updates or reviews an existing PRD.
@@ -103,21 +124,49 @@ Gather evidence, calibrate section policy, and draft or update a Product or Feat
  - preserve attribution so claims can be traced back to sources.
  - list unreadable or unavailable seed sources as blockers or caveats.
 3. Run the evidence-gathering loop:
- - use **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** § **Context and structured choice** to ask for documents, URLs, write-ups, thoughts, screenshots, mocks, user or stakeholder evidence, implementation constraints, and related PRDs when needed — put each choosable path in modal `options`, not prose menus.
- - read local files and `@path` references completely.
- - fetch readable URLs when available; if a URL is inaccessible, ask for an accessible copy or pasted content.
- - extract candidate facts into the source ledger after each added material.
- - stop collecting only when mandatory sections have enough evidence, or when the user explicitly says no more material is available.
+
+USER_CHECKPOINT — pick evidence path when mandatory sections still need source material.
+
+| Option id | Label (brief) |
+|-----------|---------------|
+| `provide-source` | Provide document, URL, or pasted content |
+| `no-more-sources` | No more material available — proceed with visible gaps |
+| `defer-evidence` | Defer — pause evidence gathering |
+| `more-details` | More details for option _ |
+
+ - When mandatory sections already have enough evidence from **`prdDescription`**, leader **`sourceMaterials`**, or prior loop passes → **auto-advance** to step **4** without opening this gate.
+ - At this gate, use **`MC_PHASED_RESPONSE_V1`** (spawned lanes) or **AskQuestion** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** — put each choosable path in modal `options`, not prose menus.
+ - After a developer pick, read local files and `@path` references completely; fetch readable URLs when available; if a URL is inaccessible, return to this gate with an accessible-copy option.
+ - Extract candidate facts into the source ledger after each added material.
+ - Stop collecting when mandatory sections have enough evidence, or when the developer picks **`no-more-sources`**.
 4. Calibrate section policy:
- - use caller-provided policy when present.
- - ask the user to classify sections when their importance is unclear or when policy affects planning readiness.
- - otherwise apply the default policy below.
- - do not require optional sections when they are not relevant.
+
+USER_CHECKPOINT — classify section importance when policy is unclear or affects planning readiness.
+
+| Option id | Label (brief) |
+|-----------|---------------|
+| `apply-default-policy` | Apply default section policy below |
+| `classify-sections` | Classify sections interactively |
+| `more-details` | More details for option _ |
+
+ - When caller-provided **`sectionPolicy`** is present or defaults clearly apply → **auto-advance** without opening this gate.
+ - At this gate, use **`MC_PHASED_RESPONSE_V1`** or **AskQuestion** per rule **2**.
+ - Do not require optional sections when they are not relevant.
 5. Identify gaps and ask targeted questions:
- - identify product problem, users, goals, non-goals, requirements, dependencies, risks, rollout, and acceptance criteria.
- - ask targeted follow-up questions for missing mandatory content.
- - report important-section gaps and ask whether to gather more data, mark them optional/not applicable, or carry them as visible gaps.
- - mark contradictions and missing mandatory information as open questions until resolved.
+
+USER_CHECKPOINT — resolve mandatory or important gaps before drafting.
+
+| Option id | Label (brief) |
+|-----------|---------------|
+| `answer-gaps` | Answer targeted gap questions |
+| `mark-not-applicable` | Mark section not applicable |
+| `carry-visible-gap` | Carry as visible gap in §12 |
+| `gather-more` | Gather more evidence (return to step **3**) |
+| `more-details` | More details for option _ |
+
+ - When no mandatory gaps and no important gaps needing a pick → **auto-advance** to step **6**.
+ - At this gate, identify product problem, users, goals, non-goals, requirements, dependencies, risks, rollout, and acceptance criteria; ask targeted follow-up questions for missing mandatory content.
+ - Mark contradictions and missing mandatory information as open questions until resolved.
 6. Draft or update the PRD:
  - keep section ordering stable unless the existing PRD uses a clearly intentional structure.
  - retain useful existing content in `manage` mode.
@@ -129,7 +178,11 @@ Gather evidence, calibrate section policy, and draft or update a Product or Feat
  - optional gaps do not block planning.
 8. Write the document when an output path is resolved, then re-read it and verify the required sections.
 9. **Refresh lane display** when spawn labels are generic — MCP **`mission_control_update_lane_display`** on this lane only (rule **50**).
-10. **Present for approval** — Recap path, `planningReadiness`, and gap summary. Use **`MC_PHASED_RESPONSE_V1`** (spawned lanes) or **AskQuestion** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**.
+10. **Present for approval** — Recap path, `planningReadiness`, and gap summary.
+
+USER_CHECKPOINT — approve PRD for planner handoff on this dispatch.
+
+ Use **`MC_PHASED_RESPONSE_V1`** (spawned lanes) or **AskQuestion** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**.
 
  **Detect open items** before building the modal: `outputs.openQuestions`, missing mandatory or important sections, unresolved `TBD` markers, contradictions, and `planningReadiness: partial` or `blocked`.
 
