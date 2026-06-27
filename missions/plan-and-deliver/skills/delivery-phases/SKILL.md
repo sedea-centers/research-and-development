@@ -100,6 +100,24 @@ Per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea
 
 The **developer** picks the next move per **30_planning-target-resolution** § *Sedea input channel*.
 
+## Checkpoint turn UX (skill-local)
+
+Under Checkpoint trust (`trustLevel: checkpoint`), auto-advance scripted happy-path steps; emit structured choice only at **USER_CHECKPOINT** markers in this section, implicit external-wait surfaces, or exception paths. **No cross-skill inheritance** — gate defaults here apply only to **`delivery-phases`**; other planning skills document their own markers.
+
+**Real-dispatch test loop (binding):** After merge, run one full **`delivery-phases`** spawn on a Checkpoint dispatch through Step **6** and collect a developer verdict before the parent phase advances the next **`delivery-phases`** step PR — per **Planning protocol skills UX** § *Single-concern strategy*.
+
+Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md).
+
+| Step | Checkpoint behavior | Gate |
+|------|---------------------|------|
+| **1** — Identify target | Auto-advance on spawned handoff with locked `inputs` | exception: wrong template / missing target |
+| **2** — Load development-process | Auto-advance | — |
+| **3** — Read target / dual-title section | Auto-advance on happy path | — |
+| **4** — Decision gate | Auto-advance when `routeLock: delivery-phases` or upstream route already chosen | **Gate** when dual-title body is `_TBD_` and no route lock |
+| **5** — Draft list (**5a–5d**) | Auto-advance through write and step **5d** notify recap | — |
+| **6** — Approve phase list | **Gate** when **K > 0** — **first developer-pick gate in this calibration PR** | Approve phase list (below) |
+| **6a–6b** | Act-after-select; external-wait on spawned child lanes | — |
+
 ### Inline handoff — **delivery-phases** → **`new-plan`** (step 6 act-after-select)
 
 When **`parentAgentRole`** is **`master-plan-agent`** or **`phase-planner-agent`** (this skill inline under **`master-planner`** or **`phase-planner`**), run **`new-plan`** **inline on this lane** for **eligible** row index(es) only — **do not** emit **`AGENT_RUN_REQUEST_V1`** for **`new-plan`**. **Depth-first gate:** expand **at most one** phase row per act-after-select pass — the lowest index **N** whose **`Plan:`** is still `_TBD_` and whose prior phase **N−1** is **ship-complete** per **development-process.md** § *Depth-first plan-tree traversal* and **30_planning-target-resolution** § *Depth-first expansion eligibility*. Load `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/new-plan/SKILL.md`, construct inline context per eligible row from the table below, follow that skill’s steps, and merge each **`## Completion (inline)`** into this skill’s ledger (`childRows`, `spawnedPlans`, `activeLanes`, `openLedgerEntries`, `remainingTasks`). Inline **`new-plan`** may still spawn **`phase-planner`** per its contract.
@@ -136,11 +154,15 @@ Acknowledge in one line: *"Target plan: `<slug>`."*
 
 Acknowledge: *"Stage: <Master Plan | Phase plan>; proceeding."*
 
+- **Next-step resolution:** Auto-advance to Step **2** after stage acknowledgment — no `USER_CHECKPOINT` on this step unless the target is wrong template (exception stop).
+
 ## Step 2 — Load the development-process doc
 
 Read `.sedea/centers/research-and-development/docs/development-process.md` with the Read tool, **no offset, no limit** (hosting repo root). Acknowledge in one sentence: *"Loaded development-process.md; will follow § 2 Delivery phases + § 6/§ 5 contents rule."*
 
 This is a **standards document**, not an executable plan — its sections describe the process you apply. Re-read on every invocation; do not rely on session memory.
+
+- **Next-step resolution:** Auto-advance to Step **3** after one-line acknowledgment — no `USER_CHECKPOINT` on this step.
 
 ## Step 3 — Read the target plan and locate the dual-title section
 
@@ -160,6 +182,8 @@ Inspect the section and apply:
 
 Acknowledge the state in one line.
 
+- **Next-step resolution:** Auto-advance to Step **5** when heading is already `Delivery phases` with empty / `_TBD_` body, or to Step **6** when body is already populated — no `USER_CHECKPOINT` on this step.
+
 ## Step 4 — Decision gate (when section is `_TBD_`)
 
 ### Step 4-open-items — Open-item modal contract
@@ -176,6 +200,8 @@ Apply the shared planning open-item contract from `../README.md` to every **deli
 **When no open items remain** — use the existing single terminal gate question for Step **4**, Step **6**, or follow-up expansion.
 
 When the skill was spawned with `routeLock: "delivery-phases"` (or with `parentAgentRole: "master-plan-agent"` or `"phase-planner-agent"` after the developer chose **Delivery phases**), the decision is already made upstream. Acknowledge *"Route locked: Delivery phases."* and skip directly to Step 5. Do not ask the developer to choose `Delivery phases` vs `PR breakdown` again.
+
+- **Next-step resolution:** Auto-advance to Step **5** when route is locked — no `USER_CHECKPOINT` on this step.
 
 When no upstream route lock exists, use **AskQuestion** to ask:
 
@@ -242,6 +268,8 @@ Do **not** mirror the full **`Delivery phases`** body in chat. Count **K** from 
 
 **Obsolete:** separate recap-only pass without **`askQuestion`** — step **6** options belong on the **same** turn as the link + one-line summary.
 
+- **Next-step resolution:** Auto-advance to Step **6** structured choice after step **5d** recap — no `USER_CHECKPOINT` on substeps **5a–5d**.
+
 ## Step 6 — Hand back with next-move options
 
 **Structured choice** then **act after the developer selects** — see **`../README.md`** § *Recap, structured choice, act (plan-and-deliver)*.
@@ -257,9 +285,9 @@ Collect the developer’s choice via **AskQuestion**, **`MC_PHASED_RESPONSE_V1`*
 - When using (no phased envelope), the structured-choice message must contain **only** the sentinel line and JSON object — **no** prose, plan recap, or markdown fences before or between the sentinel and JSON.
 - Put every choosable path in **`options`** (`id` / `label`). Do **not** duplicate choices as a numbered prose menu in the same turn.
 
-Required **`options`** (adapt labels; keep **K** visible in the **`prompt`** when helpful):
+USER_CHECKPOINT — approve drafted Delivery phases list before child expansion.
 
-| Option id (illustrative) | Label (brief) |
+| Option id | Label (brief) |
 | --- | --- |
 | `approve-list` | Approve phase list — no spawn yet |
 | `expand-next-eligible` | Expand next eligible phase row |
@@ -267,6 +295,10 @@ Required **`options`** (adapt labels; keep **K** visible in the **`prompt`** whe
 | `defer` | Defer child plan creation |
 | `abandon` | Abandon this branch |
 | `more-details` | More details for option _ |
+
+- When **K > 0** and step **5d** recap is complete → open this gate via **`MC_PHASED_RESPONSE_V1`** (spawned lanes) or **AskQuestion** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**. Apply **Step 4-open-items** when open items exist — this approval question stays last in `questions[]`.
+- When **K = 0** → drafting failure; do **not** open this gate.
+- **`defaultOptionId: approve-list`** when **K > 0** and no blocking open items remain.
 
 When approval or expansion has open items (phase-count concerns, phase-boundary observations, sequencing caveats, row-specific blockers, or depth-first eligibility blockers), apply **Step 4-open-items**: put one scoped `questions[]` entry per item before this approval/expansion question, and keep this approval/expansion question last in the array.
 
