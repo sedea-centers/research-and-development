@@ -49,9 +49,9 @@ Definitive per-role **`laneRules`** minimums: [`.sedea/centers/research-and-deve
 
 ---
 
-## Mission Control turn completion
+## Mission Control turn completion (Checkpoint trust)
 
-On **every** Mission Control assistant turn, close with **`AskQuestion`** or **`MC_PHASED_RESPONSE_V1`** — not prose-only exit. Spawned lanes without the AskQuestion tool **must** use **`MC_PHASED_RESPONSE_V1`** (sentinel-first when required). Full wire format: [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § *`MC_PHASED_RESPONSE_V1` wire format (binding)*.
+Under **Checkpoint** trust, auto-advance scripted skill and mission protocol steps; structured choice only at **USER_CHECKPOINT** markers in the active plan or skill, **#external-wait** spawn-and-wait surfaces, and exception paths — not on every ordinary protocol step. When a gate requires developer pick, close with **`AskQuestion`** or **`MC_PHASED_RESPONSE_V1`** — not prose-only exit. Spawned lanes without the AskQuestion tool **must** use **`MC_PHASED_RESPONSE_V1`** (sentinel-first when required). Full wire format: [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § *`MC_PHASED_RESPONSE_V1` wire format (binding)*.
 
 ---
 

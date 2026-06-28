@@ -37,6 +37,30 @@ const ROLE_MANIFESTS = {
       '.sedea/centers/research-and-development/docs/development-process.md',
     ],
   },
+  'squad-leader-single-phase': {
+    laneRules: [
+      '.sedea/centers/sedea/rules/2_ask-question-instructions.mdc',
+      '.sedea/centers/sedea/rules/4_mission.mdc',
+      '.sedea/centers/research-and-development/missions/single-phase/plan.mdc',
+      '.sedea/centers/research-and-development/docs/development-process.md',
+    ],
+  },
+  'squad-leader-quick-fix': {
+    laneRules: [
+      '.sedea/centers/sedea/rules/2_ask-question-instructions.mdc',
+      '.sedea/centers/sedea/rules/4_mission.mdc',
+      '.sedea/centers/research-and-development/missions/quick-fix/plan.mdc',
+      '.sedea/centers/research-and-development/docs/development-process.md',
+    ],
+  },
+  'squad-leader-debug-and-fix': {
+    laneRules: [
+      '.sedea/centers/sedea/rules/2_ask-question-instructions.mdc',
+      '.sedea/centers/sedea/rules/4_mission.mdc',
+      '.sedea/centers/research-and-development/missions/debug-and-fix/plan.mdc',
+      '.sedea/centers/research-and-development/docs/development-process.md',
+    ],
+  },
   'author-prd': {
     laneRules: [
       '.sedea/centers/sedea/rules/2_ask-question-instructions.mdc',

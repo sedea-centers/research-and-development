@@ -290,16 +290,29 @@ This subsection is the **Squad Leader** contract for §§3, 5, 6, and 7. Sedea h
 
 **Dispatch display refresh (Squad Leader).** When dispatch scope is readable (opening command or confirmed feature title from §4), call MCP **`mission_control_update_dispatch_display`** with non-empty **`dispatchTitle`** (≤64 chars) and optional **`dispatchDescription`** / **`dispatchHoverDescription`** (≤512 chars). **Skip** when current dispatch chrome already matches. **Forbidden:** **`mission_control_update_lane_display`** to relabel **child** slots from the leader lane; hand-editing **`dispatch-tab.v1.json`**. See [`.sedea/centers/sedea/rules/9_display-metadata-authority.mdc`](.sedea/centers/sedea/rules/9_display-metadata-authority.mdc).
 
-**Squad Leader `laneRules` (binding).** Mission protocol or host config supplies minimum governance for the **leader lane** beyond bootstrap — see **`missions/plan-and-deliver/skills/README.md`** § *Definitive `laneRules`*. Definitive paths for **`plan and deliver`** Squad Leader:
+## Lane warm-up manifest (Squad Leader)
 
-| Path | Role |
-|------|------|
+Per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea/docs/lane-manifest-contract.md) and **`missions/plan-and-deliver/skills/README.md`** § *Definitive `laneRules`* (**Squad Leader** row). Host merge: `effectiveWarmUp = dedupe(sedeaBootstrapRules → rdBootstrapRules → laneRules)`. Mission protocol or host config supplies **`laneRules`** for the leader lane — not only child spawn requests. **No `alwaysApply` frontmatter flip.**
+
+**Checkpoint trust (binding):** Auto-advance scripted protocol substeps; structured choice only at **USER_CHECKPOINT** markers in §§1–8 below and **#external-wait** spawn-and-wait surfaces — not on every turn.
+
+### `bootstrapRules` — host-resolved
+
+| Path | Purpose |
+|------|---------|
+| `.sedea/centers/sedea/rules/bootstrap.mdc` | Sedea platform bootstrap (≤ ~15 KB) |
+| `.sedea/centers/research-and-development/rules/bootstrap.mdc` | R&D center bootstrap when `centerSlug === research-and-development` |
+
+### `laneRules` — mission protocol (Squad Leader)
+
+| Path | Purpose |
+|------|---------|
 | `.sedea/centers/sedea/rules/2_ask-question-instructions.mdc` | Structured choice at USER_CHECKPOINT gates and external-wait surfaces (Checkpoint precedence) |
 | `.sedea/centers/sedea/rules/4_mission.mdc` | Mission protocol, spawn/reload manifest |
 | `.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc` | This mission plan (§§1–8) |
 | `.sedea/centers/research-and-development/docs/development-process.md` | Cadence and protocol branches |
 
-Child spawns must satisfy the same README table for the target skill role (skill frontmatter **`laneRules`** or run-request **`laneRules`**).
+**Child spawns:** Satisfy **`missions/plan-and-deliver/skills/README.md`** § *Definitive `laneRules`* for the target skill role (skill frontmatter **`laneRules`** or run-request **`laneRules`**). Cross-mission invokers that reuse plan-and-deliver skills document **`warmUpRules`** overrides on their mission **`plan.mdc`** — **`single-phase`**, **`quick-fix`**, **`debug-and-fix`**.
 
 ### 1. Open dispatch
 

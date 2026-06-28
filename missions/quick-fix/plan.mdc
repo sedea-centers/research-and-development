@@ -77,16 +77,33 @@ flowchart TB
 | **Quick Fix Plan agent** | Child §3 | Minimal parent plan + **`new-plan`** + **`pr-plan`** inline |
 | **Coding session** | Detached (spawned from **`pr-plan`**) | Full **`coding-session`** ship chain |
 
-**Squad Leader `laneRules` (binding).**
+## Lane warm-up manifest (Squad Leader)
 
-| Path | Role |
-|------|------|
+Per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea/docs/lane-manifest-contract.md). Host merge: `effectiveWarmUp = dedupe(sedeaBootstrapRules → rdBootstrapRules → laneRules)`. **No `alwaysApply` frontmatter flip.**
+
+**Checkpoint trust (binding):** Auto-advance scripted protocol substeps; structured choice only at **USER_CHECKPOINT** markers in §§1–8 below and **#external-wait** spawn-and-wait surfaces — not on every turn.
+
+### `bootstrapRules` — host-resolved
+
+| Path | Purpose |
+|------|---------|
+| `.sedea/centers/sedea/rules/bootstrap.mdc` | Sedea platform bootstrap (≤ ~15 KB) |
+| `.sedea/centers/research-and-development/rules/bootstrap.mdc` | R&D center bootstrap when `centerSlug === research-and-development` |
+
+### `laneRules` — mission protocol (Squad Leader)
+
+| Path | Purpose |
+|------|---------|
 | `.sedea/centers/sedea/rules/2_ask-question-instructions.mdc` | Structured choice at USER_CHECKPOINT gates and external-wait surfaces (Checkpoint precedence) |
-| `.sedea/centers/sedea/rules/4_mission.mdc` | Mission protocol, spawn/reload |
-| `.sedea/centers/research-and-development/missions/quick-fix/plan.mdc` | **This** mission plan |
+| `.sedea/centers/sedea/rules/4_mission.mdc` | Mission protocol, spawn/reload manifest |
+| `.sedea/centers/research-and-development/missions/quick-fix/plan.mdc` | **This** mission plan (§§1–8) |
 | `.sedea/centers/research-and-development/docs/development-process.md` | Cadence and protocol branches |
 
-**Quick Fix Plan agent spawn `warmUpRules` (binding):** Merge target skill frontmatter defaults but **replace** `plan-and-deliver/plan.mdc` with **`quick-fix/plan.mdc`**.
+### `skillWarmUp` — child spawn overrides (binding)
+
+| Spawn step | Override |
+|------------|----------|
+| §3 **`quick-fix-plan`** | Merge skill frontmatter **`warmUpRules`**; ensure **`.sedea/centers/research-and-development/missions/quick-fix/plan.mdc`** — **not** `plan-and-deliver/plan.mdc` |
 
 **Dispatch display refresh (Squad Leader).** When dispatch scope is readable (opening command phrase or scope remainder from the opening message), call MCP **`mission_control_update_dispatch_display`** with non-empty **`dispatchTitle`** (≤64 chars) and optional **`dispatchDescription`** / **`dispatchHoverDescription`** (≤512 chars). **Skip** when current dispatch chrome already matches. **Forbidden:** **`mission_control_update_lane_display`** to relabel **child** slots from the leader lane; hand-editing **`dispatch-tab.v1.json`**. See [`.sedea/centers/sedea/rules/9_display-metadata-authority.mdc`](.sedea/centers/sedea/rules/9_display-metadata-authority.mdc).
 

@@ -79,18 +79,36 @@ flowchart TB
 | **Master Plan agent** | Child §5–§7 | **`pr-breakdown`**, **`new-plan`**, **`pr-plan`** inline — **no** route menu for delivery-phases |
 | **Coding session** | Detached | Full plan-and-deliver **`coding-session`** ship chain |
 
-**Squad Leader `laneRules` (binding).** Same **four-path** minimum as **`plan and deliver`** — mission protocol or host config supplies leader-lane governance beyond bootstrap. Definitive paths for **`plan and deliver a single phase`** Squad Leader:
+## Lane warm-up manifest (Squad Leader)
 
-| Path | Role |
-|------|------|
+Per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea/docs/lane-manifest-contract.md). Host merge: `effectiveWarmUp = dedupe(sedeaBootstrapRules → rdBootstrapRules → laneRules)`. Numbered R&D rules load **on demand** via **`laneRules`** / child **`warmUpRules`** — not full Sedea 0–9 scan on every dispatch. **No `alwaysApply` frontmatter flip.**
+
+**Checkpoint trust (binding):** Auto-advance scripted protocol substeps; structured choice only at **USER_CHECKPOINT** markers in §§1–8 below and **#external-wait** spawn-and-wait surfaces — not on every turn.
+
+### `bootstrapRules` — host-resolved
+
+| Path | Purpose |
+|------|---------|
+| `.sedea/centers/sedea/rules/bootstrap.mdc` | Sedea platform bootstrap (≤ ~15 KB) |
+| `.sedea/centers/research-and-development/rules/bootstrap.mdc` | R&D center bootstrap when `centerSlug === research-and-development` |
+
+### `laneRules` — mission protocol (Squad Leader)
+
+| Path | Purpose |
+|------|---------|
 | `.sedea/centers/sedea/rules/2_ask-question-instructions.mdc` | Structured choice at USER_CHECKPOINT gates and external-wait surfaces (Checkpoint precedence) |
 | `.sedea/centers/sedea/rules/4_mission.mdc` | Mission protocol, spawn/reload manifest |
 | `.sedea/centers/research-and-development/missions/single-phase/plan.mdc` | **This** mission plan (§§1–8) — not `plan-and-deliver/plan.mdc` |
 | `.sedea/centers/research-and-development/docs/development-process.md` | Cadence and protocol branches |
 
-**Bootstrap (not full Sedea 0–9 scan):** host merges **`.sedea/centers/sedea/rules/bootstrap.mdc`** + **`.sedea/centers/research-and-development/rules/bootstrap.mdc`** only; numbered center rules load **on demand** via **`laneRules`** / skill **`warmUpRules`** per [lane manifest contract](.sedea/centers/sedea/docs/lane-manifest-contract.md).
+### `skillWarmUp` — child spawn overrides (binding)
 
-**Child spawns:** Reuse **`plan-and-deliver`** skill **`SKILL.md`** files; follow **`missions/plan-and-deliver/skills/README.md`** § *Definitive `laneRules`* per role **except** §3 uses **`ad-hoc-prd`** (not **`author-prd`**) and spawn **`warmUpRules`** must reference **`single-phase/plan.mdc`** instead of **`plan-and-deliver/plan.mdc`** where the skill default lists the latter.
+Reuse **`plan-and-deliver`** skill **`SKILL.md`** files; follow **`missions/plan-and-deliver/skills/README.md`** § *Definitive `laneRules`* per role. On **`AGENT_RUN_REQUEST_V1`**, merge skill frontmatter **`warmUpRules`** and apply overrides:
+
+| Spawn step | Override |
+|------------|----------|
+| §3 **`ad-hoc-prd`** | **Replace** `plan-and-deliver/plan.mdc` with **`.sedea/centers/research-and-development/missions/single-phase/plan.mdc`** (§§1–3) |
+| §5 **`master-planner`** and inline planning on Master Plan lane | Skill defaults — **`README.md`** § *Definitive `laneRules`*; §3 uses **`ad-hoc-prd`**, not **`author-prd`** |
 
 **Dispatch display refresh (Squad Leader).** When dispatch scope is readable (opening command phrase or scope remainder from the opening message), call MCP **`mission_control_update_dispatch_display`** with non-empty **`dispatchTitle`** (≤64 chars) and optional **`dispatchDescription`** / **`dispatchHoverDescription`** (≤512 chars). **Skip** when current dispatch chrome already matches. **Forbidden:** **`mission_control_update_lane_display`** to relabel **child** slots from the leader lane; hand-editing **`dispatch-tab.v1.json`**. See [`.sedea/centers/sedea/rules/9_display-metadata-authority.mdc`](.sedea/centers/sedea/rules/9_display-metadata-authority.mdc).
 
