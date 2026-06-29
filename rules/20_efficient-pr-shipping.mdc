@@ -59,14 +59,15 @@ R&D automation scripts **`plan-state.mjs`** and **`plan-ws-completeness.mjs`** l
 
 Before any `node …/plan-state.mjs` or `node …/pr-review.mjs` invocation:
 
-1. Start from the hosting repo worktree or primary hosting repo cwd.
-2. Walk **up** parent directories until **`.sedea/centers/sedea/`** exists (preferred) or at minimum **`.sedea/`** at the hosting repo root.
-3. Set **`HOSTING_ROOT`** to that directory (parent of `.sedea/`).
-4. **`cd "$HOSTING_ROOT"`** for every script shell line; use repo-relative paths from there (for example `.sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-state.mjs`).
+1. **Mission Control lanes (preferred):** call MCP **`sedea_get_hosting_root`** and set **`HOSTING_ROOT`** to the returned absolute path when `ok: true`. Treat that response as authoritative — do not re-infer from workspace folder order or worktree layout.
+2. **Otherwise:** start from the hosting repo worktree or primary hosting repo cwd.
+3. Walk **up** parent directories until **`.sedea/centers/sedea/`** exists (preferred) or at minimum **`.sedea/`** at the hosting repo root.
+4. Set **`HOSTING_ROOT`** to that directory (parent of `.sedea/`).
+5. **`cd "$HOSTING_ROOT"`** for every script shell line; use repo-relative paths from there (for example `.sedea/centers/research-and-development/missions/plan-and-deliver/scripts/plan-state.mjs`).
 
 When the agent already knows the Mission Control primary hosting repo path, set **`HOSTING_ROOT`** explicitly instead of guessing.
 
-5. If no ancestor contains **`.sedea/`**, **stop** — use **AskQuestion** once for the hosting repo root (absolute path). Do not run **`plan-state.mjs`**, **`plan-ws-completeness.mjs`**, or **`pr-review.mjs`** from a worktree path alone.
+6. If no ancestor contains **`.sedea/`** and MCP **`sedea_get_hosting_root`** is unavailable or blocked, **stop** — use **AskQuestion** once for the hosting repo root (absolute path). Do not run **`plan-state.mjs`**, **`plan-ws-completeness.mjs`**, or **`pr-review.mjs`** from a worktree path alone.
 
 ### Worktree context for `resolve --cwd`
 
