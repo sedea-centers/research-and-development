@@ -9,7 +9,7 @@ Derived index of **Checkpoint trust** turn behavior for **research-and-developme
 - [Sedea mission calibration](../../sedea/docs/checkpoint-mission-calibration.md) — sedea-center mission skills and plans
 - Parent rollout: governance marker rollout row 6 (`6_governance_matrix_66a5fdbe`)
 
-**Rollout status (2026-06-28):** Documents **shipped** R&D skill Checkpoint turn UX tables and aligned R&D mission `plan.mdc` markers. Skills without a local table are **pending calibration**.
+**Rollout status (2026-06-28):** Documents **shipped** R&D skill Checkpoint turn UX tables and aligned R&D mission `plan.mdc` markers. Skills without a local table are **pending calibration**. Host/platform governance and per-center split reconciled after [#764](https://github.com/sedea-ai/app/pull/764) / [#765](https://github.com/sedea-ai/app/pull/765) — see [host governance](../../sedea/docs/checkpoint-ask-auto-advance-matrix.md) § Reconcile note.
 
 **No cross-skill inheritance (binding):** This doc is a **derived** cross-ref for R&D only — prefer skill and plan sources.
 
