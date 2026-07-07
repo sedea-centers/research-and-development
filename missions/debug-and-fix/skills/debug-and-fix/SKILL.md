@@ -42,6 +42,17 @@ warmUpRules:
 
 **Normative mode:** **Spawned only** on this mission — child lane owns worktree lifecycle for the debug session unless protocol explicitly re-spawns **`coding-session`** for promotion.
 
+## Agent messaging (MCP)
+
+**MCP spawn/result skill.** Parent→child spawn and child terminal result use MCP tools per **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Agent-to-agent spawn protocol*.
+
+| Action | MCP tool |
+|--------|----------|
+| Squad Leader spawn for this skill | **`mission_control_spawn_agent`** |
+| **This** spawned lane terminal (and terminal re-emits) | **`mission_control_send_agent_result`** |
+
+**Binding:** **Forbidden** host-resolved identity keys in MCP args (`correlationId`, `dispatchId`, `slotId`, … — see **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Host-resolved identity*).
+
 ## Inputs
 
 | Field | Required | Notes |
@@ -156,13 +167,17 @@ Every assistant turn closes with **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** 
 
 When `exitRecommendation: code-promotion`, `fixSummary` and `testEvidence` must be suitable for PR-plan seeding: name the verified change, affected areas, automated/manual test evidence, and any deploy-test considerations discovered during debugging. If that evidence is incomplete, prefer `findings-report-only` or include the missing evidence in `remainingTasks`.
 
-### Host protocol line (required)
+### MCP result preflight (`mission_control_send_agent_result`)
 
-Emit **exactly one** terminal line (sentinel + JSON on the same line, no markdown fence):
+| Step | Check |
+|------|--------|
+| R1 | Call **`mission_control_send_agent_result`** with **`status`**, **`summary`**, optional **`outputs`** / **`errors`** |
+| R2 | **Forbidden args absent** — no **`correlationId`**, **`dispatchId`**, **`slotId`**, or other host-resolved keys |
+| R3 | Populate **`outputs`** from the required field list below |
+| R4 | Re-emit updated MCP result after user-requested follow-up on this lane (same spawn session; host resolves **`correlationId`**) |
 
-`AGENT_RESULT_RESPONSE_V1 {"version":1,"correlationId":"<uuid>","status":"<success|partial|failure|aborted|abandoned>","summary":"<1-3 sentences>","outputs":{...},"errors":[]}`
+Stop after the MCP result call. Do not emit another **`mission_control_spawn_agent`** on this lane (see **`../README.md`** § *Terminal stop (normative)*).
 
-Populate `outputs` per the table above. Use the spawn `correlationId` from the originating run request.
 
 ## Completion (inline)
 

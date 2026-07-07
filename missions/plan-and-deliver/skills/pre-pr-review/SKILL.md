@@ -109,6 +109,21 @@ This pass complements, and does not replace, the later GitHub-surface **reviewer
 
 **Worktree removal ownership (binding).** **Do not remove worktrees you do not own.** Review **`worktreePath`** only — this skill does **not** authorize **`git worktree remove`**, **`git worktree prune`**, or **`sedea_remove_worktree_folder`** except on **this pass’s** **`WORKTREE_ROOT`** when **all four** preconditions in [`.sedea/centers/sedea/rules/0_hosting-repo.mdc`](.sedea/centers/sedea/rules/0_hosting-repo.mdc) § *Worktree ownership* and rule **20** § *Worktree removal ownership (binding)* hold. **`git worktree list` is read-only** when ownership is unclear — **stop; do not remove**.
 
+## Agent messaging (MCP)
+
+**MCP spawn/result skill.** Parent→child spawn and child terminal result use MCP tools per **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Agent-to-agent spawn protocol*.
+
+| Action | MCP tool |
+|--------|----------|
+| Parent spawn (when this skill emits a child lane) | **`mission_control_spawn_agent`** |
+| **This** spawned lane terminal (and terminal re-emits) | **`mission_control_send_agent_result`** |
+
+**Binding:**
+
+- Run **`../README.md`** § *MCP spawn preflight* (rows M1–M8) before every MCP spawn; **forbidden** host-resolved identity keys in MCP args (`correlationId`, `dispatchId`, `slotId`, … — see README § *Host-resolved identity*).
+- Inline skills on this mission stay **inline-only** — no spawn wire change unless the protocol step explicitly spawns a child lane.
+
+
 ## Structured choice (Mission Control)
 
 This skill does not own approval modals — **`coding-session`** collects developer consent before spawns. When this lane must surface a pick, use **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act*.

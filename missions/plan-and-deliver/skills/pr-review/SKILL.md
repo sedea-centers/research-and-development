@@ -27,6 +27,21 @@ If Mission Control opened a session whose only intent is **`pr-review`** / *tria
 
 **Worktree removal ownership (binding).** **Do not remove worktrees you do not own.** PR review runs in **`WORKTREE_ROOT`** for edits; it does **not** authorize **`git worktree remove`**, **`git worktree prune`**, or **`sedea_remove_worktree_folder`** on any other path. See [`.sedea/centers/sedea/rules/0_hosting-repo.mdc`](.sedea/centers/sedea/rules/0_hosting-repo.mdc) § *Worktree ownership* and rule **20** § *Worktree removal ownership (binding)*. **`git worktree list` is read-only** when ownership is unclear — **stop; do not remove**.
 
+
+## Agent messaging (MCP)
+
+**MCP spawn/result skill.** Parent→child spawn and child terminal result use MCP tools per **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Agent-to-agent spawn protocol*.
+
+| Action | MCP tool |
+|--------|----------|
+| Parent spawn (when this skill emits a child lane) | **`mission_control_spawn_agent`** |
+| **This** spawned lane terminal (and terminal re-emits) | **`mission_control_send_agent_result`** |
+
+**Binding:**
+
+- Run **`../README.md`** § *MCP spawn preflight* (rows M1–M8) before every MCP spawn; **forbidden** host-resolved identity keys in MCP args (`correlationId`, `dispatchId`, `slotId`, … — see README § *Host-resolved identity*).
+- Inline skills on this mission stay **inline-only** — no spawn wire change unless the protocol step explicitly spawns a child lane.
+
 ## Global `gh` exception (binding)
 
 When a **global Cursor or developer rule** directs agents to use `gh` for GitHub tasks, that default **yields to this skill** for PR review-cycle operations. While inline **`pr-review`** is active on a **`coding-session`** lane, **`pr-review.mjs` is the only permitted interface** for comment collection, thread/review state, classification, reconciliation, replies, resolves, minimizes, and review re-requests — not generic `gh`, REST, or GraphQL substitutes.
@@ -98,9 +113,7 @@ Input format — **one object** (single command) or a **JSON array** of command 
 
 ```json
 {"command":"threads","owner":"org","repo":"repo","pr":123}
-```
-
-```json
+json
 [
  {"command":"reply","owner":"org","repo":"repo","pr":123,"comment_id":456,"body":"**Fixed:** …"},
  {"command":"resolve","owner":"org","repo":"repo","pr":123,"thread_id":"PRRT_..."},
