@@ -375,7 +375,17 @@ After emitting **`mission_control_send_agent_result`**, **stop on that lane** fo
 
 > Stop after the MCP result is sent.
 
-**Per-skill procedure stops** (e.g. “Stop after the step 5 handoff block”, “Stop after spawning, announce wait, and close with structured choice”) apply **before** **`mission_control_send_agent_result`** — they gate mid-skill work, not replace this rule or **Turn completion invariant**. When both appear, order is: complete the gated step → **`MC_PHASED_RESPONSE_V1`** when a gate is open → **`mission_control_send_agent_result`** (when spawned) → **stop**.
+**Per-skill procedure stops** (e.g. “Stop after the step 5 handoff block”, “Stop after spawning, announce wait, and close with structured choice”) apply **before** **`mission_control_send_agent_result`** — they gate mid-skill work, not replace this rule or **Turn completion invariant**. When both appear, order is: complete the gated step → **`MC_PHASED_RESPONSE_V1`** when a gate is open → **`MC_REFOCUS_PARENT_V1`** (when skill-eligible) → **`mission_control_send_agent_result`** (when spawned) → **stop**.
+
+### Parent refocus on terminal (`MC_REFOCUS_PARENT_V1`)
+
+| Skill | Refocus before MCP result? |
+|-------|----------------------------|
+| **`phase-planner`** | **Forbidden** when **`outputs.continuationStatus: active`**, **`phaseShipComplete: false`**, open **`### PR list`** rows, or §5f implementation handoff not yet offered — parent **`master-planner`** **ack-only** until **`phaseShipComplete`** |
+| **`pre-pr-review`** | **Required** (Step 8) |
+| **`brainstorm-research`** | **Required** on Approve / Abandon terminal |
+
+**Common mistake:** Emitting refocus on the first **`status: success`** terminal after §§1–4 + inline **`pr-breakdown`** while **`continuationStatus: active`** — milestone complete ≠ skill terminal eligible for refocus. See **`phase-planner/SKILL.md`** § *MCP parent refocus*.
 
 | Skill | Explicit “Stop after the MCP result is sent” in `## Completion (spawned)`? | Notes |
 |-------|------------------------------------------------------------------------|--------|
