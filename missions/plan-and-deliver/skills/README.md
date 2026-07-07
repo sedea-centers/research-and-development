@@ -325,14 +325,13 @@ node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/v
 
 Run the checklist **before every child spawn** on any lane (Squad Leader §§3/§5, **master-planner** Step 7, **pr-plan** §5d, ship-chain spawns). Host behavior is in **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Agent-to-agent spawn protocol* (MCP-only, host-resolved identity); this section is the **plan-and-deliver** operator checklist.
 
-### MCP spawn/result (which path)
+### MCP spawn/result (MCP-only)
 
 | Situation | Use |
 |-----------|-----|
-| Target skill **does not** document MCP spawn/result yet | **Sentinel only** — § *Sentinel spawn preflight* below |
-| Target skill documents **MCP primary** and **`agent-messaging-mcp`** flag is **on** (or explicit `sedea.features.agent-messaging-mcp: true`) | **`mission_control_spawn_agent`**; child uses **`mission_control_send_agent_result`** at terminal |
+| All plan-and-deliver spawned skills | **`mission_control_spawn_agent`**; child uses **`mission_control_send_agent_result`** at terminal |
 
-**Do not** emit MCP spawn **and** **`mission_control_spawn_agent`** for the same child when MCP spawn already succeeded (host dedupes; agents must not double-emit intentionally). Same rule for child terminal MCP vs **`mission_control_send_agent_result`**.
+**Do not** emit duplicate spawn or terminal notifications for the same child when MCP already succeeded (host dedupes; agents must not double-emit intentionally).
 
 ### Host-resolved identity (MCP — binding)
 
@@ -344,7 +343,6 @@ When using MCP tools, agents supply **skill contract fields only**. **Never** pa
 |------|----------------|
 | **Parent spawn (MCP)** | Host mints **`correlationId`**; injects into child bootstrap and registry |
 | **Child terminal (MCP)** | Host reads **`correlationId`** from child lane spawn context — omit from **`mission_control_send_agent_result`** args |
-| **Parent spawn (sentinel)** | Parent authors new **`correlationId`** UUID in run-request JSON |
 
 Full table: rule **4** § *Host-resolved identity*.
 
@@ -361,7 +359,7 @@ Full table: rule **4** § *Host-resolved identity*.
 | M7 | On tool validation failure: stop, fix the failing row, retry spawn — new successful spawn mints a **new** host **`correlationId`** |
 | M8 | **`name`** / **`description`** — same display discipline as legacy rows 8–9; refresh stale child tab via **`mission_control_update_lane_display`** |
 
-Child terminal: use § *MCP result preflight* in the spawned skill’s **`## Completion (spawned)`** — call **`mission_control_send_agent_result`**, not **`mission_control_send_agent_result`**, when MCP path is active and flag is on.
+Child terminal: use § *MCP result preflight* in the spawned skill’s **`## Completion (spawned)`** — call **`mission_control_send_agent_result`** at terminal (host resolves **`correlationId`**; omit host-resolved identity keys from MCP args).
 
 ### Terminal stop (normative for every spawned skill)
 
