@@ -27,7 +27,7 @@ Mission Control persists **dispatch-level** and **per-lane (slot)** display labe
 
 ## Spawn discipline (parents)
 
-When emitting **`AGENT_RUN_REQUEST_V1`** on **plan-and-deliver** or other R&D spawn paths:
+When calling MCP **`mission_control_spawn_agent`** on **plan-and-deliver** or other R&D spawn paths:
 
 1. Set **`name`** to a short, topic-specific label (not generic placeholders like "Child agent" alone).
 2. Include **`description`** (and optional spawn metadata the host maps to initial slot copy) so the Agents strip is readable before the child runs.

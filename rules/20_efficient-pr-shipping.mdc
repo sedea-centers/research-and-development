@@ -186,12 +186,12 @@ Start **`plan-reconcile`** separately: developer phrase on active **`coding-sess
 
 ## Pre-PR review — spawn-only from **`coding-session`**
 
-**Rule (read first).** The **only** path that may execute [`pre-pr-review/SKILL.md`](../missions/plan-and-deliver/skills/pre-pr-review/SKILL.md) is a **fresh spawned child lane** opened by active **`coding-session`** via **`AGENT_RUN_REQUEST_V1`** after ship cut-point + Before deploy (or documented skip). **Auto-spawn** on **`coding-session`** means **emit spawn + wait** for **`AGENT_RESULT_RESPONSE_V1`** — **not** load and run review steps inline on the coding-session lane.
+**Rule (read first).** The **only** path that may execute [`pre-pr-review/SKILL.md`](../missions/plan-and-deliver/skills/pre-pr-review/SKILL.md) is a **fresh spawned child lane** opened by active **`coding-session`** via MCP **`mission_control_spawn_agent`** after ship cut-point + Before deploy (or documented skip). **Auto-spawn** on **`coding-session`** means **call MCP spawn + wait** for child **`mission_control_send_agent_result`** — **not** load and run review steps inline on the coding-session lane.
 
 | Lane | May run **`pre-pr-review`**? | Handoff |
 |------|------------------------------|---------|
-| **`coding-session`** | **Spawn only** — **forbidden** inline | Emit **`AGENT_RUN_REQUEST_V1`** per [`coding-session/SKILL.md`](../missions/plan-and-deliver/skills/coding-session/SKILL.md) § *Pre-PR review handoff* |
-| **`pre-pr-review`** child lane | **Yes** — sole execution surface | Fresh reviewer lane; terminal **`AGENT_RESULT_RESPONSE_V1`** |
+| **`coding-session`** | **Spawn only** — **forbidden** inline | Call **`mission_control_spawn_agent`** per [`coding-session/SKILL.md`](../missions/plan-and-deliver/skills/coding-session/SKILL.md) § *Pre-PR review handoff* |
+| **`pre-pr-review`** child lane | **Yes** — sole execution surface | Fresh reviewer lane; terminal **`mission_control_send_agent_result`** |
 | **Other lanes** (Squad Leader, planning, **`pr-review`**, …) | **No** | Direct developer to **`coding-session`** ship chain |
 
 When the user says *run pre-PR review* or *pre-pr-review* on **`coding-session`**, interpret it as **spawn the reviewer child lane** — **not** permission to execute the skill body inline on this lane.
