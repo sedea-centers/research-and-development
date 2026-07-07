@@ -4,7 +4,7 @@ description: >-
  (new-plan, phase-planner, pr-plan, delivery-phases, pr-breakdown, plan-reconcile). Resolution
  is from session and chat context — not from IDE focused-file list. Covers resolution order,
  snapshot emission, and "Where we are now in the plan tree" table format for planning moves
- (§ *Sedea input channel*; § *Planning vs ship cadence*). **`master-planner`** handoff uses the same contract (Step 7 — AskQuestion + AGENT_RUN_REQUEST_V1).
+ (§ *Sedea input channel*; § *Planning vs ship cadence*). **`master-planner`** handoff uses the same contract (Step 7 — AskQuestion + MCP **`mission_control_spawn_agent`**).
 alwaysApply: false
 ---
 
@@ -70,7 +70,7 @@ Three different signals appear in plan-and-deliver; advancing one does **not** a
 | **`plan-ws-completeness.mjs` exit 0** | Script on PR plan path | PR plan §§ 5–8 lack blocking `_TBD_` for worktree handoff | **`coding-session`** already running; PR open |
 | **`developerApprovedImplementation`** | **`coding-session`** after worktree-open gate | Layer-2 consent to implement on a worktree | Dispatch ship ledger auto-updated (leader §8 updates via host sync from child terminal) |
 
-**`pr-plan` → `coding-session`:** After **AskQuestion** **Start coding session**, **`pr-plan`** emits **`AGENT_RUN_REQUEST_V1`** with absolute `targetPlanPath`, `repoPath`, and `planningHandoffApproved: true` (§5d). The child runs **`plan-ws-completeness.mjs`** then **auto-authorizes** worktrees when §§1–4 are drafted (or the plan is complete) — no second worktree-open modal. Detached **`coding-session`** entry (phrase, snapshot, new session) still uses the worktree-open gate. Do not implement on the **`pr-plan`** lane because `readyForImplementation` is true.
+**`pr-plan` → `coding-session`:** After **AskQuestion** **Start coding session**, **`pr-plan`** calls MCP **`mission_control_spawn_agent`** with absolute `targetPlanPath`, `repoPath`, and `planningHandoffApproved: true` (§5d). The child runs **`plan-ws-completeness.mjs`** then **auto-authorizes** worktrees when §§1–4 are drafted (or the plan is complete) — no second worktree-open modal. Detached **`coding-session`** entry (phrase, snapshot, new session) still uses the worktree-open gate. Do not implement on the **`pr-plan`** lane because `readyForImplementation` is true.
 
 ### Agent checklist (planning vs ship — do not conflate)
 
@@ -165,7 +165,7 @@ Normative contract: **development-process.md** § *Depth-first plan-tree travers
 
 Per PR plan path: §8 row `shipPhase: done` and `rowStatus: closed`, or explicit `deferred` / `abandoned` on the leader dispatch. Per phase row: every descendant PR plan under that phase's § 5 **`PR list`** meets that bar.
 
-**Spawn-chain alternative:** When **`coding-session`** is a spawned child, the parent planning lane may treat **`outputs.prShipComplete: true`** on a delivered **`AGENT_RESULT_RESPONSE_V1`** as ship-complete for depth-first eligibility — without requiring a separate Squad Leader **Ship recap** on the same turn. See **`missions/plan-and-deliver/skills/README.md`** § *Upstream ship-complete notification*.
+**Spawn-chain alternative:** When **`coding-session`** is a spawned child, the parent planning lane may treat **`outputs.prShipComplete: true`** on a delivered child **`mission_control_send_agent_result`** as ship-complete for depth-first eligibility — without requiring a separate Squad Leader **Ship recap** on the same turn. See **`missions/plan-and-deliver/skills/README.md`** § *Upstream ship-complete notification*.
 
 ### PR-plan completeness before coding-session
 
