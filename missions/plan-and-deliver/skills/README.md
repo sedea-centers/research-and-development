@@ -34,7 +34,7 @@ Glossary for colliding step labels: **`.sedea/centers/research-and-development/d
 When a skill runs **inline** on the invoker’s lane (not spawned via **`mission_control_spawn_agent`**):
 
 - Report **`## Completion (inline)`** (or the mission’s inline-only result section) in **prose** to the invoker.
-- Do **not** emit **`mission_control_send_agent_result`** or add a **Host protocol line** under the inline section — host protocol applies **only** under **`## Completion (spawned)`** (see **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Inline completion* and **`.sedea/centers/sedea/skills/README.md`** § *Completion (inline)*).
+- Do **not** emit **`mission_control_send_agent_result`** under the inline section — MCP spawn/result tooling applies **only** under **`## Completion (spawned)`** (see **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Inline completion* and **`.sedea/centers/sedea/skills/README.md`** § *Completion (inline)*).
 - Do **not** emit **`mission_control_spawn_agent`** unless the protocol step explicitly switches to spawned mode.
 
 **plan and deliver** normally spawns planning and ship skills on child lanes; inline sections exist for dual-mode authoring and same-lane ship steps. **`pr-review`**, **`create-pr`**, **`deploy-walk`**, and **`plan-reconcile`** are **inline-only** on **`coding-session`** (no **`## Completion (spawned)`** on those skills). **`pre-pr-review`** is **spawn-only** from **`coding-session`** — **forbidden** inline on the coding-session lane; **auto-spawn** = **`mission_control_spawn_agent`** + wait for child **`mission_control_send_agent_result`**, not self-execute review steps here.
@@ -52,7 +52,7 @@ Mission Control delivery for skills that mix long plan output with structured us
 | **Next-step modal** | User leaves chat (PR/diff/CI) before next step | Open modal **before** end turn naming resume paths — rule **2** § External-wait / next-step modal; forbid prose “wait for user/developer” |
 | **Act** | Spawn, terminal result, implementation | After the user selects in the modal |
 
-**Normative:** Every skill in this mission **must** close **every** assistant turn with the **AskQuestion tool** or **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** § **Mandatory structured choice on every turn** and § **`MC_PHASED_RESPONSE_V1` wire format (binding)**. **Forbidden:** prose-only exit, recap-only endings, prose menus, or “wait for the developer” without a modal. Spawned skills that emit **`mission_control_send_agent_result`** put **`MC_PHASED_RESPONSE_V1`** on **line 1** and the terminal sentinel on the **last line** of the same message. Do **not** use “Turn A/B” or similar implementation labels in developer-facing chat.
+**Normative:** Every skill in this mission **must** close **every** assistant turn with the **AskQuestion tool** or **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** § **Mandatory structured choice on every turn** and § **`MC_PHASED_RESPONSE_V1` wire format (binding)**. **Forbidden:** prose-only exit, recap-only endings, prose menus, or “wait for the developer” without a modal. Spawned skills that finish via **`mission_control_send_agent_result`** emit **`MC_PHASED_RESPONSE_V1`** first when a gate is open, then call **`mission_control_send_agent_result`** before the turn ends. Do **not** use “Turn A/B” or similar implementation labels in developer-facing chat.
 
 **Authoring new or updated skills (binding):**
 
@@ -225,7 +225,7 @@ Each parent **must** handle **`Mission Control: agent-result-response delivered.
 | **`delivery-phases`** | **`phase-planner`** | — | Mark phase row **`ship-complete`**; offer **`expand-next-eligible`** for next phase index | Echo bubbled follow-ups to master plan when present |
 | **`master-planner`** | **`pr-breakdown`** / **`delivery-phases`** inline + nested child results | Merge ledger; add **`expand-eligible`** / **`expand-next-eligible`** to Step **7b** when indices unlock | Same for next phase | Append to master plan **`## Follow-ups`**; ledger **`pendingParentFollowUps[]`** |
 
-**Re-emit rule:** After merging a child ship-complete result, the parent **updates its own** terminal line (same **`correlationId`**) before stopping — so *its* parent receives fresh **`outputs`**. Silence on the child lane is **not** ship-complete.
+**Re-emit rule:** After merging a child ship-complete result, the parent re-sends `mission_control_send_agent_result` with updated `outputs` (same spawn `correlationId` resolved by the host) before stopping — so *its* parent receives fresh `outputs`. Silence on the child lane is **not** ship-complete.
 
 ## Upstream parent follow-up notification (spawn chain)
 
@@ -367,17 +367,17 @@ Child terminal: use § *MCP result preflight* in the spawned skill’s **`## Com
 
 After emitting **`mission_control_send_agent_result`**, **stop on that lane** for the current skill turn:
 
-1. Do **not** emit another **`mission_control_spawn_agent`** unless a later user message on the same lane explicitly continues the skill (then re-emit an **updated** terminal line with the same `correlationId`).
+1. Do **not** emit another **`mission_control_spawn_agent`** unless a later user message on the same lane explicitly continues the skill (then call **`mission_control_send_agent_result`** again with updated **`outputs`** for the same spawn session).
 2. Do **not** emit **`MC_DISPATCH_RESOLVED_V1`** — only the **plan and deliver** Squad Leader closes the dispatch.
-3. Do **not** run the next protocol step in the same turn after the terminal line (including “wait for child” announcements — the stop applies **after** the sentinel is emitted).
+3. Do **not** run the next protocol step in the same turn after **`mission_control_send_agent_result`** (including “wait for child” announcements — the stop applies **after** the MCP result is sent).
 
 **Canonical closing sentence** (optional in skill prose; meaning is required either way):
 
-> Stop after the terminal line.
+> Stop after the MCP result is sent.
 
-**Per-skill procedure stops** (e.g. “Stop after the step 5 handoff block”, “Stop after spawning, announce wait, and close with structured choice”) apply **before** the terminal line — they gate mid-skill work, not replace this rule or **Turn completion invariant**. When both appear, order is: complete the gated step → emit **`mission_control_send_agent_result`** (when spawned) with **`MC_PHASED_RESPONSE_V1`** on the same message when the turn ends → **stop**.
+**Per-skill procedure stops** (e.g. “Stop after the step 5 handoff block”, “Stop after spawning, announce wait, and close with structured choice”) apply **before** **`mission_control_send_agent_result`** — they gate mid-skill work, not replace this rule or **Turn completion invariant**. When both appear, order is: complete the gated step → **`MC_PHASED_RESPONSE_V1`** when a gate is open → **`mission_control_send_agent_result`** (when spawned) → **stop**.
 
-| Skill | Explicit “Stop after the terminal line” in `## Completion (spawned)`? | Notes |
+| Skill | Explicit “Stop after the MCP result is sent” in `## Completion (spawned)`? | Notes |
 |-------|------------------------------------------------------------------------|--------|
 | `author-prd` | Yes | Also forbids downstream planning spawns |
 | `pr-plan` | Yes | May spawn **`coding-session`** in §5d before terminal (standalone) or inline under **`new-plan`**; one spawn per turn |
