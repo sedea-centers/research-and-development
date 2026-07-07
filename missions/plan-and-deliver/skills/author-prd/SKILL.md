@@ -72,6 +72,21 @@ Per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea
 | `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/author-prd/SKILL.md` | This skill procedure |
 | `.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc` | Squad Leader §§1–3 (role minimum) |
 
+## Agent messaging (MCP)
+
+**MCP spawn/result skill.** Parent→child spawn and child terminal result use MCP tools per **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Agent-to-agent spawn protocol*.
+
+| Action | MCP tool |
+|--------|----------|
+| Parent spawn (when this skill emits a child lane) | **`mission_control_spawn_agent`** |
+| **This** spawned lane terminal (and terminal re-emits) | **`mission_control_send_agent_result`** |
+
+**Binding:**
+
+- Run **`../README.md`** § *MCP spawn preflight* (rows M1–M8) before every MCP spawn; **forbidden** host-resolved identity keys in MCP args (`correlationId`, `dispatchId`, `slotId`, … — see README § *Host-resolved identity*).
+- Inline skills on this mission stay **inline-only** — no spawn wire change unless the protocol step explicitly spawns a child lane.
+
+
 ## Purpose
 
 Gather evidence, calibrate section policy, and draft or update a Product or Feature Requirements Document that is complete and correct enough to feed the **research-and-development** center **`plan and deliver`** mission (`.sedea/centers/research-and-development/missions/plan-and-deliver/` — Master Plan via **`master-planner`**). The document structure is flexible: mandatory sections define planning readiness, important sections raise visible gaps, and optional sections appear only when the feature needs them.

@@ -96,6 +96,21 @@ Per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea
 | `.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc` | Ship lane minimum (rules-only PR) |
 | `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/hosting-repo-rules/SKILL.md` | This skill procedure |
 
+## Agent messaging (MCP)
+
+**MCP spawn/result skill.** Parent→child spawn and child terminal result use MCP tools per **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Agent-to-agent spawn protocol*.
+
+| Action | MCP tool |
+|--------|----------|
+| Parent spawn (when this skill emits a child lane) | **`mission_control_spawn_agent`** |
+| **This** spawned lane terminal (and terminal re-emits) | **`mission_control_send_agent_result`** |
+
+**Binding:**
+
+- Run **`../README.md`** § *MCP spawn preflight* (rows M1–M8) before every MCP spawn; **forbidden** host-resolved identity keys in MCP args (`correlationId`, `dispatchId`, `slotId`, … — see README § *Host-resolved identity*).
+- Inline skills on this mission stay **inline-only** — no spawn wire change unless the protocol step explicitly spawns a child lane.
+
+
 ## Purpose
 
 | Owns | Does not own |
@@ -311,7 +326,6 @@ Remove or detach **only** **`WORKTREE_ROOT`** this pass created. **`git worktree
 | R4 | Re-emit updated MCP result after user-requested follow-up on this lane (same spawn session; host resolves **`correlationId`**) |
 
 ```text
-mission_control_send_agent_result {"version":1,"correlationId":"<uuid>","status":"success","summary":"Rules-only PR shipped.","outputs":{"targetPlanPath":"/path/to/plan.plan.md","targetPlanSlug":"slug","worktreeRoot":"/path/to/worktree","prUrl":"https://github.com/...","prShipComplete":true,"reconciledRepoRulesPaths":["/path/.cursor/rules/foo.mdc"],"shipPhase":"done","rowStatus":"closed","continuationStatus":"terminal"},"errors":[]}
 ```
 
 ## Completion (inline)

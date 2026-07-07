@@ -106,6 +106,21 @@ Full compile, linked primary-clone build artifacts, and add-on sync per dot-sede
 
 Running bootstrap is **not** developer approval for worktrees — layer 2 **`developerApprovedImplementation`** stays on the parent **`coding-session`** lane.
 
+## Agent messaging (MCP)
+
+**MCP spawn/result skill.** Parent→child spawn and child terminal result use MCP tools per **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Agent-to-agent spawn protocol*.
+
+| Action | MCP tool |
+|--------|----------|
+| Parent spawn (when this skill emits a child lane) | **`mission_control_spawn_agent`** |
+| **This** spawned lane terminal (and terminal re-emits) | **`mission_control_send_agent_result`** |
+
+**Binding:**
+
+- Run **`../README.md`** § *MCP spawn preflight* (rows M1–M8) before every MCP spawn; **forbidden** host-resolved identity keys in MCP args (`correlationId`, `dispatchId`, `slotId`, … — see README § *Host-resolved identity*).
+- Inline skills on this mission stay **inline-only** — no spawn wire change unless the protocol step explicitly spawns a child lane.
+
+
 ## Prerequisites (parent **`coding-session`** lane)
 
 This skill **does not** create worktrees or attach them to Sedea. The parent lane must finish first (see [`coding-session/SKILL.md`](../coding-session/SKILL.md) § *Hard rules — git worktree vs workbench attach (binding)* and § *Generic flow (single repo)*):

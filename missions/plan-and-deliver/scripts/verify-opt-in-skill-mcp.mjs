@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Opt-in skill MCP migration acceptance — Phase 2 PR 2.
+ * MCP-only spawn/result skill acceptance — skills_mcp_only_docs PR.
  *
- * Validates that documented MCP-primary skills declare MCP spawn/result tools,
- * MCP-only spawn/result docs and Completion (spawned) MCP result preflight.
+ * Validates every SKILL.md with `## Completion (spawned)` declares MCP tools,
+ * MCP result preflight, and no legacy sentinel protocol strings.
  *
  * Run from hosting repo root:
  *
@@ -17,17 +17,62 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const CENTER_ROOT = path.resolve(__dirname, '../../..');
+const CENTERS_ROOT = path.resolve(__dirname, '../../../../../');
 
-/** Skills that document MCP-primary spawn/result (expand in Phase 3+). */
-const OPT_IN_MCP_PRIMARY_SKILLS = [
-  {
-    skillDir: 'phase-planner',
-    relPath:
-      'missions/plan-and-deliver/skills/phase-planner/SKILL.md',
-    requiredSection: '## Agent messaging (MCP)',
-  },
-];
+/** Legacy sentinel strings — must not appear in skill docs after MCP-only migration. */
+const FORBIDDEN_SENTINELS = /AGENT_RUN_REQUEST_V1|AGENT_RESULT_RESPONSE_V1/;
+
+/** Skills exempt from spawn-table requirements (inline-only policy). */
+const INLINE_ONLY_EXEMPT = new Set([
+  'centers/sedea/skills/intent-drift-triage/SKILL.md',
+]);
+
+async function walk(dir, out = []) {
+  for (const ent of await fs.readdir(dir, { withFileTypes: true })) {
+    if (ent.name === '.git') continue;
+    const p = path.join(dir, ent.name);
+    if (ent.isDirectory()) await walk(p, out);
+    else if (ent.name === 'SKILL.md') out.push(p);
+  }
+  return out;
+}
+
+/**
+ * @param {string} body
+ * @param {string} rel
+ */
+function lintSpawnSkillBody(body, rel) {
+  const errors = [];
+  if (!/^## Completion \(spawned\)/m.test(body)) return errors;
+  if (INLINE_ONLY_EXEMPT.has(rel)) return errors;
+
+  if (FORBIDDEN_SENTINELS.test(body)) {
+    errors.push(`${rel}: must not document sentinel spawn/result protocol`);
+  }
+  if (body.includes('### Host protocol line (required)')) {
+    errors.push(`${rel}: replace ### Host protocol line with ### MCP result preflight`);
+  }
+  if (!body.includes('mission_control_send_agent_result')) {
+    errors.push(`${rel}: missing mission_control_send_agent_result reference`);
+  }
+  if (!body.includes('### MCP result preflight')) {
+    errors.push(`${rel}: Completion (spawned) must include ### MCP result preflight`);
+  }
+  if (!body.includes('## Agent messaging (MCP)')) {
+    errors.push(`${rel}: missing ## Agent messaging (MCP) section`);
+  }
+  if (
+    body.includes('mission_control_spawn_agent') === false &&
+    !body.includes('Spawned only') &&
+    !body.includes('spawn-only')
+  ) {
+    // Terminal-only spawned skills still reference parent spawn in prose — allow when no child spawn documented
+    if (!/inline only|Inline only|inline-only/i.test(body)) {
+      errors.push(`${rel}: missing mission_control_spawn_agent reference for spawned skill`);
+    }
+  }
+  return errors;
+}
 
 function die(msg) {
   process.stderr.write(`verify-opt-in-skill-mcp: ${msg}\n`);
@@ -49,59 +94,34 @@ async function resolveHostingRoot() {
   die('could not resolve hosting repo root — run from HOSTING_ROOT');
 }
 
-/**
- * @param {string} body
- * @param {string} rel
- */
-function lintOptInSkillBody(body, rel) {
-  const errors = [];
-  const mustInclude = [
-    'mission_control_spawn_agent',
-    'mission_control_send_agent_result',
-    'MCP spawn preflight',
-    'MCP result',
-  ];
-  for (const needle of mustInclude) {
-    if (!body.includes(needle)) {
-      errors.push(`${rel}: missing required MCP migration marker "${needle}"`);
-    }
-  }
-  if (/AGENT_RUN_REQUEST_V1|AGENT_RESULT_RESPONSE_V1/.test(body)) {
-    errors.push(`${rel}: must not document sentinel spawn/result protocol`);
-  }
-  if (!body.includes('### MCP result preflight')) {
-    errors.push(`${rel}: Completion (spawned) must include ### MCP result preflight`);
-  }
-  return errors;
-}
-
 async function main() {
   const hostingRoot = await resolveHostingRoot();
+  const skillPaths = await walk(CENTERS_ROOT);
   const allErrors = [];
+  let checked = 0;
 
-  for (const entry of OPT_IN_MCP_PRIMARY_SKILLS) {
-    const abs = path.join(CENTER_ROOT, entry.relPath);
+  for (const abs of skillPaths) {
+    const rel = path.relative(CENTERS_ROOT, abs);
     let raw;
     try {
       raw = await fs.readFile(abs, 'utf8');
     } catch (err) {
-      allErrors.push(`${entry.relPath}: read failed (${err.message})`);
+      allErrors.push(`${rel}: read failed (${err.message})`);
       continue;
     }
-    if (!raw.includes(entry.requiredSection)) {
-      allErrors.push(`${entry.relPath}: missing section "${entry.requiredSection}"`);
-    }
-    allErrors.push(...lintOptInSkillBody(raw, entry.relPath));
+    if (!/^## Completion \(spawned\)/m.test(raw)) continue;
+    checked += 1;
+    allErrors.push(...lintSpawnSkillBody(raw, rel));
   }
 
   if (allErrors.length) {
-    process.stderr.write('opt-in skill MCP acceptance failed:\n');
+    process.stderr.write('skill MCP-only acceptance failed:\n');
     for (const e of allErrors) process.stderr.write(`  ${e}\n`);
     process.exit(1);
   }
 
   process.stdout.write(
-    `verify-opt-in-skill-mcp: OK (${OPT_IN_MCP_PRIMARY_SKILLS.length} skill(s) from ${hostingRoot})\n`,
+    `verify-opt-in-skill-mcp: OK (${checked} spawned skill(s) from ${hostingRoot})\n`,
   );
 }
 

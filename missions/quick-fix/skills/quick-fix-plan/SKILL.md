@@ -57,7 +57,7 @@ warmUpRules:
 
 Per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea/docs/lane-manifest-contract.md). Spawned from **`quick-fix`** §3 only. Host merge: `effectiveWarmUp = dedupe(bootstrapRules → laneRules → skillWarmUp)`. Frontmatter matches this table.
 
-**Invoker `warmUpRules` override (binding):** On **`AGENT_RUN_REQUEST_V1`**, merge skill frontmatter **`warmUpRules`** and ensure **`quick-fix/plan.mdc`** is present — **not** `plan-and-deliver/plan.mdc`.
+**Invoker `warmUpRules` override (binding):** On **`mission_control_spawn_agent`**, merge skill frontmatter **`warmUpRules`** and ensure **`quick-fix/plan.mdc`** is present — **not** `plan-and-deliver/plan.mdc`.
 
 ### `bootstrapRules` — host-resolved (R&D layer)
 
@@ -83,9 +83,24 @@ Per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea
 | `.sedea/centers/research-and-development/missions/quick-fix/skills/quick-fix-plan/SKILL.md` | This skill |
 | `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/README.md` | Inline execution contracts |
 
+## Agent messaging (MCP)
+
+**MCP spawn/result skill.** Parent→child spawn and child terminal result use MCP tools per **`.sedea/centers/sedea/rules/4_mission.mdc`** § *Agent-to-agent spawn protocol*.
+
+| Action | MCP tool |
+|--------|----------|
+| Parent spawn (when this skill emits a child lane) | **`mission_control_spawn_agent`** |
+| **This** spawned lane terminal (and terminal re-emits) | **`mission_control_send_agent_result`** |
+
+**Binding:**
+
+- Run **`../README.md`** § *MCP spawn preflight* (rows M1–M8) before every MCP spawn; **forbidden** host-resolved identity keys in MCP args (`correlationId`, `dispatchId`, `slotId`, … — see README § *Host-resolved identity*).
+- Inline skills on this mission stay **inline-only** — no spawn wire change unless the protocol step explicitly spawns a child lane.
+
+
 ## Spawn contract
 
-**Invokers:** **`quick-fix`** Squad Leader §3 only. **`skillPath`** for **`AGENT_RUN_REQUEST_V1`**:
+**Invokers:** **`quick-fix`** Squad Leader §3 only. **`skillPath`** for **`mission_control_spawn_agent`**:
 
 `.sedea/centers/research-and-development/missions/quick-fix/skills/quick-fix-plan/SKILL.md`
 
@@ -97,26 +112,20 @@ Run **`../plan-and-deliver/skills/README.md`** § *Universal spawn preflight* be
 
 1. Validate spawn **`inputs`**: non-empty **`changeList`**, **`complexityConfirmed: true`**, **`intakeMode`**; when **`description-of-fix`**, require **`changeDescription`**.
 2. Execute **`quick-fix/plan.mdc`** §4 procedure (minimal parent → inline **`new-plan`** → inline **`pr-plan`** → **`coding-session`** §5d spawn).
-3. Emit child terminal **`AGENT_RESULT_RESPONSE_V1`** per **`## Completion (spawned)`** below.
+3. Emit child terminal **`mission_control_send_agent_result`** per **`## Completion (spawned)`** below.
 
 **Forbidden:** second PR row; **`master-planner`** / **`pr-breakdown`** / **`delivery-phases`** / **`phase-planner`**; Squad Leader **`MC_DISPATCH_RESOLVED_V1`** on this lane.
 
 ## Completion (spawned)
 
-### Host protocol line (required)
+### MCP result preflight (`mission_control_send_agent_result`)
 
-Emit **exactly one** line: `AGENT_RESULT_RESPONSE_V1` + JSON on the **same** line. Required keys: `version` (1), `correlationId` (from spawn), `status`, `summary`, `outputs`, `errors` (`[]` when none).
+| Step | Check |
+|------|--------|
+| R1 | Call **`mission_control_send_agent_result`** with **`status`**, **`summary`**, optional **`outputs`** / **`errors`** |
+| R2 | **Forbidden args absent** — no **`correlationId`**, **`dispatchId`**, **`slotId`**, or other host-resolved keys |
+| R3 | Populate **`outputs`** from the required field list below |
+| R4 | Re-emit updated MCP result after user-requested follow-up on this lane (same spawn session; host resolves **`correlationId`**) |
 
-Required `outputs` fields:
+Stop after the MCP result call. Do not emit another **`mission_control_spawn_agent`** on this lane (see **`../README.md`** § *Terminal stop (normative)*).
 
-- `outputs.parentPlanPath`
-- `outputs.targetPlanPath`
-- `outputs.readyForImplementation`
-- `outputs.prPlanHandoffReady` (or equivalent per inline **`pr-plan`** handoff)
-- `outputs.activeLanes` — include detached **`coding-session`** row when spawned
-- `outputs.openLedgerEntries`
-- `outputs.remainingTasks`
-- `outputs.continuationOwner` — `"squad-leader"` on terminal success
-- `outputs.continuationStatus` — `"terminal"` when PR plan handoff complete
-
-Stop after each terminal line (see **`../plan-and-deliver/skills/README.md`** § *Terminal stop (normative)*). Do **not** re-spawn **`new-plan`** or **`pr-plan`** as separate child lanes.
