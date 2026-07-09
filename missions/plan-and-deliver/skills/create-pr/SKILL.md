@@ -84,7 +84,7 @@ If Mission Control opened a session whose only intent is **`create-pr`** / *open
 
 ## Structured choice (Mission Control)
 
-Gates use **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* on the **`coding-session`** lane — **preferred:** recap + modal in one message. **Act** (`gh pr create`, plan follow-up append) only after the developer selects.
+Gates use **AskQuestion**, **`mission_control_present_structured_choice`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* on the **`coding-session`** lane — **preferred:** recap + modal in one message. **Act** (`gh pr create`, plan follow-up append) only after the developer selects.
 
 ## Checkpoint turn UX (skill-local)
 
@@ -109,7 +109,7 @@ Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.s
 
 Give developers a **consistent state snapshot** during inline PR creation so they can re-orient after reload or parallel work.
 
-**When required:** At every **Mandatory gate** below — render as the **first block** in `display.markdown` (before recap or diff summary). **Forbidden:** omitting the table and substituting scattered one-liners on modal gates.
+**When required:** At every **Mandatory gate** below — render as the **first block** in `displayMarkdown` (before recap or diff summary). **Forbidden:** omitting the table and substituting scattered one-liners on modal gates.
 
 **Table shape (markdown):**
 
@@ -131,7 +131,7 @@ Give developers a **consistent state snapshot** during inline PR creation so the
 
 When [Gate](#gate) step **5** requires push but the branch is not on the remote and push was **not** authorized by **`coding-session`** (for example developer deferred push at ship cut-point):
 
-Put the session orientation table and push status (`git status`, tracking ahead/behind) in **`display.markdown`**.
+Put the session orientation table and push status (`git status`, tracking ahead/behind) in **`displayMarkdown`**.
 
 USER_CHECKPOINT — authorize push before PR creation.
 
@@ -148,9 +148,9 @@ USER_CHECKPOINT — authorize push before PR creation.
 
 Every inline pass that would call **`gh pr create`** must use structured choice **before** invoking **`gh`** — even when **`coding-session`** ran [Inline create-pr (auto on clean go)](../coding-session/SKILL.md#inline-create-pr-auto-on-clean-go) without a coding-session-level Create-PR modal. **`coding-session`** authorization to enter inline **`create-pr`** does **not** substitute for this gate under Checkpoint trust.
 
-**When required:** After [Gate](#gate) steps **1–5** pass (including push when authorized). **Forbidden:** calling **`gh pr create`** in the same assistant turn as this modal. **Forbidden:** prose-only PR creation handoff (*tell me when*, *I'll open the PR*) without **`MC_PHASED_RESPONSE_V1`**.
+**When required:** After [Gate](#gate) steps **1–5** pass (including push when authorized). **Forbidden:** calling **`gh pr create`** in the same assistant turn as this modal. **Forbidden:** prose-only PR creation handoff (*tell me when*, *I'll open the PR*) without **`mission_control_present_structured_choice`**.
 
-Put the session orientation table, reviewer **`go`** summary, optional flags, and proposed follow-ups (when present) in **`display.markdown`**.
+Put the session orientation table, reviewer **`go`** summary, optional flags, and proposed follow-ups (when present) in **`displayMarkdown`**.
 
 USER_CHECKPOINT — authorize `gh pr create` on this lane.
 
@@ -268,4 +268,4 @@ Required fields (prose to invoker / merged into **`coding-session`** `outputs`):
 - All keys from **## Result contract**
 - One-line summary: PR opened (`prUrl`) or blocked reason
 
-**Handback:** the invoker opens [Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate) on the **same `coding-session` assistant turn** that finishes this procedure — **`MC_PHASED_RESPONSE_V1`** with post-create-pr **`options`**, not prose-only PR URL (see **`coding-session`** § *Every developer-await turn* and Create-PR step **7**). Do **not** auto-start inline **`pr-review`**, inline **`deploy-walk`**, or **`plan-reconcile`** from this skill. When the developer later picks **`start-pr-review`**, **`coding-session`** must load **`pr-review/SKILL.md`** and run **`pr-review.mjs`** Step 1 before generic review/wait/merge options.
+**Handback:** the invoker opens [Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate) on the **same `coding-session` assistant turn** that finishes this procedure — **`mission_control_present_structured_choice`** with post-create-pr **`options`**, not prose-only PR URL (see **`coding-session`** § *Every developer-await turn* and Create-PR step **7**). Do **not** auto-start inline **`pr-review`**, inline **`deploy-walk`**, or **`plan-reconcile`** from this skill. When the developer later picks **`start-pr-review`**, **`coding-session`** must load **`pr-review/SKILL.md`** and run **`pr-review.mjs`** Step 1 before generic review/wait/merge options.

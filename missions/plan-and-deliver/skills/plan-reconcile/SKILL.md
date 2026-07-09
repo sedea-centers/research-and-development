@@ -76,7 +76,7 @@ Script-backed flow: **`plan-state.mjs`** owns YAML and file moves; the agent dec
 
 ## Structured choice (Mission Control)
 
-Dry-run reports, archive candidates, and follow-up triage use **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* — recap + modal in **one turn** when practical. **Act** (`plan-state.mjs archive`, file moves) is after the developer selects.
+Dry-run reports, archive candidates, and follow-up triage use **AskQuestion** or **`mission_control_present_structured_choice`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* — recap + modal in **one turn** when practical. **Act** (`plan-state.mjs archive`, file moves) is after the developer selects.
 
 ## Checkpoint turn UX (skill-local)
 
@@ -304,7 +304,7 @@ node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/p
   --dry-run [--slug <slug>]
 ```
 
-Present the JSON **`actions`** list in the **same turn** as the required **AskQuestion** before **`--apply`** — put long reports in **`display.markdown`** (phased) when needed; do not end with a report-only turn.
+Present the JSON **`actions`** list in the **same turn** as the required **AskQuestion** before **`--apply`** — put long reports in **`displayMarkdown`** (MCP) when needed; do not end with a report-only turn.
 
 | Option id (illustrative) | Label (brief) |
 |--------------------------|---------------|
@@ -399,7 +399,7 @@ When **`upstreamSkill`** is **`coding-session`**, close every inline pass with s
 
 **When required:** After Flow steps **1–6** finish (or pause with a terminal outcome ready for handback). **Forbidden:** prose-only reconcile summary without this gate under Checkpoint trust. **Forbidden:** emitting **`mission_control_send_agent_result`** from this skill — the parent **`coding-session`** lane owns MCP results.
 
-Put reconcile counts, archived slugs, flagged/postponed leftovers, and §5 cleanup summary in **`display.markdown`**.
+Put reconcile counts, archived slugs, flagged/postponed leftovers, and §5 cleanup summary in **`displayMarkdown`**.
 
 USER_CHECKPOINT — confirm plan-reconcile inline closure and hand results back to coding-session.
 

@@ -255,7 +255,7 @@ USER_CHECKPOINT — pick which repo(s) this feature primarily touches for archit
 | `add-repo` | Add another repo path |
 | `more-details` | More details for option _ |
 
-- When **two or more** hosting repos remain after filtering → open this gate with **`AskQuestion`** (`allow_multiple: true`) or **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**. **`modalTitle`:** *Planner — pick target repo(s)*; **`prompt`:** *Which repo(s) does this feature primarily touch? Architectural rules will be loaded from each one's `.cursor/rules/`.* — one option per filtered repo (`id` = absolute path, `label` = leaf folder name) plus **`add-repo`** and **`more-details`**. Mention an implied default repo in recap when the PRD/title suggests one — do **not** auto-select.
+- When **two or more** hosting repos remain after filtering → open this gate with **`AskQuestion`** (`allow_multiple: true`) or **`mission_control_present_structured_choice`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**. **`modalTitle`:** *Planner — pick target repo(s)*; **`prompt`:** *Which repo(s) does this feature primarily touch? Architectural rules will be loaded from each one's `.cursor/rules/`.* — one option per filtered repo (`id` = absolute path, `label` = leaf folder name) plus **`add-repo`** and **`more-details`**. Mention an implied default repo in recap when the PRD/title suggests one — do **not** auto-select.
 - When **exactly one** hosting repo remains after filtering → **auto-advance** with *"Only one hosting repo in this workspace — defaulting to \<name\>. Reply 'add \<path\>' if you want to include another."* — do **not** open this gate.
 - After a developer pick at this gate, continue to step **3b** with the selected repo path(s).
 
@@ -619,7 +619,7 @@ Do **not** draft section 6 (`Delivery phases | PR breakdown`) or section 7 (Cave
 
 ## Step 7 — Next moves (AskQuestion + inline decomposition)
 
- §§ 1–5 are drafted (including **`### Complexity score`**); §6 and §7 stay `_TBD_` until the user chooses next moves. Collect each next-move pick per **`.sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc`** § *Sedea input channel* and **`../README.md`** § *Recap, structured choice, act* — **`AskQuestion`** or **`MC_PHASED_RESPONSE_V1`** in **one turn** (`display.markdown` + `askQuestion`). Execute **one** chosen action per turn.
+ §§ 1–5 are drafted (including **`### Complexity score`**); §6 and §7 stay `_TBD_` until the user chooses next moves. Collect each next-move pick per **`.sedea/centers/research-and-development/rules/30_planning-target-resolution.mdc`** § *Sedea input channel* and **`../README.md`** § *Recap, structured choice, act* — **`AskQuestion`** or **`mission_control_present_structured_choice`** in **one turn** (`displayMarkdown` + `askQuestion`). Execute **one** chosen action per turn.
 
 §6 decomposition runs **`delivery-phases`** or **`pr-breakdown`** **inline on this lane** (no child lane for those skills). §7 **Caveats** is drafted **inline** in this skill when the user selects that option.
 
@@ -629,7 +629,7 @@ Do **not** draft section 6 (`Delivery phases | PR breakdown`) or section 7 (Cave
 
 After **Echo to chat** (§§1–5 + complexity table), end with **one short status line only** (plan path, band, overall score). **Do not** embed the next-move menu in prose blockquotes.
 
-When the full section echo is too long for one message, use rule **2** priority **3** split only: prior message = echo; **next** message = **`MC_PHASED_RESPONSE_V1`** sentinel-first with Step **7b** options — never a prose-only follow-up. On the **initial §§1–5 draft turn**, include **`MC_PHASED_RESPONSE_V1`** in the **same** message as **`mission_control_send_agent_result`** — phased **line 1**, terminal **last line** (rule **2** § *Same message as spawn terminal*).
+When the full section echo is too long for one message, use rule **2** priority **3** split only: prior message = echo; **next** message = **`mission_control_present_structured_choice`** MCP structured-choice with Step **7b** options — never a prose-only follow-up. On the **initial §§1–5 draft turn**, include **`mission_control_present_structured_choice`** in the **same** message as **`mission_control_send_agent_result`** — phased **line 1**, terminal **last line** (rule **2** § *Same message as spawn terminal*).
 
 ### Step 7a.1 — Open-item modal contract
 
@@ -637,7 +637,7 @@ Apply the shared planning open-item contract from `../README.md` to every **mast
 
 **When open items exist** — use **one modal with multiple `questions[]` entries**:
 
-- **`display.markdown`:** numbered list of open items. For each item, include the section or route it affects, the gap or caveat, why the decision matters, and the agent's proposed resolution options.
+- **`displayMarkdown`:** numbered list of open items. For each item, include the section or route it affects, the gap or caveat, why the decision matters, and the agent's proposed resolution options.
 - **`askQuestion.questions`:** one scoped question per open item, with its own stable `id`, `prompt`, and item-only `options` (for example `accept-proposed`, `revise-section`, `defer-to-caveats`, `skip-no-change`, `more-details`). **Forbidden:** one combined question whose options mix several item decisions.
 - **Final question:** always append the terminal planner gate question last in the array. Use the normal gate for the current step: Step **7b** primary next moves, Step **7c** route choice, §7 Caveats approval, or the relevant resume/expand gate. **Forbidden:** a resolve-only modal that omits the terminal next-move or approval question until every item is cleared.
 - **Many open items:** batch across turns when needed; each batch still ends with the terminal planner gate question as the final `questions[]` entry so the developer can approve, route, revise, or defer with the surfaced context visible.
@@ -646,7 +646,7 @@ Apply the shared planning open-item contract from `../README.md` to every **mast
 
 ### Step 7b — Structured choice: primary next moves
 
-Invoke **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** in the **same turn** as step **7a** recap when practical. **Obsolete:** structured choice in a **separate** assistant message after step **7a** without a phased sentinel on that follow-up. Build options from plan state and Step 6c band.
+Invoke **AskQuestion** or **`mission_control_present_structured_choice`** in the **same turn** as step **7a** recap when practical. **Obsolete:** structured choice in a **separate** assistant message after step **7a** without MCP structured choice on that follow-up. Build options from plan state and Step 6c band.
 
 **Phase-planner child active (binding):** When **`activeLanes`** (from inline **`delivery-phases`** / **`new-plan`** merge or bubbled **`mission_control_send_agent_result`**) includes **`continuationOwner: "phase-planner-agent"`** with **`continuationStatus: "active"`** for a **`Delivery phases`** row, **do not** offer **`route-6`**, **`expand-eligible-pr`**, **`expand-next-phase`**, or other phase-scoped decomposition options for that row on this **Master Plan** lane. Acknowledge in one line (phase slug, child lane id when known) and tell the developer to continue on the **phase-planner** child lane. Re-offer Step **7b** master-plan options only after **`phaseShipComplete`** for that phase or explicit defer/abandon — see **`phase-planner`** § *Phase delivery ownership*.
 
@@ -661,9 +661,9 @@ Invoke **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** in the **same turn** as st
 | `revise` | Revise a drafted section (§1–§5 or §7) | Step 7e |
 | `more` | More details for option _ | Elaborate, then re-ask |
 
-**When complexity is high (C > 20)** — **include `route-6`** (same as low/medium — do not withhold §6 at high band). In recap / **`display.markdown`**, recommend **Delivery phases** over **PR breakdown** and name the downstream chain (**`delivery-phases`** → **`new-plan`** → **`phase-planner`**). At Step **7c** route **AskQuestion**, list **Delivery phases** first with a brief label such as *Delivery phases — recommended (split into phase plans)* and **PR breakdown** second with caution such as *PR breakdown — skips phase layer; usually not for high band*. Also offer **revise §4**, **revise §5** when the user wants to narrow before decomposing. The **Squad Leader** must **never** run **`delivery-phases`** or **`pr-breakdown`** — only this **master-planner** lane runs them inline after **`route-6`**.
+**When complexity is high (C > 20)** — **include `route-6`** (same as low/medium — do not withhold §6 at high band). In recap / **`displayMarkdown`**, recommend **Delivery phases** over **PR breakdown** and name the downstream chain (**`delivery-phases`** → **`new-plan`** → **`phase-planner`**). At Step **7c** route **AskQuestion**, list **Delivery phases** first with a brief label such as *Delivery phases — recommended (split into phase plans)* and **PR breakdown** second with caution such as *PR breakdown — skips phase layer; usually not for high band*. Also offer **revise §4**, **revise §5** when the user wants to narrow before decomposing. The **Squad Leader** must **never** run **`delivery-phases`** or **`pr-breakdown`** — only this **master-planner** lane runs them inline after **`route-6`**.
 
-When band is high, optional separate-Master-Plan journey-split bullets from Step 6c may appear in recap / **`display.markdown`** as context — not as a prose choice menu; options live in the modal.
+When band is high, optional separate-Master-Plan journey-split bullets from Step 6c may appear in recap / **`displayMarkdown`** as context — not as a prose choice menu; options live in the modal.
 
 Always include **More details for option _** per conduct.
 
@@ -695,7 +695,7 @@ Execute **only** what the user selected in **AskQuestion** (or the matching **`o
 
 #### Route §6 decomposition (`route-6`)
 
-1. **Structured choice** — **AskQuestion**, **`MC_PHASED_RESPONSE_V1`**: **Delivery phases** vs **PR breakdown** (align with **`### Decomposition assessment`** when possible). Prefer one message; split only when a long draft was sent in the prior message.
+1. **Structured choice** — **AskQuestion**, **`mission_control_present_structured_choice`**: **Delivery phases** vs **PR breakdown** (align with **`### Decomposition assessment`** when possible). Prefer one message; split only when a long draft was sent in the prior message.
 2. Load and follow the chosen skill **inline** on this lane (see **Inline handoff** above):
  - `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/delivery-phases/SKILL.md` — `routeLock: "delivery-phases"`
  - `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/pr-breakdown/SKILL.md` — `routeLock: "pr-breakdown"`
@@ -764,7 +764,7 @@ Draft **`## 7. Caveats (optional)`** inline from PRD + §§1–5 (+ §6 when alr
 
 1. **`StrReplace`** the §7 **`_TBD_`** (or empty body) under **`## 7. Caveats (optional)`** with caveats grounded in PRD + §§1–6 (constraints from decomposition or ship — not generic PRD worries alone).
 2. Set working ledger **`caveatsApprovalStatus: pending`**.
-3. Close the **same turn** with **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**: put the full **`## 7. Caveats`** block (or plan path + one-line summary) in **`display.markdown`** when phased; **`askQuestion`** options:
+3. Close the **same turn** with **AskQuestion** or **`mission_control_present_structured_choice`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**: put the full **`## 7. Caveats`** block (or plan path + one-line summary) in **`displayMarkdown`** when phased; **`askQuestion`** options:
 
 | Option id (example) | Label (brief) | Action |
 |---------------------|---------------|--------|
@@ -805,11 +805,11 @@ When (2) holds but §7 is still **`_TBD_`**, keep **`continuationStatus: active`
 
 #### Operations git requests (binding)
 
-When the developer asks to commit, push, or open a PR for plan files under **`.sedea/operations/`**, **decline in prose** — operations git is **user-managed** outside the agent per **`.sedea/centers/sedea/rules/6_git-commit-push-gate.mdc`** § **Operations repository**. **Forbidden:** `commit-plans`, `commit-only`, `commit-push`, or any commit/push/PR **`options`** in **`MC_PHASED_RESPONSE_V1`** / **AskQuestion** when the active **`targetPlanPath`** (or plan writes from this skill) resolve under **`.sedea/operations/`**.
+When the developer asks to commit, push, or open a PR for plan files under **`.sedea/operations/`**, **decline in prose** — operations git is **user-managed** outside the agent per **`.sedea/centers/sedea/rules/6_git-commit-push-gate.mdc`** § **Operations repository**. **Forbidden:** `commit-plans`, `commit-only`, `commit-push`, or any commit/push/PR **`options`** in **`mission_control_present_structured_choice`** / **AskQuestion** when the active **`targetPlanPath`** (or plan writes from this skill) resolve under **`.sedea/operations/`**.
 
 ### Observations (numbered flags)
 
-When you notice gaps while working, list **numbered observations** in **`display.markdown`** (Flag 1, Flag 2, …) and apply **Step 7a.1 — Open-item modal contract**: one scoped `questions[]` entry per observation or batch item, then the current terminal planner gate question last. Prefer recap + modal in one message.
+When you notice gaps while working, list **numbered observations** in **`displayMarkdown`** (Flag 1, Flag 2, …) and apply **Step 7a.1 — Open-item modal contract**: one scoped `questions[]` entry per observation or batch item, then the current terminal planner gate question last. Prefer recap + modal in one message.
 
 After handling flags, return to **Step 7b**.
 
@@ -870,7 +870,7 @@ Required `outputs` fields:
 - **`continuationStatus: terminal`** when Step **7c** / *Resume / PR-expand handoff* requires open §5c on **`targetPlanPath`** (unless developer explicitly **`defer`** implementation on this lane).
 - **`implementationHandoffStatus: acknowledged-ready-for-coding-session`** (or similar) without **`spawnCorrelationId`** when the developer authorized **Start coding session** and §5a passed — emit §5d or keep **`continuationStatus: active`**.
 
-Stop after the MCP result call. Do not emit another `mission_control_spawn_agent` for **`delivery-phases`**, **`pr-breakdown`**, or **`new-plan`** or run the next protocol step in the same turn (see **`../README.md`** § *Terminal stop (normative)*). While `continuationStatus` is `active`, the **Squad Leader** acknowledges only (**`.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`** §6); this lane owns **AskQuestion** + inline decomposition (Step 7) on follow-up user messages. On turns that emit **`mission_control_send_agent_result`**, also emit **`MC_PHASED_RESPONSE_V1`** in the **same** message (phased line 1, terminal last line) per rule **2** § *Same message as spawn terminal* — Step **7b** options may be in that phased block on the initial draft turn.
+Stop after the MCP result call. Do not emit another `mission_control_spawn_agent` for **`delivery-phases`**, **`pr-breakdown`**, or **`new-plan`** or run the next protocol step in the same turn (see **`../README.md`** § *Terminal stop (normative)*). While `continuationStatus` is `active`, the **Squad Leader** acknowledges only (**`.sedea/centers/research-and-development/missions/plan-and-deliver/plan.mdc`** §6); this lane owns **AskQuestion** + inline decomposition (Step 7) on follow-up user messages. On turns that emit **`mission_control_send_agent_result`**, also call **`mission_control_present_structured_choice`** in the **same** message (phased line 1, terminal last line) per rule **2** § *Same message as spawn terminal* — Step **7b** options may be in that phased block on the initial draft turn.
 
 **§7 / terminal coupling:** Never emit **`continuationStatus: terminal`** in the same turn as a §7 approval **AskQuestion**. When §7 was just populated and **`caveatsApprovalStatus`** is **`pending`**, the next user-visible turn must be approval structured choice only — terminal **`mission_control_send_agent_result`** comes **after** the developer approves or skips §7.
 

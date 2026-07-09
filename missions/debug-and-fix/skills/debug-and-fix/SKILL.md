@@ -148,7 +148,7 @@ Present structured choice confirming recommendation; **Squad Leader** owns post-
 
 ## Structured choice (Mission Control)
 
-Every assistant turn closes with **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc). Use **external-wait / next-step modal** when developer reviews diffs or runs tests outside chat.
+Every assistant turn closes with **AskQuestion** or **`mission_control_present_structured_choice`** per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc). Use **external-wait / next-step modal** when developer reviews diffs or runs tests outside chat.
 
 ## Completion (spawned)
 

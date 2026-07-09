@@ -104,7 +104,7 @@ If **`invokerMissionSlug`** is missing or **`operationsDocsDirectory`** does not
 1. **Open the session** — Restate `researchTopic`, `researchPrompt`, and `openingSeeds` when present. Ask what the developer wants to explore; follow free-form chat until enough material exists for a report (no fixed turn count).
 2. **Synthesize** — Draft report sections from the conversation (see **Report file shape** below). Use tools (read codebase, search docs) when helpful; cite paths in **Sources consulted**.
 3. **Write report** — Resolve docs write root per **31_dispatch-scope.mdc** § *Docs write root resolution*; save under that directory as `brainstorm_<slug>_<8hex>.brainstorm-report.md` (kebab slug from title; regenerate hex on collision once).
-4. **Present for approval** — Show report path and summary in **`display.markdown`** (phased) or brief prose; open structured choice:
+4. **Present for approval** — Show report path and summary in **`displayMarkdown`** (MCP) or brief prose; open structured choice:
    - **Approve report** — send to Squad Leader; auto-chain downstream planning per invoker mission
    - **Revise research** — continue session on this lane
    - **Abandon dispatch** — direction not viable; Squad Leader resolves dispatch **`abandoned`**

@@ -197,7 +197,7 @@ Apply the shared planning open-item contract from `../README.md` § *Planning op
 
 **When open items exist** — use **one modal with multiple `questions[]` entries**:
 
-- **`display.markdown`:** numbered list — each item cites parent list item **N**, the `Plan:` line or stub field affected, the gap, why the decision matters for the plan tree, and the agent's proposed resolution options.
+- **`displayMarkdown`:** numbered list — each item cites parent list item **N**, the `Plan:` line or stub field affected, the gap, why the decision matters for the plan tree, and the agent's proposed resolution options.
 - **`askQuestion.questions`:** one scoped question per open item (for example `fix-plan-placeholder`, `accept-stub-overview`, `override-eligibility`, `revise-row-prose`, `defer`, `more-details`). **Forbidden:** one combined question mixing placeholder, stub, and populator decisions.
 - **Final question:** append the normal terminal gate for the current step: confirm indexed expand, revise stub, defer population, abandon child, or approve populator handoff — per step **3** populator approval or post-write verification. **Forbidden:** resolve-only modals without the terminal routing question.
 - **Many open items:** batch across turns when needed; each batch still ends with the terminal indexed-child gate question as the final `questions[]` entry.
@@ -249,7 +249,7 @@ Apply the shared planning open-item contract from `../README.md` § *Planning op
 
 **When open items exist** — use **one modal with multiple `questions[]` entries**:
 
-- **`display.markdown`:** numbered list of open items. For each item, include the candidate parent slug/path, the gap or conflict, why the parent choice matters for the plan tree, and the agent's proposed resolution options.
+- **`displayMarkdown`:** numbered list of open items. For each item, include the candidate parent slug/path, the gap or conflict, why the parent choice matters for the plan tree, and the agent's proposed resolution options.
 - **`askQuestion.questions`:** one scoped question per open item, with its own stable `id`, `prompt`, and item-only `options` (for example `accept-parent-candidate`, `use-null-root`, `paste-different-slug`, `defer`, `more-details`). **Forbidden:** one combined question whose options mix decisions for several parent candidates.
 - **Final question:** always append the terminal **new-plan** parent-confirmation question last in the array: confirm write with resolved parent (or `null` for root), revise parent choice, defer scaffold, **More details for option _**. **Forbidden:** a resolve-only modal that omits parent confirmation until every item is cleared.
 - **Many open items:** batch across turns when needed; each batch still ends with the terminal parent-confirmation question as the final `questions[]` entry.
@@ -364,7 +364,7 @@ Set `outputs.populatorApprovalStatus: "waived-upstream"` and one line: *Parent l
 - `requestedPopulatorSkill` is absent (stub-only create).
 - The developer explicitly chose **Revise child stub first** or **Defer population** on a prior turn (re-open step 3).
 
-3. **Populator approval gate (indexed spawn only — when not auto-authorized).** If this skill was spawned with `requestedPopulatorSkill` and [Auto-authorize populator](#auto-authorize-populator-upstream-decomposition-spawn) does **not** apply, present the created child stub and verified parent `Plan:` link to the developer before spawning the populator. Apply **Indexed child — Open-item modal contract** when stub review surfaces open items (thin overview, YAML quoting risk, parent link not yet verified). When open items exist, one scoped `questions[]` entry per item, then the terminal populator gate question last. Collect approval via **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**, **`../README.md`** § *Planning open-item modal contract*, and **`../README.md`** § *Recap, structured choice, act* — **preferred:** stub link + modal in one message.
+3. **Populator approval gate (indexed spawn only — when not auto-authorized).** If this skill was spawned with `requestedPopulatorSkill` and [Auto-authorize populator](#auto-authorize-populator-upstream-decomposition-spawn) does **not** apply, present the created child stub and verified parent `Plan:` link to the developer before spawning the populator. Apply **Indexed child — Open-item modal contract** when stub review surfaces open items (thin overview, YAML quoting risk, parent link not yet verified). When open items exist, one scoped `questions[]` entry per item, then the terminal populator gate question last. Collect approval via **AskQuestion**, **`mission_control_present_structured_choice`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**, **`../README.md`** § *Planning open-item modal contract*, and **`../README.md`** § *Recap, structured choice, act* — **preferred:** stub link + modal in one message.
 
 USER_CHECKPOINT — approve child stub and populator handoff before inline pr-plan or phase-planner spawn.
 
@@ -378,7 +378,7 @@ Required **`options`** (final `questions[]` entry when no open items, or last en
 | `abandon-child` | Abandon this child |
 | `more-details` | More details for option _ |
 
-- When stub write and parent `Plan:` link verify and auto-authorize does **not** apply → open this gate via **`MC_PHASED_RESPONSE_V1`** (spawned lanes) or **AskQuestion** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**. Apply **Indexed child — Open-item modal contract** when open items exist — this approval question stays last in `questions[]`.
+- When stub write and parent `Plan:` link verify and auto-authorize does **not** apply → open this gate via **`mission_control_present_structured_choice`** (spawned lanes) or **AskQuestion** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**. Apply **Indexed child — Open-item modal contract** when open items exist — this approval question stays last in `questions[]`.
 - When auto-authorize applies → **do not** open this gate; proceed to step **4** in the same turn after the stub and `Plan:` link verify.
 - Only **`approve-populator`** authorizes populator handoff (inline **`pr-plan`** or spawn **`phase-planner`**). If the developer defers, return `partial` or `success` with `continuationStatus: "active"` and a `remainingTasks` item naming the deferred populator.
 - **`defaultOptionId: approve-populator`** when stub and parent link verify and no blocking open items remain.
@@ -422,7 +422,7 @@ Required **`options`** (final `questions[]` entry when no open items, or last en
  5. **Re-emit / propagate:** **Inline** under **`pr-breakdown`** or **`phase-planner`**: return **`## Completion (inline)`** with ship fields so the decomposition skill marks **`childRows[N].status: ship-complete`** and may offer **`expand-eligible`** on the next turn. **Standalone spawned `new-plan`:** re-emit **`mission_control_send_agent_result`** (same **`correlationId`**) with merged **`outputs`** before stopping.
  6. Return `partial` or `active` while the child lane is open; `terminal` only when inline **`pr-plan`** handoff is complete and no **`coding-session`** child remains open — **`prShipComplete`** may still leave the invoker **`active`** until upstream expand runs.
 
-6. **Non-indexed spawns:** no populator handoff table — suggest filling stubs or choosing the next **protocol branch** via **AskQuestion** / **`MC_PHASED_RESPONSE_V1`** per **30_planning-target-resolution** § *Sedea input channel* and **`../README.md`** § *Recap, structured choice, act*.
+6. **Non-indexed spawns:** no populator handoff table — suggest filling stubs or choosing the next **protocol branch** via **AskQuestion** / **`mission_control_present_structured_choice`** per **30_planning-target-resolution** § *Sedea input channel* and **`../README.md`** § *Recap, structured choice, act*.
 
 7. **Worktrees, broad `git` operations, and `## Child plans` on the parent** — owned by **`coding-session`**, **`plan-reconcile`**, and other cadence steps after this skill completes.
 

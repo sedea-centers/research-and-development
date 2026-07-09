@@ -91,7 +91,7 @@ Per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea
 
 | Path | Purpose |
 |------|---------|
-| `.sedea/centers/sedea/rules/2_ask-question-instructions.mdc` | Structured choice, AskQuestion / phased sentinels |
+| `.sedea/centers/sedea/rules/2_ask-question-instructions.mdc` | Structured choice, AskQuestion / MCP `mission_control_present_structured_choice` |
 | `.sedea/centers/sedea/rules/6_git-commit-push-gate.mdc` | Commit/push gate before ship cut-point |
 | `.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc` | Ship lane minimum (rules-only PR) |
 | `.sedea/centers/research-and-development/missions/plan-and-deliver/skills/hosting-repo-rules/SKILL.md` | This skill procedure |
@@ -195,7 +195,7 @@ Parent **`master-planner`** Step **7c** / **`phase-planner`** Step **5e** evalua
 
 ## Structured choice (Mission Control)
 
-Layer 2 approval and ship gates on this lane use **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act*. On spawned lanes, put recap in **`display.markdown`**; **`MC_PHASED_RESPONSE_V1`** must be the last sentinel when a gate is open.
+Layer 2 approval and ship gates on this lane use **AskQuestion** or **`mission_control_present_structured_choice`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act*. On spawned lanes, put recap in **`displayMarkdown`**; **`mission_control_present_structured_choice`** must run when a gate is open (before terminal MCP result when both apply).
 
 ## Checkpoint turn UX (skill-local)
 
@@ -218,7 +218,7 @@ Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.s
 
 ## Session orientation table (binding)
 
-Render as the **first block** in `display.markdown` at every mandatory gate.
+Render as the **first block** in `displayMarkdown` at every mandatory gate.
 
 | Field | Value |
 |-------|-------|
@@ -236,7 +236,7 @@ Render as the **first block** in `display.markdown` at every mandatory gate.
 
 **Layer 2 — single AskQuestion** before any inline **`worktree-setup`**, sidecar session write, Mission Control worktree attach, or `.mdc` edits.
 
-**Recap and structured choice:** Summarize plan path, §5 scope, and `pendingRepoRulesPaths` in **`display.markdown`** when using **`MC_PHASED_RESPONSE_V1`**. Include [Session orientation table (binding)](#session-orientation-table-binding) as the first block. On spawned lanes, end the gate turn with **`MC_PHASED_RESPONSE_V1`** — see **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**.
+**Recap and structured choice:** Summarize plan path, §5 scope, and `pendingRepoRulesPaths` in **`displayMarkdown`** when using **`mission_control_present_structured_choice`**. Include [Session orientation table (binding)](#session-orientation-table-binding) as the first block. On spawned lanes, end the gate turn with **`mission_control_present_structured_choice`** — see **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**.
 
 USER_CHECKPOINT — authorize rules-only worktree and implementation on this lane.
 

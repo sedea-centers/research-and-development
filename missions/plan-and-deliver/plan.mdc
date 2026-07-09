@@ -342,7 +342,7 @@ USER_CHECKPOINT — pick intake mode or confirm PRD intake summary before spawni
    - **More details for option _**
    When the developer selects **`brainstorm-first`**, run §2.5 and **skip** steps 1–4 until brainstorm completes or abandons.
 1. Determine **`operation`**: **`manage`** when opening message or user supplies a readable existing PRD `@path` or URL; otherwise **`create`** (default).
-2. Use **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** to collect **at minimum**:
+2. Use **AskQuestion** or **`mission_control_present_structured_choice`** to collect **at minimum**:
    - **Title** (required) — may pre-fill from §1
    - **Description / problem statement** (required) — multi-line; **do not infer** from title alone
    - **Supporting materials** (paths, URLs, pasted notes) — or explicit **no sources yet**
