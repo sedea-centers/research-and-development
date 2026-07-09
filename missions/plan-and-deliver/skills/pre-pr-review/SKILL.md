@@ -353,7 +353,7 @@ After Step **8** report completes ( **`go`** or **`no-go`** ):
 
 **Same turn** (report prose may precede sentinels):
 
-1. Emit **`MC_REFOCUS_PARENT_V1`** on its own line (`{"version":1,"reason":"pre-pr-review-complete"}` optional).
+1. Call **`mission_control_refocus_parent_lane`** (optional `{ "reason": "pre-pr-review-complete" }` — no host-resolved identity keys).
 2. Emit terminal **`mission_control_send_agent_result`** as the **last line** per [Completion (spawned)](#completion-spawned).
 
 Populate terminal **`outputs`** with full review result — including **`recommendation: no-go`**, **`blockers`**, **`flags`**, and **`codingAgentHandback`** when present. The **parent** (**`coding-session`**) opens **Review feedback approval gate** or blocks Create-PR per its skill; this reviewer lane does **not** pause for developer confirmation.
@@ -387,14 +387,14 @@ Required `outputs` per **Step 8 — Report and result**, **Mission Control secti
 
 ### Parent refocus (binding)
 
-On every successful Step **8** auto-handback, emit **`MC_REFOCUS_PARENT_V1`** **immediately before** the MCP result call so Mission Control focuses the **immediate parent** lane (typically **`coding-session`**) in the same dispatch. See **`.sedea/centers/sedea/skills/README.md`** § *Optional parent refocus sentinel*.
+On every successful Step **8** auto-handback, call **`mission_control_refocus_parent_lane`** **immediately before** the MCP result call so Mission Control focuses the **immediate parent** lane (typically **`coding-session`**) in the same dispatch. See **`.sedea/centers/sedea/skills/README.md`** § *Optional parent refocus (`mission_control_refocus_parent_lane`)*.
 
 | Path | Refocus |
 |------|---------|
-| Step **8** complete (**`go`** or **`no-go`**) | **`MC_REFOCUS_PARENT_V1`** same turn, before terminal |
+| Step **8** complete (**`go`** or **`no-go`**) | **`mission_control_refocus_parent_lane`** same turn, before terminal |
 | **`failure`** / **`aborted`** terminal without bubble-up | Omit refocus unless skill text requires parent attention |
 
-**Forbidden:** structured-choice options whose primary purpose is parent-switch — use **`MC_REFOCUS_PARENT_V1`** instead.
+**Forbidden:** structured-choice options whose primary purpose is parent-switch — use **`mission_control_refocus_parent_lane`** instead.
 
 ### MCP result preflight (`mission_control_send_agent_result`)
 
@@ -405,7 +405,7 @@ On every successful Step **8** auto-handback, emit **`MC_REFOCUS_PARENT_V1`** **
 | R3 | Populate **`outputs`** from the required field list below |
 | R4 | Re-emit updated MCP result after user-requested follow-up on this lane (same spawn session; host resolves **`correlationId`**) |
 
-**Message order on terminal turns:** report recap (optional prose) → **`MC_REFOCUS_PARENT_V1`** (when required above) → **`mission_control_send_agent_result`** (**last line**).
+**Message order on terminal turns:** report recap (optional prose) → **`mission_control_refocus_parent_lane`** (when required above) → **`mission_control_send_agent_result`** (**last line**).
 
 Stop after the MCP result call. Do not emit another `mission_control_spawn_agent` or run the next protocol step in the same turn (see **`../README.md`** § *Terminal stop (normative)*).
 

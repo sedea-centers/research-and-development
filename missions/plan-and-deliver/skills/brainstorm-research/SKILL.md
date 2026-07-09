@@ -109,8 +109,8 @@ If **`invokerMissionSlug`** is missing or **`operationsDocsDirectory`** does not
    - **Revise research** — continue session on this lane
    - **Abandon dispatch** — direction not viable; Squad Leader resolves dispatch **`abandoned`**
    - **More details for option _**
-5. **On Approve report** — Set `developerApprovedReport: true`, `abandonMission: false`, `continuationStatus: "terminal"`, `continuationOwner: "squad-leader"`. Emit **`MC_REFOCUS_PARENT_V1`** on its own line immediately before the MCP result call (see **`../README.md`** § *Optional parent refocus sentinel*). Populate **`downstreamHandoffSummary`** (concise prose for next spawn **`initiatingPrompt`**) and **`downstreamSpawnTarget`** per invoker (see **Downstream mapping**).
-6. **On Abandon dispatch** — Set `developerApprovedReport: false`, `abandonMission: true`, `continuationStatus: "terminal"`, `continuationOwner: "squad-leader"`. Emit **`MC_REFOCUS_PARENT_V1`** then MCP result call with `outputs.abandonReason` when the developer stated one.
+5. **On Approve report** — Set `developerApprovedReport: true`, `abandonMission: false`, `continuationStatus: "terminal"`, `continuationOwner: "squad-leader"`. Call **`mission_control_refocus_parent_lane`** immediately before the MCP result call (see **`../README.md`** § *Parent refocus on terminal (`mission_control_refocus_parent_lane`)*). Populate **`downstreamHandoffSummary`** (concise prose for next spawn **`initiatingPrompt`**) and **`downstreamSpawnTarget`** per invoker (see **Downstream mapping**).
+6. **On Abandon dispatch** — Set `developerApprovedReport: false`, `abandonMission: true`, `continuationStatus: "terminal"`, `continuationOwner: "squad-leader"`. Call **`mission_control_refocus_parent_lane`** then MCP result call with `outputs.abandonReason` when the developer stated one.
 
 ## Downstream mapping (binding)
 

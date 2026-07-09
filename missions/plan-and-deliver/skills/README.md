@@ -392,9 +392,9 @@ After emitting **`mission_control_send_agent_result`**, **stop on that lane** fo
 
 > Stop after the MCP result is sent.
 
-**Per-skill procedure stops** (e.g. “Stop after the step 5 handoff block”, “Stop after spawning, announce wait, and close with structured choice”) apply **before** **`mission_control_send_agent_result`** — they gate mid-skill work, not replace this rule or **Turn completion invariant**. When both appear, order is: complete the gated step → **`MC_PHASED_RESPONSE_V1`** when a gate is open → **`MC_REFOCUS_PARENT_V1`** (when skill-eligible) → **`mission_control_send_agent_result`** (when spawned) → **stop**.
+**Per-skill procedure stops** (e.g. “Stop after the step 5 handoff block”, “Stop after spawning, announce wait, and close with structured choice”) apply **before** **`mission_control_send_agent_result`** — they gate mid-skill work, not replace this rule or **Turn completion invariant**. When both appear, order is: complete the gated step → **`MC_PHASED_RESPONSE_V1`** when a gate is open → **`mission_control_refocus_parent_lane`** (when skill-eligible) → **`mission_control_send_agent_result`** (when spawned) → **stop**.
 
-### Parent refocus on terminal (`MC_REFOCUS_PARENT_V1`)
+### Parent refocus on terminal (`mission_control_refocus_parent_lane`)
 
 | Skill | Refocus before MCP result? |
 |-------|----------------------------|
