@@ -102,22 +102,22 @@ const IDLE_HANDOFF_PATTERNS = [
  */
 const GATE_TERMINAL_PATTERNS = [
   {
-    id: 'refocus-sentinel-at-gate',
+    id: 'refocus-mcp-at-gate',
     category: 'gate-terminal',
-    regex: /\bMC_REFOCUS_PARENT_V1\b.*\b(?:open gate|USER_CHECKPOINT|worktree-open|cut-point)\b/i,
-    hint: 'MC_REFOCUS_PARENT_V1 is for terminal child completion — not open gates',
+    regex: /\bmission_control_refocus_parent_lane\b.*\b(?:open gate|USER_CHECKPOINT|worktree-open|cut-point)\b/i,
+    hint: 'mission_control_refocus_parent_lane is for terminal child completion — not open gates',
   },
   {
     id: 'switch-to-parent-lane',
     category: 'gate-terminal',
     regex: /\b(?:switch to|go to|focus) (?:the )?parent lane\b/i,
-    hint: 'Use MC_REFOCUS_PARENT_V1 at terminal completion only',
+    hint: 'Use mission_control_refocus_parent_lane at terminal completion only',
   },
   {
     id: 'done-go-to-parent',
     category: 'gate-terminal',
     regex: /\bdone\s*[—-]\s*go to parent\b/i,
-    hint: 'Forbidden AskQuestion option purpose — use MC_REFOCUS_PARENT_V1',
+    hint: 'Forbidden AskQuestion option purpose — use mission_control_refocus_parent_lane',
   },
   {
     id: 'terminal-at-open-gate',
