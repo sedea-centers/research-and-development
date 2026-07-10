@@ -59,7 +59,7 @@ Mission Control delivery for skills that mix long plan output with structured us
 
 **Authoring new or updated skills (binding):**
 
-- When a step says the developer will review work **outside** chat (GitHub PR, diff, staging), end the turn with structured choice naming resume paths — not idle-handoff prose that asks them to return after external work without a modal.
+- When a step says the developer will review work **outside** chat (GitHub PR, diff, staging), end the turn with structured choice naming resume paths — not idle *wait for the user* / *return when done* prose without structured resume options.
 - Gate **`options`** must match the skill’s next branches (approve, revise, defer, commit when applicable, **More details for option _**).
 - Reference **`coding-session/SKILL.md`** § *Post-create-pr handoff gate* and **`pr-review/SKILL.md`** Step **4** § *Build disposition options* for ship-path examples (contextual options from triage counts — omit inert Must/Should rows).
 
