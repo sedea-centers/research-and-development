@@ -136,9 +136,9 @@ When inline on **`coding-session`**, structured choice at [Step 1 validate gate]
 
 ## Checkpoint turn UX (skill-local)
 
-Under Checkpoint trust (`trustLevel: checkpoint`), auto-advance scripted happy-path steps; emit structured choice only at **USER_CHECKPOINT** markers in this section, implicit external-wait surfaces, or exception paths. **No cross-skill inheritance** — gate defaults here apply only to **`worktree-bootstrap`**; other ship-chain skills document their own markers.
+Under Checkpoint trust (`trustLevel: checkpoint`), auto-advance scripted happy-path steps; emit structured choice only at **USER_CHECKPOINT** markers in this section, implicit external-wait surfaces, or exception paths. **No cross-skill inheritance** — gate defaults here apply only to **`worktree-bootstrap`**; invoker **`coding-session`** owns worktree-open and bootstrap retry attestation — see [`coding-session/SKILL.md`](../coding-session/SKILL.md) § *Worktree bootstrap (inline mandatory)*.
 
-**Real-dispatch test loop (binding):** After merge, run one inline **`worktree-bootstrap`** pass on a **`coding-session`** Checkpoint dispatch through [Step 1 validate gate](#step-1-validate-gate-binding) (exception-only inline retry after attested setup failure) and collect a developer verdict to close **Ship-chain skills UX** PR 8 — per parent § *Single-concern strategy*.
+**Real-dispatch test loop (binding):** After merge, run one inline **`worktree-bootstrap`** pass on a **`coding-session`** Checkpoint dispatch through [Step 1 validate gate](#step-1-validate-gate-binding) (exception-only inline retry after attested setup failure) and collect a developer verdict for **Phase 2 — R&D center audit** PR **19** (*worktree-bootstrap* deprecated skill drain) — per parent § *Single-concern strategy*.
 
 Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md).
 
@@ -148,6 +148,18 @@ Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.s
 | **1** — Validate inputs and resolve mode | **Gate** on exception-only inline retry after validation succeeds | [Step 1 validate gate](#step-1-validate-gate-binding) |
 | **2** — Run bootstrap | Auto-advance on happy path after gate approval | exception: script exit non-zero → `partial` + parent retry attestation |
 | **3** — Report outcome | Auto-advance recap on **`## Completion (inline)`** handback | exception: `failed` with **`continuationStatus: active`** |
+
+### Developer input vs external-wait (Checkpoint)
+
+Under Checkpoint trust, **happy-path protocol steps auto-advance without a turn-end modal**. This deprecated skill has **no implicit external-wait surfaces** — bootstrap script failure after Step **2** is an **exception path** on the parent **`coding-session`** lane (developer attestation via that lane's retry options), not external-wait on this inline read.
+
+| Situation | Normative gate |
+|-----------|----------------|
+| Exception-only inline retry after setup failure | [Step 1 validate gate](#step-1-validate-gate-binding) — developer-input **`USER_CHECKPOINT`** |
+| Spawned lane (in-flight dispatch drain) | Step **1** auto-advances — terminal via **`mission_control_send_agent_result`** per spawned contract |
+| Bootstrap script non-zero after Step **2** | Exception — hand back to **`coding-session`**; **do not** open a second modal here |
+
+**Forbidden:** prose-only bootstrap recap without structured choice at Step **1** under Checkpoint; classifying parent-lane bootstrap retry attestation as external-wait on this inline read.
 
 ## Session orientation table (binding)
 
@@ -223,6 +235,8 @@ USER_CHECKPOINT — confirm validated inline bootstrap retry inputs and proceed 
 
 The bootstrap script is idempotent where the hosting repo documents idempotency — safe to re-run after partial failure.
 
+- **Next-step resolution:** Auto-advance to [Step 3 — Report outcome](#step-3--report-outcome) on exit **0** — no `USER_CHECKPOINT` on the happy path. On non-zero exit, set `partial` and hand back to **`coding-session`** per exception path — **do not** open a modal on this skill.
+
 **Script-bootstrap repos:** submodule init, operations seed, deps, configure, and docker (when applicable) are owned by that repo's script — see **`--help`**, not this skill.
 
 **Forbidden on this lane:** `git worktree add` / `remove` / `prune`, `sedea_add_worktree_folder` / `sedea_remove_worktree_folder`, hosting-repo product edits, `gh pr create`, spawning other plan-and-deliver skills. **Worktree removal ownership:** bootstrap never removes worktrees — see rule **20** § *Worktree removal ownership (binding)* and [`.sedea/centers/sedea/rules/0_hosting-repo.mdc`](.sedea/centers/sedea/rules/0_hosting-repo.mdc) § *Worktree ownership*.
@@ -238,6 +252,8 @@ The bootstrap script is idempotent where the hosting repo documents idempotency 
 Capture a short stderr/stdout tail in `outputs.bootstrapFailureReason` when `failed`.
 
 Set `outputs.continuationOwner: "worktree-bootstrap-agent"`. Set `outputs.continuationStatus: terminal` on `success`; `active` on `partial` when retry remains.
+
+- **Next-step resolution:** Auto-advance to **`## Completion (inline)`** handback on the happy path — no `USER_CHECKPOINT` on Step **3** under Checkpoint trust.
 
 ## Spawned result contract
 
