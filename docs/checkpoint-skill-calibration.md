@@ -35,7 +35,7 @@ Derived index of **Checkpoint trust** turn behavior for **research-and-developme
 | **pr-breakdown** | Step **6** — approve PR list when K > 0 | Steps **1–5** through draft and **5d** notify | [`pr-breakdown/SKILL.md`](../missions/plan-and-deliver/skills/pr-breakdown/SKILL.md) § Checkpoint turn UX |
 | **pr-plan** | **§5c** — start coding session (skipped when `skipPrPlanHandoffModal: true`) | Steps **1–4**, **5a–5b** | [`pr-plan/SKILL.md`](../missions/plan-and-deliver/skills/pr-plan/SKILL.md) § Checkpoint turn UX |
 | **phase-planner** | *Pending calibration* | *Pending* | [`phase-planner/SKILL.md`](../missions/plan-and-deliver/skills/phase-planner/SKILL.md) |
-| **delivery-phases** | *Pending calibration* | *Pending* | [`delivery-phases/SKILL.md`](../missions/plan-and-deliver/skills/delivery-phases/SKILL.md) |
+| **delivery-phases** | Step **6** — approve phase list when K > 0 | Steps **1–5** through draft and **5d** notify | [`delivery-phases/SKILL.md`](../missions/plan-and-deliver/skills/delivery-phases/SKILL.md) § Checkpoint turn UX |
 | **author-prd** | *Pending calibration* | *Pending* | [`author-prd/SKILL.md`](../missions/plan-and-deliver/skills/author-prd/SKILL.md) |
 | **quick-fix-plan** | Inline **`pr-plan`** §5c — start coding session | Validate inputs, minimal parent, inline **`new-plan`** / **`pr-plan`** §§1–4 | [`quick-fix-plan/SKILL.md`](../missions/quick-fix/skills/quick-fix-plan/SKILL.md) § Checkpoint turn UX |
 
@@ -131,6 +131,17 @@ Aligned warm-up tables and protocol **USER_CHECKPOINT** markers. Host merge for 
 | 10 | `missions/plan-and-deliver/skills/hosting-repo-rules/SKILL.md` | yes |
 | 11 | `missions/plan-and-deliver/skills/worktree-bootstrap/SKILL.md` | yes |
 | 12 | `missions/quick-fix/skills/quick-fix-plan/SKILL.md` | yes |
+| 13 | `missions/plan-and-deliver/skills/delivery-phases/SKILL.md` | yes |
+
+### delivery-phases — detail
+
+| Step | Checkpoint behavior | Gate |
+|------|---------------------|------|
+| **1–3** — Identify, load doc, read dual-title | Auto-advance on happy path | exception: wrong template / missing target |
+| **4** — Decision gate | Auto-advance when `routeLock: delivery-phases` | **Gate** when `_TBD_` and no route lock — USER_CHECKPOINT decomposition route |
+| **5** — Draft (**5a–5d**) | Auto-advance through **5d** notify | — |
+| **6** — Approve phase list | **Gate** when **K > 0** | USER_CHECKPOINT — approve list |
+| **6b** — Child aggregation | #external-wait on spawned **`new-plan`** / **`phase-planner`** | Resume modal before turn end |
 
 ---
 

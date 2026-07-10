@@ -105,6 +105,34 @@ Per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea
 - Run **`../README.md`** § *MCP spawn preflight* (rows M1–M8) before every MCP spawn; **forbidden** host-resolved identity keys in MCP args (`correlationId`, `dispatchId`, `slotId`, … — see README § *Host-resolved identity*).
 - Inline skills on this mission stay **inline-only** — no spawn wire change unless the protocol step explicitly spawns a child lane.
 
+## Checkpoint turn UX (skill-local)
+
+Under Checkpoint trust (`trustLevel: checkpoint`), auto-advance scripted happy-path steps; emit structured choice only at **USER_CHECKPOINT** markers in this section, implicit external-wait surfaces, or exception paths. **No cross-skill inheritance** — gate defaults here apply only to **`delivery-phases`**; other planning skills document their own markers.
+
+**Real-dispatch test loop (binding):** After merge, run one full **`delivery-phases`** spawn on a Checkpoint dispatch through Step **6** and collect a developer verdict before the parent phase advances the next **`delivery-phases`** step PR — per **Planning protocol skills UX** § *Single-concern strategy*.
+
+Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md).
+
+| Step | Checkpoint behavior | Gate |
+|------|---------------------|------|
+| **1** — Identify target | Auto-advance on spawned handoff with locked `inputs` | exception: wrong template / missing target |
+| **2** — Load development-process | Auto-advance | — |
+| **3** — Read target / dual-title section | Auto-advance on happy path | — |
+| **4** — Decision gate | Auto-advance when `routeLock: delivery-phases` or upstream route already chosen | **Gate** when dual-title body is `_TBD_` and no route lock |
+| **5** — Draft list (**5a–5d**) | Auto-advance through write and step **5d** notify recap | — |
+| **6** — Approve phase list | **Gate** when **K > 0** — **first developer-pick gate in this calibration PR** | Approve phase list (below) |
+| **6a–6b** | Act-after-select; #external-wait on spawned **`new-plan`** / **`phase-planner`** child lanes | Resume modal before turn end |
+
+### Inline invoker lane (binding)
+
+When **`parentAgentRole`** is **`master-plan-agent`** or **`phase-planner-agent`**, this skill runs **inline on the active planner child lane** with **`targetPlanPath`** = the Master Plan or Phase plan under decomposition. The **write target** and **execution lane** align on that parent file.
+
+**Forbidden:**
+
+- Redirecting the developer to another tab or lane to approve the phase list when this skill was invoked inline — Step **6** structured choice runs **on this lane**.
+- Emitting **`mission_control_send_agent_result`** when **`parentAgentRole`** is **`master-plan-agent`** or **`phase-planner-agent`** — report **`## Completion (inline)`** to the invoker instead.
+
+**Required:** Merge **`## Completion (inline)`** into **`master-planner`** Step **7** or **`phase-planner`** Step **5** ledger fields per invoker contracts.
 
 ## Trigger
 
@@ -192,7 +220,9 @@ Apply the shared planning open-item contract from `../README.md` to every **deli
 
 When the skill was spawned with `routeLock: "delivery-phases"` (or with `parentAgentRole: "master-plan-agent"` or `"phase-planner-agent"` after the developer chose **Delivery phases**), the decision is already made upstream. Acknowledge *"Route locked: Delivery phases."* and skip directly to Step 5. Do not ask the developer to choose `Delivery phases` vs `PR breakdown` again.
 
-When no upstream route lock exists, use **AskQuestion** to ask:
+When no upstream route lock exists, use **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** to ask:
+
+USER_CHECKPOINT — choose decomposition route (Delivery phases vs PR breakdown).
 
 > How does this plan decompose? Most features use a phase layer; small work (on the order of a few PRs) can skip the phase layer and break directly into PRs.
 
@@ -255,6 +285,8 @@ After step **5c**, present step **6** handoff in **one turn** via **`mission_con
 
 Do **not** mirror the full **`Delivery phases`** body in chat. Count **K** from numbered rows before the approval modal.
 
+- **Next-step resolution:** Auto-advance to Step **6** structured choice after step **5d** recap — no `USER_CHECKPOINT` on substeps **5a–5d**.
+
 **Obsolete:** separate recap-only pass without **`askQuestion`** — step **6** options belong on the **same** turn as the link + one-line summary.
 
 ## Step 6 — Hand back with next-move options
@@ -272,6 +304,8 @@ Collect the developer’s choice via **AskQuestion**, **`mission_control_present
 - When using split delivery (no AskQuestion tool), call **`mission_control_present_structured_choice`** with valid `displayMarkdown` + `askQuestion` — **no** prose recap in the same message as the MCP call when split per rule **2** priority **3**.
 - Put every choosable path in **`options`** (`id` / `label`). Do **not** duplicate choices as a numbered prose menu in the same turn.
 
+USER_CHECKPOINT — approve drafted Delivery phases list before child expansion.
+
 Required **`options`** (adapt labels; keep **K** visible in the **`prompt`** when helpful):
 
 | Option id (illustrative) | Label (brief) |
@@ -283,11 +317,15 @@ Required **`options`** (adapt labels; keep **K** visible in the **`prompt`** whe
 | `abandon` | Abandon this branch |
 | `more-details` | More details for option _ |
 
+- When **K > 0** and step **5d** recap is complete → open this gate via **`MC_PHASED_RESPONSE_V1`** (spawned lanes) or **AskQuestion** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**. Apply **Step 4-open-items** when open items exist — this approval question stays last in `questions[]`.
+- When **K = 0** → drafting failure; do **not** open this gate.
+- **`defaultOptionId: approve-list`** when **K > 0** and no blocking open items remain.
+
 When approval or expansion has open items (phase-count concerns, phase-boundary observations, sequencing caveats, row-specific blockers, or depth-first eligibility blockers), apply **Step 4-open-items**: put one scoped `questions[]` entry per item before this approval/expansion question, and keep this approval/expansion question last in the array.
 
 **Inline under `master-planner` or `phase-planner`:** Structured-choice approval is mandatory before indexed **`new-plan`** handoff. Do **not** emit **`mission_control_send_agent_result`** for this skill when **`parentAgentRole`** is **`master-plan-agent`** or **`phase-planner-agent`** — report **`## Completion (inline)`** to the invoker instead. Run **`new-plan`** **inline** on this lane (no child lanes for **`new-plan`**); **`phase-planner`** child lanes may still open from inline **`new-plan`**.
 
-**Standalone (spawned):** After structured-choice approval, emit **`mission_control_send_agent_result`** with `continuationStatus: "active"` when spawning **`new-plan`** child lanes — **not** in the structured-choice message. Close the turn with structured choice per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant** while waiting for **`new-plan`** child results per step **6b** — do not prose-only announce wait.
+**Standalone (spawned):** After structured-choice approval, emit **`mission_control_send_agent_result`** with `continuationStatus: "active"` when spawning **`new-plan`** child lanes — **not** in the structured-choice message. On #external-wait while **`new-plan`** or **`phase-planner`** child lanes are in flight (step **6b**), close the turn with structured choice per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **External-wait / next-step modal** — resume paths in **`options`**; do not prose-only announce wait.
 
 ### Act after developer selects
 
@@ -301,7 +339,7 @@ In a **new** assistant turn after the developer selects an option in the approva
 | **Defer / abandon** | Emit terminal result per labels; do not spawn. |
 | **More details for option _** | Elaborate in **`displayMarkdown`** (or brief prose), then **`askQuestion`** again on the **same** turn — no prose-only elaboration handoff. |
 
-When running **standalone spawned** (not inline under **`master-planner`**), each **`mission_control_spawn_agent`** in the expand pass must include the indexed-child inputs listed above for **one** eligible index. Record the spawned child in the ledger; close the turn with structured choice per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant** while waiting for that result on the active lane.
+When running **standalone spawned** (not inline under **`master-planner`**), each **`mission_control_spawn_agent`** in the expand pass must include the indexed-child inputs listed above for **one** eligible index. Record the spawned child in the ledger; on #external-wait for that child result, close the turn with structured choice per rule **2** § **External-wait / next-step modal** — not prose-only idle.
 
 If **K = 0**, treat that as a drafting failure: do not open structured-choice handoff paths; return failure or partial.
 
@@ -311,7 +349,7 @@ For standalone/non-spawned use, re-offer recap → structured choice after itera
 
 When the developer asks to revise the **`Delivery phases`** list, re-read that section, apply edits via `StrReplace`, echo the result, and return to the step 6 menu pattern.
 
-When the developer chooses to hand off or populate a child in standalone use, run **`new-plan`** inline or emit child-spawn requests for **`new-plan`** / **`phase-planner`** instead of impersonating those skills’ full procedures in the same turn. When the handoff ends the assistant turn while waiting for a child result, close with structured choice per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant** — do not prose-only stop after handoff.
+When the developer chooses to hand off or populate a child in standalone use, run **`new-plan`** inline or emit child-spawn requests for **`new-plan`** / **`phase-planner`** instead of impersonating those skills’ full procedures in the same turn. When the handoff ends the assistant turn on #external-wait for a child result, close with structured choice per rule **2** § **External-wait / next-step modal** — do not prose-only stop after handoff.
 
 ## Step 6b — Aggregate indexed child results
 
@@ -372,7 +410,7 @@ Required `outputs` fields:
 - `outputs.continuationOwner`: `"delivery-phases-agent"`
 - `outputs.continuationStatus` — `active` while approval, inline **`new-plan`**, **`phase-planner`** child lanes, or population remains; `terminal` when all child rows are `completed`, `deferred`, `abandoned`, or `out_of_scope` and no active **`phase-planner`** lanes remain
 
-Complete the step 6 handoff block (or announce spawn wait) **before** the MCP result call. Stop after the MCP result call. Do not emit another `mission_control_spawn_agent` or run the next protocol step in the same turn (see **`../README.md`** § *Terminal stop (normative)*).
+Complete the step 6 handoff block (or #external-wait resume modal when child lanes are in flight) **before** the MCP result call when applicable. Stop after the MCP result call. Do not emit another `mission_control_spawn_agent` or run the next protocol step in the same turn (see **`../README.md`** § *Terminal stop (normative)*).
 
 ## Completion (inline)
 
