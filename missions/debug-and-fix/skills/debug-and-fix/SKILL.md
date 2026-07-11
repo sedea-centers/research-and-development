@@ -144,7 +144,7 @@ When fix is verified:
 
 For `code-promotion`, include enough `fixSummary` and `testEvidence` detail for the parent to seed the standalone PR plan anchor. The parent must create or populate a PR plan before spawning **`coding-session`**; do not imply that the debug worktree alone is sufficient for ship-chain handoff.
 
-Present structured choice confirming recommendation; **Squad Leader** owns post-fix exit selection in mission **step 4** (developer may override).
+Present structured choice confirming recommendation. When the developer confirms, terminal **`exitRecommendation`** is binding for the **Squad Leader** under Checkpoint trust — mission **§4** auto-resolves and the leader spawns the matching downstream step (**§5** for `code-promotion`, **§5c** for `ad-hoc-prd`, **§6** for `findings-report-only`) without a repeat exit modal. Developer may still override on the leader lane at mission **§4** when needed.
 
 ## Structured choice (Mission Control)
 
