@@ -44,6 +44,7 @@ test('verify-skill-manifest.mjs exits 0 with spawn byte-budget smoke line', () =
   const out = runScript('verify-skill-manifest.mjs');
   assert.match(out, /OK:/);
   assert.match(out, /spawn byte budget smoke:/);
+  assert.match(out, /notify emit\/receive governance lint passed/);
 });
 
 test('verify-designation.mjs exits 0 on catalog SKILL.md and Pathfinder warm-up', () => {

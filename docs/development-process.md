@@ -89,7 +89,7 @@ Implementation and ship use **git worktrees** only — not **`git checkout -b`**
 node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/verify-skill-manifest.mjs
 ```
 
-Exit **0** when manifest and disk match, warm-up parity passes, and nullable-parent spawn wire lint passes (planner **`mission_control_spawn_agent`** examples must use **`"parent":"null"`** when **`inputs.parent.type`** is **`string`** — JSON **`null`** fails); **1** prints mismatch or lint errors. Plan-and-deliver authors also see **`.sedea/centers/research-and-development/missions/plan-and-deliver/skills/README.md`** § *Adding or removing a skill*.
+Exit **0** when manifest and disk match, warm-up parity passes, nullable-parent spawn wire lint passes (planner **`mission_control_spawn_agent`** examples must use **`"parent":"null"`** when **`inputs.parent.type`** is **`string`** — JSON **`null`** fails), and plan-change notify emit/receive governance lint passes; **1** prints mismatch or lint errors. Plan-and-deliver authors also see **`.sedea/centers/research-and-development/missions/plan-and-deliver/skills/README.md`** § *Adding or removing a skill*.
 
 **Lane warm-up parity (`verify-lane-warmup-parity.mjs`).** After changing definitive **`laneRules`** tables or skill **`warmUpRules`**, run from the hosting repo root:
 
@@ -119,7 +119,17 @@ npm ci --prefix .sedea/centers/research-and-development/missions/plan-and-delive
 HOSTING_ROOT="$(pwd)" node --test .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/verify-center-governance-integration.test.mjs
 ```
 
-Asserts **`verify-skill-manifest.mjs`** exit **0**, parity **`--bootstrap full`** exit **0**, and parity **`--bootstrap slim`** exit **0** (§5.3 merge gate).
+Asserts **`verify-skill-manifest.mjs`** exit **0**, parity **`--bootstrap full`** exit **0**, and parity **`--bootstrap slim`** exit **0** (§5.3 merge gate). The skill-manifest OK line includes **`notify emit/receive governance lint passed`**.
+
+**Plan-change notification dogfood enablement.** After PRs 1–3 merge, center pin promotes, and **`./scripts/verify-center-governance.sh`** is green:
+
+1. **Preconditions** — notify emit/receive lint passes; active dispatch with parent planner + one non-terminal child target.
+2. **Enable** — set **`sedea.features.plan-change-notification`: `true`** (User or Workspace); reload window. See **`extensions/mission-control/src/host/featureFlags/README.md`** § *Plan-change notification dogfood*.
+3. **Scope (v1)** — one active **`phase-planner`** child per master-plan material edit; parent **`mission_control_notify_child_lanes`** with exactly **one** **`targetSlugs`** slug per call (README N4/N6).
+4. **Dry-run** — parent material plan edit → N1–N8 preflight → notify MCP → child receives **`Mission Control: plan-change-notification delivered.`** → child **`Read`**s **`affectedPlanPaths`** → USER_CHECKPOINT (not terminal MCP result solely from notify).
+5. **Revert** — set flag **`false`**, reload, record gaps under PR plan **`## Follow-ups`** if any.
+
+**Forbidden before verify passes:** workspace-wide or packaged-default enable before **`verify-skill-manifest.mjs`** notify lint is green.
 
 **Scripts vendor trees.** Any `node_modules/` or other tooling-only trees under `missions/*/scripts/` are **not** center governance assets — do not link-audit or gap-report them as protocol. Hosting repos document audit scope in **`.cursor/rules/`** (not in this center repo).
 
