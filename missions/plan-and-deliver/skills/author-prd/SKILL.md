@@ -125,7 +125,7 @@ Gather evidence, calibrate section policy, and draft or update a Product or Feat
  - preserve attribution so claims can be traced back to sources.
  - list unreadable or unavailable seed sources as blockers or caveats.
 3. Run the evidence-gathering loop:
- - use **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** § **Context and structured choice** to ask for documents, URLs, write-ups, thoughts, screenshots, mocks, user or stakeholder evidence, implementation constraints, and related PRDs when needed — put each choosable path in modal `options`, not prose menus.
+ - use **AskQuestion**, **`mission_control_present_structured_choice`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** § **Context and structured choice** to ask for documents, URLs, write-ups, thoughts, screenshots, mocks, user or stakeholder evidence, implementation constraints, and related PRDs when needed — put each choosable path in modal `options`, not prose menus.
  - read local files and `@path` references completely.
  - fetch readable URLs when available; if a URL is inaccessible, ask for an accessible copy or pasted content.
  - extract candidate facts into the source ledger after each added material.
@@ -151,12 +151,12 @@ Gather evidence, calibrate section policy, and draft or update a Product or Feat
  - optional gaps do not block planning.
 8. Write the document when an output path is resolved, then re-read it and verify the required sections.
 9. **Refresh lane display** when spawn labels are generic — MCP **`mission_control_update_lane_display`** on this lane only (rule **50**). **`title`:** `PRD-{semantic title}` where semantic title is **`prdTitle`** or approved PRD heading — see [rule **50**](../../../../rules/50_mission-control-display-metadata-discipline.mdc) § *Lane title prefix conventions*.
-10. **Present for approval** — Recap path, `planningReadiness`, and gap summary. Use **`MC_PHASED_RESPONSE_V1`** (spawned lanes) or **AskQuestion** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**.
+10. **Present for approval** — Recap path, `planningReadiness`, and gap summary. Call **`mission_control_present_structured_choice`** (spawned lanes) or **AskQuestion** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**.
 
  **Detect open items** before building the modal: `outputs.openQuestions`, missing mandatory or important sections, unresolved `TBD` markers, contradictions, and `planningReadiness: partial` or `blocked`.
 
  **When open items exist** — **one modal, multiple questions**:
- - **`display.markdown`:** numbered list — each open item elaborated (section or PRD location, gap text, why a decision matters, agent-proposed resolution options).
+ - **`displayMarkdown`:** numbered list — each open item elaborated (section or PRD location, gap text, why a decision matters, agent-proposed resolution options).
  - **`askQuestion.questions`:** **one entry per open item** — each with its own `id`, `prompt`, and `options` scoped to **that item only** (for example accept proposed resolution A/B, mark not applicable, defer to §12 follow-up, gather more evidence). **Forbidden:** merging all open-item picks into a single `questions` entry.
  - **Last question** (always final in the array): `id` e.g. `prd-approval`, `prompt` summarizing readiness to approve or revise, `options`: **Approve PRD**, **Revise PRD**, **More details for option _**.
  - **Forbidden:** one combined question whose `options` mixes per-item resolution picks with **Approve PRD** / **Revise PRD**; a separate resolve-only modal that omits **Approve PRD** / **Revise PRD** until all items are cleared.
@@ -341,7 +341,7 @@ Status guidance:
 - `failure` — no usable PRD artifact (write blocked, invalid inputs after retries); populate `errors`.
 - `aborted` / `abandoned` — user or agent stopped before a deliverable PRD.
 
-On spawned lanes, put **`MC_PHASED_RESPONSE_V1`** on **line 1** and **`mission_control_send_agent_result`** on the **last line** of the same message when the turn ends (rule **2** § *Same message as spawn terminal*). Stop after the MCP result call. Do not spawn downstream planning agents from this skill.
+On spawned lanes, call **`mission_control_present_structured_choice`** **before** **`mission_control_send_agent_result`** in the same message when the turn ends (rule **2** § *Same message as spawn terminal*). Stop after the MCP result call. Do not spawn downstream planning agents from this skill.
 
 ## Completion (inline)
 

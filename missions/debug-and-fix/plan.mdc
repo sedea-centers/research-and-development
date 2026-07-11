@@ -221,6 +221,9 @@ USER_CHECKPOINT — pick next step when debug child reports partial status.
   - Developer selects Ad-Hoc PRD only → step 5c.
   - Developer selects findings report only → step 6.
 - `default/fallback behavior`: When **`exitRecommendation`** is present from §3 terminal, **skip** this gate and route per **§3 resume**. When missing or ambiguous, present **`exitRecommendation`** as the suggested default in modal labels; require explicit pick — one path mandatory.
+- `ordered actions` (before post-fix exit modal or before auto-advance spawn to §5/§5c/§6):
+  1. Include **`### Worktree (copy-paste)`** in **`displayMarkdown`** using child **`outputs.worktreePath`**, **`outputs.worktreeName`**, and **`outputs.hostingRoot`** — same fenced shape as **`debug-and-fix/SKILL.md`** step **8** (absolute path on its own line inside a fenced code block).
+  2. **Forbidden:** post-fix exit modal when child outputs include **`worktreePath`** but the copy-paste block is missing from **`displayMarkdown`**.
 
 USER_CHECKPOINT — pick exactly one post-fix exit path when `exitRecommendation` is missing, ambiguous, or the developer overrides the debug child's confirmed exit on the leader lane.
 
@@ -251,7 +254,7 @@ USER_CHECKPOINT — revise planning anchor, retry, or switch exits when PR plan 
 - `spawn run-request fields`: `inputs`, `laneRules` / `warmUpRules` per **`coding-session`** frontmatter, and `initiatingPrompt` — state that implementation is complete on the debug worktree and ship chain starts at cut-point / commit per **`coding-session`** authority.
 - `expected output`: Child terminal after ship chain milestones per **`coding-session`** **`## Completion (spawned)`** / inline ship skills.
 - `next-step resolution`: Continue to step 7 after child terminal or when developer selects an external-wait resume option per skill gates (**#external-wait** after spawn).
-- **Note:** Ship steps (commit, deploy-walk, pre-pr-review, create-pr, pr-review, post-merge cleanup, plan-reconcile) are **owned by `coding-session`** — do not duplicate procedure here.
+- **Note:** Ship steps (commit, deploy-walk, pre-pr-review, create-pr, pr-review, post-merge cleanup, plan-reconcile) are **owned by `coding-session`** — do not duplicate procedure here. **`pre-pr-review`** spawn runs on a detached reviewer lane that auto-advances Steps **1–8** under Checkpoint trust — see **`pre-pr-review/SKILL.md`** § *Developer input vs external-wait (Checkpoint)*.
 
 ### 5c. Create Ad-Hoc PRD (spawned skill — Ad-Hoc PRD path only)
 
@@ -271,7 +274,7 @@ USER_CHECKPOINT — revise planning anchor, retry, or switch exits when PR plan 
 - `type`: Finish/stop logic.
 - `intent`: Summarize debug session outcomes when fix is **not** verified, **blocked**, or the developer chose **findings report only** at step 4.
 - `inputs`: All child terminal outputs from step 3 (`fixSummary`, `testEvidence`, `fixStatus`, worktree paths), and any user decisions from step 4 when applicable.
-- `expected output`: Structured findings recap in **`display.markdown`** — symptom, diagnosis, fix attempts, test evidence, worktree state, and recommended follow-up. No downstream spawn.
+- `expected output`: Structured findings recap in **`displayMarkdown`** — symptom, diagnosis, fix attempts, test evidence, **`### Worktree (copy-paste)`** with absolute **`worktreePath`** in a fenced code block (same shape as **`debug-and-fix/SKILL.md`** step **8**), and recommended follow-up. No downstream spawn.
 - `next-step resolution`: Auto-advance step 7 when recap complete.
 - `terminal vs resumable`: Resumable — dispatch remains active until step 7.
 

@@ -81,7 +81,7 @@ function lintRuleBody(body, rel) {
   if (
     (rel.includes('4_mission.mdc') || rel.includes('mission-control-agent-runtime')) &&
     !body.includes('mission_control_send_agent_result') &&
-    !body.includes('MC_PHASED_RESPONSE_V1')
+    !body.includes('mission_control_present_structured_choice')
   ) {
     // runtime overlay references MCP result via skill pointer; 4_mission must mention send result
     if (rel.includes('4_mission.mdc') && !body.includes('mission_control_send_agent_result')) {

@@ -38,7 +38,7 @@ const IDLE_HANDOFF_PATTERNS = [
     id: 'wait-for-instructions',
     category: 'idle-handoff',
     regex: /\bI(?:'ll| will) wait(?:\s+for|\s+until)\b/i,
-    hint: 'Use MC_PHASED_RESPONSE_V1 / AskQuestion — not prose wait',
+    hint: 'Use mission_control_present_structured_choice / AskQuestion — not prose wait',
   },
   {
     id: 'tell-me-when',
@@ -122,14 +122,14 @@ const GATE_TERMINAL_PATTERNS = [
   {
     id: 'terminal-at-open-gate',
     category: 'gate-terminal',
-    regex: /\bmission_control_send_agent_result\b.*\b(?:open gate|before (?:the )?modal|without (?:MC_PHASED|AskQuestion))\b/i,
+    regex: /\bmission_control_send_agent_result\b.*\b(?:open gate|before (?:the )?modal|without (?:structured choice|AskQuestion))\b/i,
     hint: 'USER_CHECKPOINT gates need structured choice before terminal result',
   },
   {
     id: 'prose-only-pr-handoff',
     category: 'gate-terminal',
     regex: /\bPR created\b.*\breview on GitHub\b/i,
-    hint: 'Post-create-pr handoff gate — same turn MC_PHASED_RESPONSE_V1',
+    hint: 'Post-create-pr handoff gate — same turn mission_control_present_structured_choice',
   },
 ];
 

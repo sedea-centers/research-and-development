@@ -146,9 +146,31 @@ For `code-promotion`, include enough `fixSummary` and `testEvidence` detail for 
 
 Present structured choice confirming recommendation. When the developer confirms, terminal **`exitRecommendation`** is binding for the **Squad Leader** under Checkpoint trust — mission **§4** auto-resolves and the leader spawns the matching downstream step (**§5** for `code-promotion`, **§5c** for `ad-hoc-prd`, **§6** for `findings-report-only`) without a repeat exit modal. Developer may still override on the leader lane at mission **§4** when needed.
 
+### 8 — Worktree path recap (binding — before terminal result)
+
+Immediately before **`mission_control_send_agent_result`** (terminal or re-emit):
+
+1. Resolve absolute **`WORKTREE_ROOT`** from setup hint **`worktreeRoot`** or expanded filesystem path — **forbidden:** truncated paths, dirname-only references, or relative paths in the copy-paste block.
+2. In the same turn's developer-facing recap (`displayMarkdown` when using MCP structured choice, or brief prose with AskQuestion), include:
+
+```markdown
+### Worktree (copy-paste)
+
+**Path:**
+```
+<absolute WORKTREE_ROOT>
+```
+
+**Name:** `<worktreeName>`
+**Hosting root:** `<absolute HOSTING_ROOT>`
+```
+
+3. Set **`outputs.worktreePath`** to the same absolute path string shown in the fenced block.
+4. **Forbidden:** terminal MCP result as the only surface for **`worktreePath`** — the developer must see the fenced absolute path before parent handoff.
+
 ## Structured choice (Mission Control)
 
-Every assistant turn closes with **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc). Use **external-wait / next-step modal** when developer reviews diffs or runs tests outside chat.
+Every assistant turn closes with **AskQuestion** or **`mission_control_present_structured_choice`** per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc). Use **external-wait / next-step modal** when developer reviews diffs or runs tests outside chat.
 
 ## Completion (spawned)
 

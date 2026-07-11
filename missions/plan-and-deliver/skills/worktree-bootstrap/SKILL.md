@@ -132,7 +132,7 @@ Then invoke **`worktree-bootstrap`** **inline** only when center setup failed an
 
 ## Structured choice (Mission Control)
 
-When inline on **`coding-session`**, structured choice at [Step 1 validate gate](#step-1-validate-gate-binding) uses **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act*. Bootstrap script failure after Step **2** hands back to the parent lane — do **not** open a second modal on this skill unless Step **1** must be re-run.
+When inline on **`coding-session`**, structured choice at [Step 1 validate gate](#step-1-validate-gate-binding) uses **AskQuestion** or **`mission_control_present_structured_choice`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act*. Bootstrap script failure after Step **2** hands back to the parent lane — do **not** open a second modal on this skill unless Step **1** must be re-run.
 
 ## Checkpoint turn UX (skill-local)
 
@@ -153,7 +153,7 @@ Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.s
 
 Give developers a **consistent state snapshot** during inline bootstrap retry so they can re-orient after reload or parallel work.
 
-**When required:** At [Step 1 validate gate](#step-1-validate-gate-binding) only — render as the **first block** in `display.markdown`. **Forbidden:** omitting the table and substituting scattered one-liners on modal gates.
+**When required:** At [Step 1 validate gate](#step-1-validate-gate-binding) only — render as the **first block** in `displayMarkdown`. **Forbidden:** omitting the table and substituting scattered one-liners on modal gates.
 
 **Table shape (markdown):**
 
@@ -195,7 +195,7 @@ When **`upstreamSkill`** is **`coding-session`** and inline validation succeeded
 
 **When required:** Exception-only inline retry path only — after center **`worktree-setup.sh`** failed on the parent lane and the developer attested retry. **Forbidden:** opening this gate on the default path when center setup already reported success-class **`bootstrapStatus`**. **Forbidden:** prose-only bootstrap recap without this gate under Checkpoint trust. **Forbidden:** emitting **`mission_control_send_agent_result`** from this skill on inline runs — the parent **`coding-session`** lane owns MCP results.
 
-Put resolved **`worktreePath`**, **`hostingRoot`**, **`outputs.bootstrapMode`**, and any attested **`bootstrapSkipFlags`** in **`display.markdown`**. Include [Session orientation table (binding)](#session-orientation-table-binding) as the first block.
+Put resolved **`worktreePath`**, **`hostingRoot`**, **`outputs.bootstrapMode`**, and any attested **`bootstrapSkipFlags`** in **`displayMarkdown`**. Include [Session orientation table (binding)](#session-orientation-table-binding) as the first block.
 
 USER_CHECKPOINT — confirm validated inline bootstrap retry inputs and proceed to Step 2.
 
