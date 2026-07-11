@@ -126,7 +126,7 @@ This pass complements, and does not replace, the later GitHub-surface **reviewer
 
 ## Structured choice (Mission Control)
 
-This skill does not own approval modals — **`coding-session`** collects developer consent before spawns. When this lane must surface a pick, use **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act*.
+This skill does not own approval modals — **`coding-session`** collects developer consent before spawns. When this lane must surface a pick, use **AskQuestion**, **`mission_control_present_structured_choice`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act*.
 
 ## Checkpoint turn UX (skill-local)
 
@@ -152,7 +152,7 @@ Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.s
 
 Give developers a **consistent state snapshot** during pre-PR review so they can re-orient after reload or parallel work.
 
-**When required:** At spawn bootstrap gates only — **not** at Step **8** under Checkpoint (Step **8** auto-advances). Render as the **first block** in `display.markdown` when a gate applies. **Forbidden:** omitting the table and substituting scattered one-liners on modal gates. The terminal **`mission_control_send_agent_result`** line uses the 1–3 sentence `summary` only — do **not** embed the markdown table in the terminal JSON.
+**When required:** At spawn bootstrap gates only — **not** at Step **8** under Checkpoint (Step **8** auto-advances). Render as the **first block** in `displayMarkdown` when a gate applies. **Forbidden:** omitting the table and substituting scattered one-liners on modal gates. The terminal **`mission_control_send_agent_result`** line uses the 1–3 sentence `summary` only — do **not** embed the markdown table in the terminal JSON.
 
 **Table shape (markdown):**
 
@@ -351,14 +351,14 @@ Runs on a **detached** reviewer lane; the **plan and deliver** Squad Leader may 
 
 After Step **8** report completes ( **`go`** or **`no-go`** ):
 
-**Same turn** (report prose may precede sentinels):
+**Same turn** (report prose may precede MCP structured-choice call):
 
 1. Call **`mission_control_refocus_parent_lane`** (optional `{ "reason": "pre-pr-review-complete" }` — no host-resolved identity keys).
 2. Emit terminal **`mission_control_send_agent_result`** as the **last line** per [Completion (spawned)](#completion-spawned).
 
 Populate terminal **`outputs`** with full review result — including **`recommendation: no-go`**, **`blockers`**, **`flags`**, and **`codingAgentHandback`** when present. The **parent** (**`coding-session`**) opens **Review feedback approval gate** or blocks Create-PR per its skill; this reviewer lane does **not** pause for developer confirmation.
 
-**Forbidden at Step 8:** **`MC_PHASED_RESPONSE_V1`** / AskQuestion report/result modal; **`USER_CHECKPOINT`** at Step **8**; waiting for **`review-lane-done`**; prose-only handback without MCP result.
+**Forbidden at Step 8:** **`mission_control_present_structured_choice`** / AskQuestion report/result modal; **`USER_CHECKPOINT`** at Step **8**; waiting for **`review-lane-done`**; prose-only handback without MCP result.
 
 §8 progress reaches the Squad Leader via **`mission_control_send_agent_result`** terminal **`outputs`** (`targetPlanPath`, `shipPhase`, `rowStatus`) and Mission Control host sync — **not** developer paste on the leader dispatch (**`../../plan.mdc`** §8 *Policy — no manual recap*).
 

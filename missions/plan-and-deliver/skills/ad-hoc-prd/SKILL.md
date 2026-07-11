@@ -122,7 +122,7 @@ This skill **never** emits **`mission_control_spawn_agent`** for **`master-plann
 3. **Details** — non-empty change-request body.
 4. **Docs write root** — resolve per **`.sedea/centers/research-and-development/rules/31_dispatch-scope.mdc`** § *Docs write root resolution* from **`operationsDocsDirectory`** in spawn **`inputs`** / lane identity.
 
-If **`operationsDocsDirectory`** does not resolve, stop with `partial` and report `outputs.missingFields` (for example `["operationsDocsDirectory"]`); do not invent a path or continue with a guessed operations path. In standalone mode, collect missing **title** / **details** via **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act*.
+If **`operationsDocsDirectory`** does not resolve, stop with `partial` and report `outputs.missingFields` (for example `["operationsDocsDirectory"]`); do not invent a path or continue with a guessed operations path. In standalone mode, collect missing **title** / **details** via **AskQuestion**, **`mission_control_present_structured_choice`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act*.
 
 **Details:** Payload text — change-request description, thread excerpt, labeled context — use to draft **§1 Problem**, **§2 Desired outcome**, and **§3 Proposed solution**. If thin, use concise **TBD** bullets and say what to confirm.
 
@@ -217,14 +217,14 @@ USER_CHECKPOINT — provide missing ad-hoc PRD inputs on this lane.
 
    - **Next-step resolution:** Auto-advance to step **5** after successful write — emit non-terminal **`mission_control_send_agent_result`** with `developerApprovedPrd: false` when the invoker protocol requires leader ack before step **5**; do **not** treat that ack as PRD approval.
 
-5. **Present for approval** — Recap the new file (workspace / `file://` link, one-line summary of §§1–3). Use **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** per **`../README.md`** § *Recap, structured choice, act* and **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**.
+5. **Present for approval** — Recap the new file (workspace / `file://` link, one-line summary of §§1–3). Use **AskQuestion**, **`mission_control_present_structured_choice`** per **`../README.md`** § *Recap, structured choice, act* and **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**.
 
 USER_CHECKPOINT — approve, revise, or resolve open items on this Ad-Hoc PRD before invoker downstream steps.
 
  **Detect open items** before building the modal: `_TBD_` bullets in §§1–3, explicit risks or unknowns in **§3 Proposed solution**, thin or ambiguous acceptance criteria, and `outputs.complexityGuard: needs-master-plan-assessment`.
 
  **When open items exist** — **one modal, multiple questions**:
- - **`display.markdown`:** numbered list — each open item elaborated (section, gap text, why a decision matters, agent-proposed resolution options).
+ - **`displayMarkdown`:** numbered list — each open item elaborated (section, gap text, why a decision matters, agent-proposed resolution options).
  - **`askQuestion.questions`:** **one entry per open item** — each with its own `id`, `prompt`, and `options` scoped to **that item only** (for example accept proposed resolution A/B, mark not applicable, defer to planner, gather more evidence). **Forbidden:** merging all open-item picks into a single `questions` entry.
  - **Last question** (always final in the array): `id` e.g. `prd-approval`, `prompt` summarizing readiness to approve or revise, `options`: **Approve PRD**, **Revise PRD**, **More details for option _**.
  - **Forbidden:** one combined question whose `options` mixes per-item resolution picks with **Approve PRD** / **Revise PRD**; a separate resolve-only modal that omits **Approve PRD** / **Revise PRD** until all items are cleared.

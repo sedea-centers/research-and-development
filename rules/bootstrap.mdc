@@ -51,7 +51,7 @@ Definitive per-role **`laneRules`** minimums: [`.sedea/centers/research-and-deve
 
 ## Mission Control turn completion
 
-On **every** Mission Control assistant turn, close with **`AskQuestion`** or **`MC_PHASED_RESPONSE_V1`** — not prose-only exit. Spawned lanes without the AskQuestion tool **must** use **`MC_PHASED_RESPONSE_V1`** (sentinel-first when required). Full wire format: [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § *`MC_PHASED_RESPONSE_V1` wire format (binding)*.
+On **every** Mission Control assistant turn, close with **`AskQuestion`** or **`mission_control_present_structured_choice`** — not prose-only exit. Spawned lanes without the AskQuestion tool **must** call **`mission_control_present_structured_choice`** (MCP structured choice when required). Full wire format: [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **`mission_control_present_structured_choice` MCP tool contract (binding)**.
 
 ---
 

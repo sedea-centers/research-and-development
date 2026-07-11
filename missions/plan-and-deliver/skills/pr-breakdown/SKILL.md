@@ -154,9 +154,9 @@ Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.s
 
 ### Developer input vs external-wait (Checkpoint)
 
-Under Checkpoint trust, **happy-path** protocol steps (target verify, assessment insert, draft writes, step **5d** recap) **auto-advance without a turn-end modal**. Emit **`MC_PHASED_RESPONSE_V1`** or **AskQuestion** only at **USER_CHECKPOINT** markers in this section, **implicit external-wait** surfaces (spawned child **`mission_control_send_agent_result`** delivery), or **exception** paths.
+Under Checkpoint trust, **happy-path** protocol steps (target verify, assessment insert, draft writes, step **5d** recap) **auto-advance without a turn-end modal**. Call **`mission_control_present_structured_choice`** or **AskQuestion** only at **USER_CHECKPOINT** markers in this section, **implicit external-wait** surfaces (spawned child **`mission_control_send_agent_result`** delivery), or **exception** paths.
 
-**Developer-input** (continuation requires the **developer** to pick a modal option on **this lane**) is **not** external-wait. These are USER_CHECKPOINT surfaces — **must** close the turn with **`MC_PHASED_RESPONSE_V1`** / **AskQuestion**, not prose *reply with results*, *tell me when*, or *waiting for child*:
+**Developer-input** (continuation requires the **developer** to pick a modal option on **this lane**) is **not** external-wait. These are USER_CHECKPOINT surfaces — **must** close the turn with **`mission_control_present_structured_choice`** / **AskQuestion**, not prose *reply with results*, *tell me when*, or *waiting for child*:
 
 | Situation | Normative gate |
 |-----------|----------------|
@@ -219,7 +219,7 @@ When **`parentAgentRole`** is **`master-plan-agent`** or **`phase-planner-agent`
 
 The skill operates on a **target** `.plan.md` resolved before this skill runs, per [`30_planning-target-resolution.mdc`](../../../../rules/30_planning-target-resolution.mdc) § *Resolution order*. Acknowledge the target slug in one line when this skill starts (e.g. *Target plan: `<slug>` (from prior structured choice).*). Resolve targets from session, snapshot, or explicit path — **planning-target-resolution** is normative. Do **not** infer the target from the IDE’s focused-file list alone.
 
-If there is no resolved target, **stop** and emit a fresh *Where we are now in the plan tree* snapshot with **`AskQuestion`** or **`MC_PHASED_RESPONSE_V1`** in **one turn** per **30_planning-target-resolution** § *Sedea input channel* and **`../README.md`** § *Recap, structured choice, act* (`display.markdown` + `askQuestion`). **Obsolete:** recap-only turn without structured choice. Then continue.
+If there is no resolved target, **stop** and emit a fresh *Where we are now in the plan tree* snapshot with **`AskQuestion`** or **`mission_control_present_structured_choice`** in **one turn** per **30_planning-target-resolution** § *Sedea input channel* and **`../README.md`** § *Recap, structured choice, act* (`displayMarkdown` + `askQuestion`). **Obsolete:** recap-only turn without structured choice. Then continue.
 
 Acknowledge in one line: *"Target plan: `<slug>`."*
 
@@ -296,7 +296,7 @@ Apply the shared planning open-item contract from `../README.md` to every **pr-b
 
 **When open items exist** — use **one modal with multiple `questions[]` entries**:
 
-- **`display.markdown`:** numbered list of open items. For each item, include the target section or PR row, the gap/conflict/blocker, why it matters for single-concern or depth-first expansion, and the agent's proposed resolution options.
+- **`displayMarkdown`:** numbered list of open items. For each item, include the target section or PR row, the gap/conflict/blocker, why it matters for single-concern or depth-first expansion, and the agent's proposed resolution options.
 - **`askQuestion.questions`:** one scoped question per open item, with its own stable `id`, `prompt`, and item-only `options` (for example `accept-proposed-boundary`, `split-pr`, `merge-pr`, `revise-sequencing`, `defer-row`, `skip-no-change`, `more-details`). **Forbidden:** one combined question whose options mix decisions for several PR rows or concerns.
 - **Final question:** always append the terminal pr-breakdown gate question last in the array. Use the normal gate for the current step: route decision, **Approve PR breakdown**, expand eligible PR row(s), revise, defer, or abandon. **Forbidden:** a resolve-only modal that omits list approval or expansion until every item is cleared.
 - **Many open items:** batch across turns when needed; each batch still ends with the terminal pr-breakdown gate question as the final `questions[]` entry.
@@ -409,7 +409,7 @@ After writing, read the file back and confirm the section reads as intended.
 
 **Structured choice delivery** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** § **Context and structured choice**. Do **not** use implementation labels like “Turn A/B” in developer-facing chat.
 
-After step **5c**, present step **6** handoff in **one turn** via **`MC_PHASED_RESPONSE_V1`** or **AskQuestion tool** — put in **`display.markdown`** (or brief prose with the tool):
+After step **5c**, present step **6** handoff in **one turn** via **`mission_control_present_structured_choice`** or **AskQuestion tool** — put in **`displayMarkdown`** (or brief prose with the tool):
 
 1. A **`file://`** link to the target `.plan.md` under `.sedea/operations/.../plans/...` (resolved path from **`plan-state resolve`** or equivalent).
 2. One line: *Drafted `## <N>. PR breakdown` with **K** PR rows — open the plan to review the full section.*
@@ -428,13 +428,13 @@ Count **K** from numbered rows under **`### PR list`** before the approval modal
 
 ### Structured choice — Approval (interactive)
 
-**Preferred:** **AskQuestion tool** (brief recap allowed in the same message) or **`MC_PHASED_RESPONSE_V1`** with recap in `display.markdown` and options in `askQuestion` — one assistant message.
+**Preferred:** **AskQuestion tool** (brief recap allowed in the same message) or **`mission_control_present_structured_choice`** with recap in `displayMarkdown` and options in `askQuestion` — one assistant message.
 
-**Legacy split (when the tool and phased envelope are unavailable):** send the step **5d** recap, then a **separate** message with `MC_PHASED_RESPONSE_V1`** (sentinel-first; no recap prose before the sentinel).
+**Legacy split (when the tool and MCP structured choice are unavailable):** send the step **5d** recap, then a **separate** message with `mission_control_present_structured_choice`** (MCP structured choice; recap in `displayMarkdown` via MCP call).
 
-Collect the developer’s choice via **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** only in the structured-choice message — not in the same message as spawns or **`mission_control_send_agent_result`**.
+Collect the developer’s choice via **AskQuestion**, **`mission_control_present_structured_choice`** only in the structured-choice message — not in the same message as spawns or **`mission_control_send_agent_result`**.
 
-- When using (no phased envelope), the structured-choice message must contain **only** the sentinel line and JSON object — **no** prose, plan recap, or markdown fences before or between the sentinel and JSON.
+- When using split delivery (no AskQuestion tool), call **`mission_control_present_structured_choice`** with valid `displayMarkdown` + `askQuestion` — **no** prose recap in the same message as the MCP call when split per rule **2** priority **3**.
 - Put every choosable path in **`options`** (`id` / `label`). Do **not** duplicate those choices as a numbered prose menu in the same turn.
 
 USER_CHECKPOINT — approve drafted PR breakdown list before child expansion.
@@ -450,11 +450,11 @@ Required **`options`** (adapt labels; keep **K** visible in the **`prompt`** whe
 | `abandon` | Abandon this branch |
 | `more-details` | More details for option _ |
 
-- When **K > 0** and step **5d** recap is complete → open this gate via **`MC_PHASED_RESPONSE_V1`** (spawned lanes) or **AskQuestion** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**. Apply **Step 4-open-items** when open items exist — this approval question stays last in `questions[]`.
+- When **K > 0** and step **5d** recap is complete → open this gate via **`mission_control_present_structured_choice`** (spawned lanes) or **AskQuestion** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**. Apply **Step 4-open-items** when open items exist — this approval question stays last in `questions[]`.
 - When **K = 0** → drafting failure; do **not** open this gate.
 - **`defaultOptionId: approve-list`** when **K > 0** and no blocking open items remain.
 
-**Checkpoint auto-advance does not apply** at Step **6** when **K > 0** and step **5d** recap is complete — the same turn must emit this gate via **`MC_PHASED_RESPONSE_V1`** or **AskQuestion**.
+**Checkpoint auto-advance does not apply** at Step **6** when **K > 0** and step **5d** recap is complete — the same turn must emit this gate via **`mission_control_present_structured_choice`** or **AskQuestion**.
 
 When approval or expansion has open items (sequencing caveats, row-specific blockers, K/shape concerns, parent-row mismatches, or eligibility blockers), apply **Step 4-open-items**: put one scoped `questions[]` entry per item before this approval/expansion question, and keep this approval/expansion question last in the array.
 
@@ -474,19 +474,19 @@ In a **new** assistant turn after the developer selects an option in the approva
 | **Revise PR breakdown first** | Run step **6a**, then repeat recap → structured choice. Do **not** spawn children or emit terminal success until re-approved. |
 | **Defer child PR plan creation** | Emit **`mission_control_send_agent_result`** with defer semantics; do not spawn. |
 | **Abandon this branch** | Emit **`mission_control_send_agent_result`** with `status: "abandoned"` (or `partial` when work remains documented). |
-| **More details for option _** | Elaborate in **`display.markdown`** (or brief prose), then **`askQuestion`** again on the **same** turn — no prose-only elaboration handoff. |
+| **More details for option _** | Elaborate in **`displayMarkdown`** (or brief prose), then **`askQuestion`** again on the **same** turn — no prose-only elaboration handoff. |
 
 Do not return terminal **success** upstream until every indexed row has returned terminal status (inline or spawned **`new-plan`** + inline **`pr-plan`** / **`coding-session`**) or the developer explicitly defers/abandons the remaining rows (step **6b**).
 
 ## Step 6a — Follow-up turns
 
-When the **developer** asks to revise the **`PR breakdown`** block, re-read that section, apply edits via `StrReplace`, then repeat **recap** (link + one-line **K** summary only) and **structured choice** — prefer **`MC_PHASED_RESPONSE_V1`** or **AskQuestion** for recap + modal in one message; do **not** combine a full section echo with in one message.
+When the **developer** asks to revise the **`PR breakdown`** block, re-read that section, apply edits via `StrReplace`, then repeat **recap** (link + one-line **K** summary only) and **structured choice** — prefer **`mission_control_present_structured_choice`** or **AskQuestion** for recap + modal in one message; do **not** combine a full section echo with in one message.
 
 When the **developer** chooses hand off or populate children in standalone use, run **`new-plan`** inline or emit child-spawn requests for **`new-plan`** / **`pr-plan`** instead of impersonating those skills’ full procedures in the same turn. When the handoff ends the assistant turn while waiting for a child result, close with structured choice per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant** — do not prose-only stop after handoff.
 
 ## Step 6b — Aggregate indexed child results
 
-**External-wait on standalone spawned children (binding):** When Step **6** act-after-select emits **`mission_control_spawn_agent`** for **`new-plan`** or announces wait on nested **`coding-session`** / inline **`pr-plan`** children, the handoff turn may end without a developer modal on **this** lane until Mission Control delivers **`mission_control_send_agent_result`**. That delivery is **implicit external-wait** — not prose *tell me when the child finishes*. On the **next** turn after merge, when **`expandEligibleIndices`** is non-empty or terminal status requires a developer pick, emit structured choice (prefer **`MC_PHASED_RESPONSE_V1`** with one-line recap in `display.markdown`) before StreamFinal.
+**External-wait on standalone spawned children (binding):** When Step **6** act-after-select emits **`mission_control_spawn_agent`** for **`new-plan`** or announces wait on nested **`coding-session`** / inline **`pr-plan`** children, the handoff turn may end without a developer modal on **this** lane until Mission Control delivers **`mission_control_send_agent_result`**. That delivery is **implicit external-wait** — not prose *tell me when the child finishes*. On the **next** turn after merge, when **`expandEligibleIndices`** is non-empty or terminal status requires a developer pick, emit structured choice (prefer **`mission_control_present_structured_choice`** with one-line recap in `displayMarkdown`) before StreamFinal.
 
 **Inline `new-plan` under `master-planner` or `phase-planner`:** After each inline **`new-plan`** row completes, merge its **`## Completion (inline)`** into `childRows` and `spawnedPlans`. If inline **`pr-plan`** reports handoff in progress or an active **`coding-session`** child, keep the row open and add the lane to `activeLanes`. When Mission Control delivers a **`coding-session`** child result, match by correlation id from inline **`pr-plan`** `spawnCorrelationId`, then `outputs.targetPlanPath` / `outputs.targetPlanSlug`.
 
@@ -496,7 +496,7 @@ When the **developer** chooses hand off or populate children in standalone use, 
 2. Recompute **`expandEligibleIndices`** per **30_planning-target-resolution** § *Depth-first expansion eligibility* and parsed **`### Sequencing`**.
 3. Set **`outputs.expandEligibleIndices`** on this lane's result; keep **`continuationStatus: active`** when eligible indices remain unexpanded.
 4. **Re-emit updated terminal** (standalone spawned) or report **`## Completion (inline)`** (under **`master-planner`** / **`phase-planner`**) with fresh **`outputs`** — same **`correlationId`** — so upstream **`master-planner`** Step **7b** can surface **`expand-eligible`** when spawn-chain **`prShipComplete`** is present.
-5. On the **next** structured-choice turn after merge, include **`expand-eligible`** in the modal when **`expandEligibleIndices`** is non-empty (prefer **`MC_PHASED_RESPONSE_V1`** with one-line recap in `display.markdown`).
+5. On the **next** structured-choice turn after merge, include **`expand-eligible`** in the modal when **`expandEligibleIndices`** is non-empty (prefer **`mission_control_present_structured_choice`** with one-line recap in `displayMarkdown`).
 
 **Parent follow-up merge (spawn chain):** When a delivered result carries **`outputs.parentPlanningFollowUpNotification: "sent"`** with non-empty **`parentPlanningFollowUps`**:
 
@@ -517,7 +517,7 @@ Only return `continuationStatus: "terminal"` when every row is explicitly `compl
 
 ## One primary choice per turn — surface observations
 
-Match the discipline in **`master-planner`**, **`delivery-phases`**, and **`phase-planner`**: perform exactly what was chosen; scope stays on the chosen pass. If you notice gaps (Changes bullets that do not map to a PR, sequencing tension, assessment vs draft mismatch), list short **numbered observations** in **`display.markdown`** and apply **Step 4-open-items**: one scoped `questions[]` entry per observation or batch item, then the current terminal pr-breakdown gate question last.
+Match the discipline in **`master-planner`**, **`delivery-phases`**, and **`phase-planner`**: perform exactly what was chosen; scope stays on the chosen pass. If you notice gaps (Changes bullets that do not map to a PR, sequencing tension, assessment vs draft mismatch), list short **numbered observations** in **`displayMarkdown`** and apply **Step 4-open-items**: one scoped `questions[]` entry per observation or batch item, then the current terminal pr-breakdown gate question last.
 
 ## Scope guard
 

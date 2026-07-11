@@ -84,7 +84,7 @@ If Mission Control opened a session whose only intent is **`create-pr`** / *open
 
 ## Structured choice (Mission Control)
 
-Gates use **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* on the **`coding-session`** lane — **preferred:** recap + modal in one message. **Act** (`gh pr create`, plan follow-up append) only after the developer selects.
+Gates use **AskQuestion**, **`mission_control_present_structured_choice`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* on the **`coding-session`** lane — **preferred:** recap + modal in one message. **Act** (`gh pr create`, plan follow-up append) only after the developer selects.
 
 ## Checkpoint turn UX (skill-local)
 
@@ -100,7 +100,7 @@ Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.s
 | **Push authorization** — branch on remote or push pre-authorized | Auto-advance when remote has commits or **`coding-session`** already pushed on clean-**go** auto path | **Gate** when push is required but not authorized — [Push authorization gate](#push-authorization-gate-binding) |
 | **Pre-gh authorization** — developer pick before **`gh pr create`** | **Auto-advance** — **`authorize-create-pr`** or **`approve-followups-create-pr`** when [Checkpoint — auto-advance `authorize-create-pr`](#checkpoint--auto-advance-authorize-create-pr-binding) criteria pass | **Gate** when push unauthorized, developer named defer/revise/emit-prompt, or follow-up append unresolved — [Pre-gh authorization gate](#pre-gh-authorization-gate-binding) |
 | **`gh pr create`** + PR description | Auto-advance on the **same** turn after implicit authorize pick (Checkpoint) or on the **next** response turn after modal pick (non-Checkpoint) | exception: `gh` failure → recap + re-open pre-gh gate |
-| **`## Completion (inline)`** handback | Parent opens [Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate) with **`MC_PHASED_RESPONSE_V1`** same turn — Checkpoint and non-Checkpoint | — |
+| **`## Completion (inline)`** handback | Parent opens [Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate) with **`mission_control_present_structured_choice`** same turn — Checkpoint and non-Checkpoint | — |
 | **PR prompt fallback** | Auto-advance when developer picks emit prompt or push/creation remains unauthorized | — |
 
 **Skip pre-gh modal (binding):** When [Standalone dispatch (stop immediately)](#standalone-dispatch-stop-immediately) applies, **skip** both authorization gates — stop before **`gh`** or push. When **`coding-session`** invoked this skill via [Inline create-pr (auto on clean go)](../coding-session/SKILL.md#inline-create-pr-auto-on-clean-go) on a Checkpoint dispatch, **skip** the pre-gh modal on the clean path — [Checkpoint — auto-advance `authorize-create-pr`](#checkpoint--auto-advance-authorize-create-pr-binding).
@@ -109,7 +109,7 @@ Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.s
 
 Give developers a **consistent state snapshot** during inline PR creation so they can re-orient after reload or parallel work.
 
-**When required:** At every **Mandatory gate** below — render as the **first block** in `display.markdown` (before recap or diff summary). **Forbidden:** omitting the table and substituting scattered one-liners on modal gates.
+**When required:** At every **Mandatory gate** below — render as the **first block** in `displayMarkdown` (before recap or diff summary). **Forbidden:** omitting the table and substituting scattered one-liners on modal gates.
 
 **Table shape (markdown):**
 
@@ -131,7 +131,7 @@ Give developers a **consistent state snapshot** during inline PR creation so the
 
 When [Gate](#gate) step **5** requires push but the branch is not on the remote and push was **not** authorized by **`coding-session`** (for example developer deferred push at ship cut-point):
 
-Put the session orientation table and push status (`git status`, tracking ahead/behind) in **`display.markdown`**.
+Put the session orientation table and push status (`git status`, tracking ahead/behind) in **`displayMarkdown`**.
 
 USER_CHECKPOINT — authorize push before PR creation.
 
@@ -146,7 +146,7 @@ USER_CHECKPOINT — authorize push before PR creation.
 
 ### Checkpoint — auto-advance `authorize-create-pr` (binding)
 
-Under Checkpoint trust, when **`coding-session`** loads this skill after **`pre-pr-review`** clean **`go`** ([Inline create-pr (auto on clean go)](../coding-session/SKILL.md#inline-create-pr-auto-on-clean-go) or Checkpoint **`approve-followups-create-pr`** auto path), **auto-advance** as if the developer picked **`authorize-create-pr`** or **`approve-followups-create-pr`** — **no** **`MC_PHASED_RESPONSE_V1`** — when **all** hold:
+Under Checkpoint trust, when **`coding-session`** loads this skill after **`pre-pr-review`** clean **`go`** ([Inline create-pr (auto on clean go)](../coding-session/SKILL.md#inline-create-pr-auto-on-clean-go) or Checkpoint **`approve-followups-create-pr`** auto path), **auto-advance** as if the developer picked **`authorize-create-pr`** or **`approve-followups-create-pr`** — **no** **`mission_control_present_structured_choice`** — when **all** hold:
 
 1. [Gate](#gate) steps **1–4** pass (`prePrReviewRecommendation: "go"`, worktree context, committed diff).
 2. Branch is on the remote **or** push was authorized on this turn (including **`coding-session`** clean-**go** push on the inline create-pr path).
@@ -160,7 +160,7 @@ Under Checkpoint trust, when **`coding-session`** loads this skill after **`pre-
 | No proposed follow-ups / `followUpsAppended: false` | **`authorize-create-pr`** |
 | Follow-ups approved for append | **`approve-followups-create-pr`** |
 
-When clean: one-line recap (reviewer **`go`**, branch pushed, PR opening), run **`gh pr create`** on the **same** turn, merge [## Completion (inline)](#completion-inline) — **forbidden:** *Coding session — create PR* modal or *Create the pull request now?* sentinel on this path.
+When clean: one-line recap (reviewer **`go`**, branch pushed, PR opening), run **`gh pr create`** on the **same** turn, merge [## Completion (inline)](#completion-inline) — **forbidden:** *Coding session — create PR* modal or *Create the pull request now?* structured choice on this path.
 
 **Exception — gate required:** When Checkpoint does not apply, push is unauthorized, validation fails, or the developer named defer/revise/emit-prompt, emit the modal below.
 
@@ -168,9 +168,9 @@ When clean: one-line recap (reviewer **`go`**, branch pushed, PR opening), run *
 
 **Non-Checkpoint and exception path only.** Under Checkpoint trust, use [Checkpoint — auto-advance `authorize-create-pr`](#checkpoint--auto-advance-authorize-create-pr-binding) first — **forbidden:** opening this modal when that section’s clean criteria pass.
 
-**When required:** After [Gate](#gate) steps **1–5** pass (including push when authorized) and Checkpoint auto-advance does **not** apply. **Forbidden:** calling **`gh pr create`** in the same assistant turn as this modal (non-Checkpoint). **Forbidden:** prose-only PR creation handoff (*tell me when*, *I'll open the PR*) without **`MC_PHASED_RESPONSE_V1`**.
+**When required:** After [Gate](#gate) steps **1–5** pass (including push when authorized) and Checkpoint auto-advance does **not** apply. **Forbidden:** calling **`gh pr create`** in the same assistant turn as this modal (non-Checkpoint). **Forbidden:** prose-only PR creation handoff (*tell me when*, *I'll open the PR*) without **`mission_control_present_structured_choice`**.
 
-Put the session orientation table, reviewer **`go`** summary, optional flags, and proposed follow-ups (when present) in **`display.markdown`**.
+Put the session orientation table, reviewer **`go`** summary, optional flags, and proposed follow-ups (when present) in **`displayMarkdown`**.
 
 USER_CHECKPOINT — authorize `gh pr create` on this lane.
 
@@ -295,7 +295,7 @@ Required fields (prose to invoker / merged into **`coding-session`** `outputs`):
 
 **Handback:** on the **same `coding-session` assistant turn** that finishes this procedure:
 
-- **Checkpoint trust** — parent opens [Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate) with **`MC_PHASED_RESPONSE_V1`** and post-create-pr **`options`** — **forbidden:** prose-only PR URL, *Next: inline pr-review*, or auto-starting inline **`pr-review`** on the **`create-pr`** completion turn.
-- **Non-Checkpoint trust** — same post-create-pr gate with **`MC_PHASED_RESPONSE_V1`** and post-create-pr **`options`**, not prose-only PR URL.
+- **Checkpoint trust** — parent opens [Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate) with **`mission_control_present_structured_choice`** and post-create-pr **`options`** — **forbidden:** prose-only PR URL, *Next: inline pr-review*, or auto-starting inline **`pr-review`** on the **`create-pr`** completion turn.
+- **Non-Checkpoint trust** — same post-create-pr gate with **`mission_control_present_structured_choice`** and post-create-pr **`options`**, not prose-only PR URL.
 
 Do **not** auto-start inline **`pr-review`**, inline **`deploy-walk`**, or **`plan-reconcile`** from this skill. When the developer picks **`start-pr-review`** or **`start-pr-review-delegate-merge`** at post-create-pr, **`coding-session`** starts inline **`pr-review`** on the **next** turn and must run **`pr-review.mjs`** Step 1 before generic review/wait/merge options.

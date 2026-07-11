@@ -76,13 +76,13 @@ Script-backed flow: **`plan-state.mjs`** owns YAML and file moves; the agent dec
 
 ## Structured choice (Mission Control)
 
-Dry-run reports, archive candidates, and follow-up triage use **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* — recap + modal in **one turn** when practical. **Act** (`plan-state.mjs archive`, file moves) is after the developer selects.
+Dry-run reports, archive candidates, and follow-up triage use **AskQuestion** or **`mission_control_present_structured_choice`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* — recap + modal in **one turn** when practical. **Act** (`plan-state.mjs archive`, file moves) is after the developer selects.
 
 ## Session orientation table (binding)
 
 Give developers a **consistent state snapshot** during inline reconcile so they can re-orient after reload or parallel work.
 
-**When required:** At every **Mandatory gate** below — render as the **first block** in `display.markdown` (before dry-run report, candidate list, or cleanup JSON). **Forbidden:** omitting the table and substituting scattered one-liners on modal gates.
+**When required:** At every **Mandatory gate** below — render as the **first block** in `displayMarkdown` (before dry-run report, candidate list, or cleanup JSON). **Forbidden:** omitting the table and substituting scattered one-liners on modal gates.
 
 **Table shape (markdown):**
 
@@ -124,7 +124,7 @@ Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.s
 
 When step **1** dry-run reports entries in the **`archived`** bucket (or other mutation-worthy PR-tracked rows), open structured choice **before** non-dry-run **`reconcile`**. **Forbidden:** running **`plan-state.mjs reconcile`** without authorization on the **same turn** as this modal. **Forbidden:** prose-only mutation handoff.
 
-Put the session orientation table and dry-run report summary in **`display.markdown`**.
+Put the session orientation table and dry-run report summary in **`displayMarkdown`**.
 
 USER_CHECKPOINT — approve PR-tracked reconcile mutations before running non-dry-run reconcile.
 
@@ -145,7 +145,7 @@ When dry-run reports **no** mutation-worthy PR-tracked entries, **skip** this ga
 
 When step **2** **`list-candidates`** and step **1** **`flagged`** lists merge to a **non-empty** pick set, open structured choice **before** step **4** archive mutations. **Forbidden:** archiving without developer multi-select. **Forbidden:** report-only turn without modal when candidates exist.
 
-Put the session orientation table and merged candidate / flagged list in **`display.markdown`**.
+Put the session orientation table and merged candidate / flagged list in **`displayMarkdown`**.
 
 USER_CHECKPOINT — pick plans to archive from reconcile candidates and flagged entries.
 
@@ -165,7 +165,7 @@ When both lists are empty, **skip** this gate — continue to step **3.5** only 
 
 For each plan in the archive batch with a non-empty **`## Follow-ups`** section, open structured choice **before** step **4** archive for that slug (or before integrate routing when the plan was reconcile-auto-archived in step **1b**). **Forbidden:** archiving a plan with un-triaged follow-ups. **Forbidden:** prose-only *tell me how to route* without modal.
 
-Put the session orientation table, source slug, and follow-up bullet summaries in **`display.markdown`**.
+Put the session orientation table, source slug, and follow-up bullet summaries in **`displayMarkdown`**.
 
 USER_CHECKPOINT — route follow-up bullets before archiving this plan.
 
@@ -184,7 +184,7 @@ USER_CHECKPOINT — route follow-up bullets before archiving this plan.
 
 When **`detect-stale-workspaces`** returns one or more candidates, present the dry-run **`actions`** list and open structured choice **before** **`--apply`**. **Forbidden:** **`--apply`** in the same assistant turn as this modal. **Forbidden:** report-only turn ending without structured choice when stale candidates exist.
 
-Put the session orientation table and cleanup JSON **`actions`** list in **`display.markdown`**.
+Put the session orientation table and cleanup JSON **`actions`** list in **`displayMarkdown`**.
 
 USER_CHECKPOINT — authorize post-ship workspace cleanup for stale worktrees.
 
@@ -393,7 +393,7 @@ node .sedea/centers/research-and-development/missions/plan-and-deliver/scripts/p
   --dry-run [--slug <slug>]
 ```
 
-Present the JSON **`actions`** list in the **same turn** as [Post-ship workspace cleanup gate](#post-ship-workspace-cleanup-gate-binding) — put long reports in **`display.markdown`** (phased) when needed; do not end with a report-only turn.
+Present the JSON **`actions`** list in the **same turn** as [Post-ship workspace cleanup gate](#post-ship-workspace-cleanup-gate-binding) — put long reports in **`displayMarkdown`** (phased) when needed; do not end with a report-only turn.
 
 Only **`cleanup-apply`** authorizes **`--apply`**.
 
@@ -481,7 +481,7 @@ When **`upstreamSkill`** is **`coding-session`**, close every inline pass with s
 
 **When required:** After Flow steps **1–6** finish (or pause with a terminal outcome ready for handback). **Forbidden:** prose-only reconcile summary without this gate under Checkpoint trust. **Forbidden:** emitting **`mission_control_send_agent_result`** from this skill — the parent **`coding-session`** lane owns MCP results.
 
-Put reconcile counts, archived slugs, flagged/postponed leftovers, and §5 cleanup summary in **`display.markdown`**.
+Put reconcile counts, archived slugs, flagged/postponed leftovers, and §5 cleanup summary in **`displayMarkdown`**.
 
 USER_CHECKPOINT — confirm plan-reconcile inline closure and hand results back to coding-session.
 

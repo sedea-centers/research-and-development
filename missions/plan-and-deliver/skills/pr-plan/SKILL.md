@@ -227,9 +227,9 @@ Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.s
 
 ### Developer input vs external-wait (Checkpoint)
 
-Under Checkpoint trust, **happy-path protocol steps auto-advance without a turn-end modal**. Emit **`MC_PHASED_RESPONSE_V1`** or **AskQuestion** only at **USER_CHECKPOINT** markers in this skill, **implicit external-wait** surfaces (host-delivered child results), or **exception** paths.
+Under Checkpoint trust, **happy-path protocol steps auto-advance without a turn-end modal**. Call **`mission_control_present_structured_choice`** or **AskQuestion** only at **USER_CHECKPOINT** markers in this skill, **implicit external-wait** surfaces (host-delivered child results), or **exception** paths.
 
-**Developer-input** (continuation requires the **developer** to pick a modal option on **this lane**) is **not** external-wait. These are USER_CHECKPOINT surfaces — **must** close the turn with **`MC_PHASED_RESPONSE_V1`** / **AskQuestion**, not prose *reply when ready*, *tell me when*, or recap-only idle:
+**Developer-input** (continuation requires the **developer** to pick a modal option on **this lane**) is **not** external-wait. These are USER_CHECKPOINT surfaces — **must** close the turn with **`mission_control_present_structured_choice`** / **AskQuestion**, not prose *reply when ready*, *tell me when*, or recap-only idle:
 
 | Situation | Normative gate |
 |-----------|----------------|
@@ -263,7 +263,7 @@ When spawned by `new-plan` with `parentAgentRole: "new-plan-agent"`, run **inlin
 
 When spawned by `new-plan` without `parentAgentRole: "new-plan-agent"` (legacy standalone populator spawn), `targetPlanPath`, `targetPlanSlug`, `parentPlanPath`, `parentPlanSlug`, and `parentIndex` are already locked. Treat missing or conflicting values as a spawn-contract failure: stop with `failure` or `partial` and report the missing field. Do not fall back to IDE focus or free-form target discovery in spawned mode.
 
-If there is no resolved target, **stop** and emit a fresh *Where we are now in the plan tree* snapshot with **`AskQuestion`** or **`MC_PHASED_RESPONSE_V1`** in **one turn** per **30_planning-target-resolution** § *Sedea input channel* and **`../README.md`** § *Recap, structured choice, act* (`display.markdown` + `askQuestion`). **Obsolete:** recap-only turn without structured choice. Then continue.
+If there is no resolved target, **stop** and emit a fresh *Where we are now in the plan tree* snapshot with **`AskQuestion`** or **`mission_control_present_structured_choice`** in **one turn** per **30_planning-target-resolution** § *Sedea input channel* and **`../README.md`** § *Recap, structured choice, act* (`displayMarkdown` + `askQuestion`). **Obsolete:** recap-only turn without structured choice. Then continue.
 
 Acknowledge in one line: *"Target plan: `<slug>`."*
 
@@ -440,7 +440,7 @@ Full sentences (not the short-bullet rule).
 
 ### 4f — Echo to chat
 
-Echo §§ 1–4 with the same headers as the file. Surface flags (unmapped parent bullets, **`_TBD_`** in **Considered & rejected**, thin reasoning) as numbered open items in **`display.markdown`** when multiple gaps exist before §5c; apply **Step 5-open-items — Open-item modal contract**. When only one minor flag exists, echo it in recap and proceed to §5a.
+Echo §§ 1–4 with the same headers as the file. Surface flags (unmapped parent bullets, **`_TBD_`** in **Considered & rejected**, thin reasoning) as numbered open items in **`displayMarkdown`** when multiple gaps exist before §5c; apply **Step 5-open-items — Open-item modal contract**. When only one minor flag exists, echo it in recap and proceed to §5a.
 
 ### 4a-bis — Append canonical `deploy-test-plan-verified` todo
 
@@ -533,7 +533,7 @@ Apply the shared planning open-item contract from `../README.md` § *Planning op
 
 **When open items exist** — use **one modal with multiple `questions[]` entries**:
 
-- **`display.markdown`:** numbered list of open items. For each item, include the PR plan section or parent row affected, the gap or blocker, why it matters for readiness or handoff, and the agent's proposed resolution options.
+- **`displayMarkdown`:** numbered list of open items. For each item, include the PR plan section or parent row affected, the gap or blocker, why it matters for readiness or handoff, and the agent's proposed resolution options.
 - **`askQuestion.questions`:** one scoped question per open item (for example `accept-scope-bullet`, `map-parent-bullet`, `defer-considered-rejected`, `repair-parent-link`, `prefill-section-N`, `mark-non-blocking`, `more-details`). **Forbidden:** one combined question whose options mix per-item resolutions with terminal handoff choices.
 - **Final question:** always append the terminal **pr-plan** §5c handoff question last in the array (start coding session · revise section · pre-fill §§5–8 · defer · commit reminder · **More details for option _**). **Forbidden:** a resolve-only modal that omits §5c routing until every item is cleared — **except** when **`skipPrPlanHandoffModal: true`** (auto-chain only; inline completion without §5c).
 - **Many open items:** batch across turns when needed; each batch still ends with the §5c terminal question unless **`skipPrPlanHandoffModal`** applies.
@@ -546,18 +546,18 @@ Apply the shared planning open-item contract from `../README.md` § *Planning op
 
 Per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**, **`../README.md`** § *Planning open-item modal contract*, and **`../README.md`** § *Recap, structured choice, act (plan-and-deliver)*. Do **not** use “Turn A/B” labels in developer-facing chat.
 
-Invoke **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** per **Step 5-open-items** — when readiness blockers or §4f flags remain, one scoped `questions[]` entry per open item, then the §5c terminal options table as the **final** `questions[]` entry.
+Invoke **AskQuestion** or **`mission_control_present_structured_choice`** per **Step 5-open-items** — when readiness blockers or §4f flags remain, one scoped `questions[]` entry per open item, then the §5c terminal options table as the **final** `questions[]` entry.
 
-**Preferred (one assistant message):** **AskQuestion tool** with brief recap, or **`MC_PHASED_RESPONSE_V1`** with:
+**Preferred (one assistant message):** **AskQuestion tool** with brief recap, or **`mission_control_present_structured_choice`** with:
 
-- `display.markdown` — link + one-line readiness summary (below)
+- `displayMarkdown` — link + one-line readiness summary (below)
 - `askQuestion` — modal (`modalTitle`: *PR plan — next move*; options from the table)
 
-**Legacy split (obsolete on Mission Control lanes):** Prefer **`MC_PHASED_RESPONSE_V1`** (recap in `display.markdown` + `askQuestion` same turn). If the tool is unavailable, still **must** close with structured choice — do not end with recap-only prose.
+**Legacy split (obsolete on Mission Control lanes):** Prefer **`mission_control_present_structured_choice`** (recap in `displayMarkdown` + `askQuestion` same turn). If the tool is unavailable, still **must** close with structured choice — do not end with recap-only prose.
 
 #### Recap (same turn as structured choice)
 
-When using the legacy split, do **not** include **`mission_control_spawn_agent`** or **`mission_control_send_agent_result`** in the recap message. Put recap content in **`display.markdown`** and **`askQuestion`** on the **same** turn per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant**. **Obsolete:** recap-only message with **AskQuestion** deferred to a separate turn.
+When using the legacy split, do **not** include **`mission_control_spawn_agent`** or **`mission_control_send_agent_result`** in the recap message. Put recap content in **`displayMarkdown`** and **`askQuestion`** on the **same** turn per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant**. **Obsolete:** recap-only message with **AskQuestion** deferred to a separate turn.
 
 1. A **`file://`** link to the target `.plan.md` under `.sedea/operations/.../plans/...`.
 2. One-line summary: *Drafted per-PR §§ 1–4; implementation readiness: `<ready|not ready>`.*
@@ -567,7 +567,7 @@ Do **not** echo the full §§ 1–4 body in chat unless the developer asked for 
 
 #### Structured choice — approval modal
 
-Invoke **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** (`modalTitle`: *PR plan — next move*) per **Step 5-open-items**. When using without a phased envelope, sentinel + JSON only — no prose before the sentinel. When open items exist, item-scoped questions precede the terminal handoff options below as the **last** `questions[]` entry:
+Invoke **AskQuestion**, **`mission_control_present_structured_choice`** (`modalTitle`: *PR plan — next move*) per **Step 5-open-items**. Call MCP with `displayMarkdown` + `askQuestion` only — no prose-only gate ending. When open items exist, item-scoped questions precede the terminal handoff options below as the **last** `questions[]` entry:
 
 USER_CHECKPOINT — approve implementation handoff and start coding session (fill §§5–8 on child lane).
 
@@ -582,7 +582,7 @@ Required options (brief `label`; put detail in `prompt` when needed):
 | `defer` | Defer |
 | `more-details` | More details for option _ |
 
-- When §5a readiness passes and **`skipPrPlanHandoffModal`** is not set → open this gate via **`MC_PHASED_RESPONSE_V1`** (spawned lanes) or **AskQuestion** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**. Apply **Step 5-open-items** when open items exist — this handoff question stays last in `questions[]`.
+- When §5a readiness passes and **`skipPrPlanHandoffModal`** is not set → open this gate via **`mission_control_present_structured_choice`** (spawned lanes) or **AskQuestion** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`**. Apply **Step 5-open-items** when open items exist — this handoff question stays last in `questions[]`.
 - When §5a fails → explain blockers in `remainingTasks`; do **not** open this gate until readiness passes or the developer picks revise/defer paths.
 - **`defaultOptionId: start-coding-session`** when §5a passes and no blocking open items remain.
 - **`start-coding-session`** — Run §5d when §5a passes; if not ready, explain blockers in `remainingTasks` and do **not** spawn.
@@ -646,7 +646,7 @@ On **fill** requests for § 5–8, draft the requested section with explicit *sk
 
 ## One primary choice per turn — surface observations
 
-Perform exactly what was chosen. List short **numbered observations** for gaps (parent list mismatch, thin **Considered & rejected**, heavy § 3, blocked parent link) in **`display.markdown`** and apply **Step 5-open-items — Open-item modal contract**: one scoped `questions[]` entry per observation, then the §5c terminal handoff question last. Prefer recap + modal in one message.
+Perform exactly what was chosen. List short **numbered observations** for gaps (parent list mismatch, thin **Considered & rejected**, heavy § 3, blocked parent link) in **`displayMarkdown`** and apply **Step 5-open-items — Open-item modal contract**: one scoped `questions[]` entry per observation, then the §5c terminal handoff question last. Prefer recap + modal in one message.
 
 ## Scope guard
 

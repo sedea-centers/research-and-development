@@ -51,13 +51,13 @@ When a **global Cursor or developer rule** directs agents to use `gh` for GitHub
 
 ## Structured choice (Mission Control)
 
-Triage and fix loops use **AskQuestion**, **`MC_PHASED_RESPONSE_V1`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* on the **`coding-session`** lane — **preferred:** recap (comment summary) + modal in one message. **Act** (code/plan edits) only after developer approval per this skill.
+Triage and fix loops use **AskQuestion**, **`mission_control_present_structured_choice`** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* on the **`coding-session`** lane — **preferred:** recap (comment summary) + modal in one message. **Act** (code/plan edits) only after developer approval per this skill.
 
 ## Session orientation table (binding)
 
 Give developers a **consistent state snapshot** during PR review cycles so they can re-orient after reload, tab switch, or parallel work.
 
-**When required:** At every **Mandatory gate** below — render as the **first block** in `display.markdown`. **Forbidden:** omitting the table and substituting scattered one-liners.
+**When required:** At every **Mandatory gate** below — render as the **first block** in `displayMarkdown`. **Forbidden:** omitting the table and substituting scattered one-liners.
 
 **Table shape (markdown):**
 
@@ -163,7 +163,7 @@ After inline **`create-pr`** opens a PR, **`coding-session`** runs this skill **
 4. **Developer gate** — structured choice for dispositions, CI fix scope, and commit/push depth per rule **6**.
 5. **Fix pass** — approved comment and/or CI fixes in **`WORKTREE_ROOT`**; re-run **Step 1b** after push before treating CI as cleared.
 6. **Reconcile on GitHub** — Step **5** when required (same turn as push when fixes landed).
-7. **Wait for reviewers** — **developer-input**; **`MC_PHASED_RESPONSE_V1`** via **`coding-session`** [Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate) when the developer returns — **not** rule **2** external-wait. **Forbidden:** *reply with results*, *tell me when review is done*, *auto-advancing (no modal)*.
+7. **Wait for reviewers** — **developer-input**; **`mission_control_present_structured_choice`** via **`coding-session`** [Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate) when the developer returns — **not** rule **2** external-wait. **Forbidden:** *reply with results*, *tell me when review is done*, *auto-advancing (no modal)*.
 8. **Loop** — when new comments land **or** CI fails again after push, return to step **2** on the **same lane** until every comment is fixed, skipped with rationale, captured as deferred work, or explicitly deferred by the developer, **and** required CI is green or explicitly deferred.
 
 ## When coding-session executes `pr-review`
@@ -262,7 +262,7 @@ Do **not** apply fixes yet. First report the classification; then open the Step 
 
 Run this gate only after Step 3a has prepared proposed follow-ups and Step **4** has printed the classification report.
 
-Before applying any code, plan, or GitHub changes, open the **disposition gate** in Step **4** (`MC_PHASED_RESPONSE_V1` or **AskQuestion** with the **contextual** option set in Step **4** § *Build disposition options*) — **unless** Checkpoint auto-advance in Step **4** applies. **Do not** duplicate the gate in prose.
+Before applying any code, plan, or GitHub changes, open the **disposition gate** in Step **4** (`mission_control_present_structured_choice` or **AskQuestion** with the **contextual** option set in Step **4** § *Build disposition options*) — **unless** Checkpoint auto-advance in Step **4** applies. **Do not** duplicate the gate in prose.
 
 **Contextual options (binding):** List **only** disposition actions valid for this PR's Step 3 classification counts — see Step **4** § *Build disposition options*. **Forbidden:** showing **`apply-must`** or **`apply-must-should`** when **`mustCount`** and **`shouldCount`** are both **0** and **`ciFailureCount === 0`**; showing **`apply-rule-updates`** when **`ruleUpdateCount`** is **0**; showing **`follow-ups-only`** when **`followUpCount`** is **0**; showing **`skip-reject`** or **`submit-manual-review`** as the primary path when **`ciFailureCount > 0`** without also offering **`fix-ci-only`** or **`apply-must-should`** (CI fixes). **`more-details`** is always included.
 
@@ -306,7 +306,7 @@ Do **not** reply to, resolve, or minimize any threads yet.
 
 ### Checkpoint — auto-advance disposition (binding)
 
-Under Checkpoint trust on the invoker **`coding-session`** lane, **auto-advance** the disposition pick — **no** **`MC_PHASED_RESPONSE_V1`** — when the developer did **not** name defer / revise / skip-reject / submit-manual-review in the **same** message:
+Under Checkpoint trust on the invoker **`coding-session`** lane, **auto-advance** the disposition pick — **no** **`mission_control_present_structured_choice`** — when the developer did **not** name defer / revise / skip-reject / submit-manual-review in the **same** message:
 
 | Condition | Implicit pick |
 |-----------|---------------|
@@ -318,7 +318,7 @@ Under Checkpoint trust on the invoker **`coding-session`** lane, **auto-advance*
 
 One-line recap of counts + implicit pick, then **Act** on the **next** turn (or same turn for skipped-only → Step 5). **Exception — gate required:** ambiguous classification, Rule-update mixed with Must when paths unclear, or developer named a non-default path — emit the modal below.
 
-**Next-step modal (binding):** After the report, when Checkpoint auto-advance does **not** apply, emit **`MC_PHASED_RESPONSE_V1`** (preferred on **`coding-session`** spawned lanes — sentinel line **1**, report recap in **`display.markdown`**) or the **AskQuestion** tool with the **contextual** Step **3b** option set from § *Build disposition options* below. The developer may review on GitHub or inspect local diffs **while the modal stays open**; they continue by **selecting an option**, not free-form chat.
+**Next-step modal (binding):** After the report, when Checkpoint auto-advance does **not** apply, call **`mission_control_present_structured_choice`** (preferred on **`coding-session`** spawned lanes — MCP tool call, report recap in **`displayMarkdown`**) or the **AskQuestion** tool with the **contextual** Step **3b** option set from § *Build disposition options* below. The developer may review on GitHub or inspect local diffs **while the modal stays open**; they continue by **selecting an option**, not free-form chat.
 
 #### Build disposition options (contextual — binding)
 
@@ -333,7 +333,7 @@ After Step 3 classification, compute:
 | **`ciFailureCount`** | Failing **required** checks from Step 1b |
 | **`skippedOnly`** | **`mustCount === 0`** and **`shouldCount === 0`** and **`ruleUpdateCount === 0`** and **`followUpCount === 0`** and **`ciFailureCount === 0`** and at least one **Skipped (no follow-up)** |
 
-**`display.markdown`** (required before modal):
+**`displayMarkdown`** (required before modal):
 
 1. Triage counts — one line or table: Must / Should / Rule-update required / Skipped (no follow-up) / Skipped → follow-up; when **`ciFailureCount > 0`**, add CI line: *N failing required check(s)* with names.
 2. **Omitted-options explainer** when any standard option is hidden — e.g. *"Apply Must / Apply Must + Should are not shown — 0 Must and 0 Should items on this PR."* or *"Skip / reject not shown — N failing required CI check(s) must be fixed or explicitly deferred."*
@@ -427,7 +427,7 @@ If Step 1 payloads are **missing or stale** in context (new comments since fetch
 
 ### Step 5 turn invariant (binding)
 
-When this chat ran **`pr-review`** Steps **1–4** and the developer picked **`apply-must`**, **`apply-must-should`**, **`fix-ci-only`**, or **`fix-now-session`**, then the agent commits/pushes (or takes the skipped-only path with no edits), **Step 5 must run in that same assistant turn** before any **`MC_PHASED_RESPONSE_V1`** that offers merge, re-triage, post-create-pr forward paths, or “next cycle” options.
+When this chat ran **`pr-review`** Steps **1–4** and the developer picked **`apply-must`**, **`apply-must-should`**, **`fix-ci-only`**, or **`fix-now-session`**, then the agent commits/pushes (or takes the skipped-only path with no edits), **Step 5 must run in that same assistant turn** before any **`mission_control_present_structured_choice`** that offers merge, re-triage, post-create-pr forward paths, or “next cycle” options.
 
 **Forbidden:**
 

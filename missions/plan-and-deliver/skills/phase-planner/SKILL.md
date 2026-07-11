@@ -193,7 +193,7 @@ The skill operates on a **target** `.plan.md` resolved before this skill runs, p
 
 When spawned by `new-plan`, `targetPlanPath`, `targetPlanSlug`, `parentPlanPath`, `parentPlanSlug`, and `parentIndex` are already locked. Treat missing or conflicting values as a spawn-contract failure: stop with `failure` or `partial` and report the missing field. Do not fall back to IDE focus or free-form target discovery in spawned mode.
 
-If there is no resolved target, **stop** and emit a fresh *Where we are now in the plan tree* snapshot with **`AskQuestion`** or **`MC_PHASED_RESPONSE_V1`** in **one turn** per **30_planning-target-resolution** § *Sedea input channel* and **`../README.md`** § *Recap, structured choice, act* (`display.markdown` + `askQuestion`). **Obsolete:** recap-only turn without structured choice. Then continue.
+If there is no resolved target, **stop** and emit a fresh *Where we are now in the plan tree* snapshot with **`AskQuestion`** or **`mission_control_present_structured_choice`** in **one turn** per **30_planning-target-resolution** § *Sedea input channel* and **`../README.md`** § *Recap, structured choice, act* (`displayMarkdown` + `askQuestion`). **Obsolete:** recap-only turn without structured choice. Then continue.
 
 Acknowledge in one line: *"Target plan: `<slug>`."*
 
@@ -481,7 +481,7 @@ Apply the shared planning open-item contract from `../README.md` to every **phas
 
 **When open items exist** — use **one modal with multiple `questions[]` entries**:
 
-- **`display.markdown`:** numbered list of open items. For each item, include the parent row or phase section it affects, the gap/conflict/caveat, why it matters for downstream decomposition, and the agent's proposed resolution options.
+- **`displayMarkdown`:** numbered list of open items. For each item, include the parent row or phase section it affects, the gap/conflict/caveat, why it matters for downstream decomposition, and the agent's proposed resolution options.
 - **`askQuestion.questions`:** one scoped question per open item, with its own stable `id`, `prompt`, and item-only `options` (for example `accept-phase-boundary`, `revise-phase-section`, `use-parent-route`, `use-assessment-route`, `defer-to-caveats`, `skip-no-change`, `more-details`). **Forbidden:** one combined question whose options mix several item decisions.
 - **Final question:** always append the terminal phase-planner gate question last in the array. Use the normal gate for the current step: **Approve phase plan and route**, route selection, implementation handoff after inline `pr-plan` skip, defer/abandon, or follow-up route menu. **Forbidden:** a resolve-only modal that omits the terminal approve/route/handoff question until every item is cleared.
 - **Many open items:** batch across turns when needed; each batch still ends with the terminal phase-planner gate question as the final `questions[]` entry.
@@ -532,7 +532,7 @@ When this skill is running as a spawned child and `autoContinue` is not `false`,
 - `pr-breakdown-multi` → load and follow **`pr-breakdown/SKILL.md`** on **this** phase plan with `prBreakdownShape: "multi"`. **`pr-breakdown`** honors **`### Sequencing`** for parallel vs sequential PR expand. Under Checkpoint trust, follow **`pr-breakdown`** § *Checkpoint turn UX (skill-local)* — Step **6** list-approval gate and Step **4** route gate when applicable.
 - `pr-breakdown-single` → load and follow **`pr-breakdown/SKILL.md`** on **this** phase plan with `prBreakdownShape: "single"` — **same target file as multi-PR**; **forbidden:** ancestor retarget.
 
-Before handoff, present the drafted phase plan body and the route signal via **AskQuestion** or **`MC_PHASED_RESPONSE_V1`** in **one turn** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* (`display.markdown` + `askQuestion`). Required options:
+Before handoff, present the drafted phase plan body and the route signal via **AskQuestion** or **`mission_control_present_structured_choice`** in **one turn** per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act* (`displayMarkdown` + `askQuestion`). Required options:
 
 - **Approve phase plan and route**
 - **Revise phase plan first**
@@ -558,12 +558,12 @@ After inline handoff begins, merge **`## Completion (inline)`** from the decompo
 
 Per **`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`** and **`../README.md`** § *Recap, structured choice, act*. Do **not** use “Turn A/B” labels in developer-facing chat.
 
-**Preferred (one assistant message):** **AskQuestion tool** with brief recap, or **`MC_PHASED_RESPONSE_V1`** with:
+**Preferred (one assistant message):** **AskQuestion tool** with brief recap, or **`mission_control_present_structured_choice`** with:
 
-- `display.markdown` — file link, parent decomposition hint, optional one-line assessment summary (not a full re-echo of §§ 1–4 if step **4f** already echoed them)
+- `displayMarkdown` — file link, parent decomposition hint, optional one-line assessment summary (not a full re-echo of §§ 1–4 if step **4f** already echoed them)
 - `askQuestion` — route and follow-up options below
 
-**Obsolete:** **recap-only** message (items 1–2) with structured choice deferred — use **`MC_PHASED_RESPONSE_V1`** (items 1–2 in `display.markdown` + `askQuestion` same turn) or **AskQuestion tool** with brief recap.
+**Obsolete:** **recap-only** message (items 1–2) with structured choice deferred — call **`mission_control_present_structured_choice`** (items 1–2 in `displayMarkdown` + `askQuestion` same turn) or **AskQuestion tool** with brief recap.
 
 Recap content:
 
@@ -581,7 +581,7 @@ Recap content:
 
 ## Step 5d — Follow-up turns
 
-When the developer asks to revise § N, re-read that section and apply edits via `StrReplace`; echo the result; re-offer structured choice (prefer phased or AskQuestion in one message) when a pick is required.
+When the developer asks to revise § N, re-read that section and apply edits via `StrReplace`; echo the result; re-offer structured choice (prefer **`mission_control_present_structured_choice`** or AskQuestion in one message) when a pick is required.
 
 When they choose **`delivery-phases`** or **`pr-breakdown`** via **AskQuestion**, run the chosen skill **inline** on this lane per **§ 5b** and [Inline handoff](#inline-handoff--phase-planner--delivery-phases--pr-breakdown-step-5b). Do **not** emit **`mission_control_spawn_agent`** for those skills. When the handoff ends the assistant turn while waiting for **`phase-planner`** or **`coding-session`** child results per step **5e**, close with structured choice per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant** — do not prose-only stop after handoff.
 
@@ -604,7 +604,7 @@ Silence or missing downstream metadata is not completion; return `partial` and k
 
 #### Parallel **`hosting-repo-rules`** fork after **`coding-session`** terminal (fire-and-forget)
 
-When Step **5e** aggregates a **`coding-session`** child terminal (MCP **`mission_control_send_agent_result`** or sentinel **`mission_control_send_agent_result`** — spawned from inline **`pr-plan`** §5d or §5f on this phase subtree), evaluate the parallel rules fork **in the same aggregation pass** as **`prShipComplete`** merge — mirror **`master-planner`** Step **7c** *Parallel **`hosting-repo-rules`** fork* semantics on the **phase subtree product PR row**.
+When Step **5e** aggregates a **`coding-session`** child terminal (MCP **`mission_control_send_agent_result`** — spawned from inline **`pr-plan`** §5d or §5f on this phase subtree), evaluate the parallel rules fork **in the same aggregation pass** as **`prShipComplete`** merge — mirror **`master-planner`** Step **7c** *Parallel **`hosting-repo-rules`** fork* semantics on the **phase subtree product PR row**.
 
 **Spawn trigger (all required):**
 
@@ -651,7 +651,7 @@ When inline **`pr-plan`** merges into this lane with **`prPlanHandoffSkipped: tr
 - Treating **`skipPrPlanHandoffModal`** or the README spawn table as a permanent ban on spawning **`coding-session`** from **`phase-planner`**.
 - Running **`coding-session`** procedures (worktrees, edits, ship chain) inline on this lane — spawn only.
 
-**Required:** Close the turn with structured choice (**`MC_PHASED_RESPONSE_V1`** or **AskQuestion** tool) per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant**. **`display.markdown`** recap: PR plan link, **`readyForImplementation`**, and that §5c was skipped on the inline **`pr-plan`** turn only.
+**Required:** Close the turn with structured choice (**`mission_control_present_structured_choice`** or **AskQuestion** tool) per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant**. **`displayMarkdown`** recap: PR plan link, **`readyForImplementation`**, and that §5c was skipped on the inline **`pr-plan`** turn only.
 
 | Option id | Label | Action |
 |-----------|-------|--------|
@@ -706,7 +706,7 @@ When child terminal results bubble to inline **`new-plan`** / **`delivery-phases
 
 ## One choice per turn — surface observations
 
-Match the discipline in **`master-planner`**: perform exactly what was chosen; do not silently expand scope. If you notice gaps (parent Changes bullets that do not map to a phase, diagram simplifications, assessment vs parent hint mismatch), list them as short **numbered notes** in **`display.markdown`** and apply **Step 5-open-items**: one scoped `questions[]` entry per note or batch item, then the current terminal phase-planner gate question last.
+Match the discipline in **`master-planner`**: perform exactly what was chosen; do not silently expand scope. If you notice gaps (parent Changes bullets that do not map to a phase, diagram simplifications, assessment vs parent hint mismatch), list them as short **numbered notes** in **`displayMarkdown`** and apply **Step 5-open-items**: one scoped `questions[]` entry per note or batch item, then the current terminal phase-planner gate question last.
 
 ## Scope guard
 
