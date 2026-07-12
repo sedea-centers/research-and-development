@@ -14,7 +14,7 @@ alwaysApply: false
 
 1. **Log-first diagnosis** — Bootstrap a debug worktree, prioritize log access and debug instrumentation before substantive code analysis.
 2. **Fix loop** — Propose fixes with test scenarios; apply on developer approval; run automated tests and guided manual verification; loop on failure until fixed or blocked.
-3. **Post-fix routing** — After a verified fix, the developer confirms **exactly one** exit on the debug child lane (step 7); under Checkpoint trust the **Squad Leader** auto-advances per **`exitRecommendation`** without repeating §4 unless override is needed:
+3. **Post-fix routing** — After a verified fix (or abandon), the developer confirms the exit on the debug child lane (step 7); under Checkpoint trust the **Squad Leader** treats that confirmation as **auto-approval** and routes per **`exitRecommendation`** / **`abandonMission`** without repeating §4:
    - **Code promotion** — create a plan anchor (**`new-plan`** plus **`pr-plan`**) before spawning **`coding-session`** on the debug worktree, so deploy tests and additional written tests have a PR plan to update.
    - **Ad-Hoc PRD only** — spawn **`ad-hoc-prd`** to capture fix context without starting code promotion.
    - **Findings report only** — no planning, no **`coding-session`**; Squad Leader produces a **Debug session findings report** from child outputs.
@@ -74,8 +74,8 @@ Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.s
 | **§1** Infer intent | Auto-advance when phrase matches | USER_CHECKPOINT — confirm mission intent on mismatch |
 | **§2** Collect issue context | **Gate** — first developer-pick on leader | USER_CHECKPOINT — pick intake mode or provide issue summary |
 | **§2.5** Brainstorm (optional) | **Waiting** after spawn; auto-chain §3 on approved report | **#external-wait** before turn end; USER_CHECKPOINT on failure/partial |
-| **§3** Debug and fix spawn | **Waiting** — child owns fix loop | **#external-wait** after spawn; §3 resume table for partial |
-| **§4** Post-fix exit selection | **Auto-advance** when §3 child confirmed exit via `outputs.exitRecommendation` | USER_CHECKPOINT — pick exactly one post-fix exit path when recommendation missing or developer override on leader |
+| **§3** Debug and fix spawn | **Waiting** — child owns fix loop | **#external-wait** after spawn; confirmed exits auto-route (§5/§5c/§6/abandon); USER_CHECKPOINT only on partial/missing |
+| **§4** Post-fix exit selection | **Auto-advance** when §3 child confirmed any exit (`exitRecommendation` or abandon) | USER_CHECKPOINT — pick exactly one post-fix exit path when recommendation missing or developer override on leader |
 | **§5** PR plan anchor spawn | **Waiting** — child owns planning | **#external-wait** after spawn; USER_CHECKPOINT when blocked |
 | **§5b** Code promotion spawn | **Waiting** — child owns ship chain | **#external-wait** after spawn; resume per **`coding-session`** gates |
 | **§5c** Ad-Hoc PRD spawn | **Waiting** — child owns PRD approval | **#external-wait** after spawn |
@@ -108,13 +108,17 @@ This subsection is the **Squad Leader** contract for §§2.5, 3, 5, 5b, and 5c. 
 
 **§3 resume (Debug and Fix agent).** After each `mission_control_send_agent_result` for §3:
 
+**Binding — confirmed child exit is Squad Leader auto-approval.** When the debug child terminal includes a developer-confirmed exit (`exitRecommendation`, `abandonMission: true`, or MCP result `status: abandoned` / `aborted`), the Squad Leader **must not** re-open §4. Route immediately per the table below — same rule for code promotion, Ad-Hoc PRD, findings report, blocked, and abandon.
+
 | Check | Action |
 |-------|--------|
+| `outputs.abandonMission: true` **or** MCP result `status: abandoned` / `aborted` | **Auto-advance dispatch abandon** — call MCP **`mission_control_propose_dispatch_resolution`** with status **`abandoned`** (skip §4–§6; no repeat exit modal) |
 | `outputs.fixStatus: verified` + `outputs.exitRecommendation: code-promotion` | **Auto-advance §5** — post-fix exit auto-resolved as code promotion; spawn **`new-plan`** + **`pr-plan`** (**#external-wait**) |
 | `outputs.fixStatus: verified` + `outputs.exitRecommendation: ad-hoc-prd` | **Auto-advance §5c** — spawn **`ad-hoc-prd`** (**#external-wait**) |
-| `outputs.fixStatus: verified` + `outputs.exitRecommendation: findings-report-only` | **Auto-advance §6** findings report |
+| `outputs.fixStatus: verified` + `outputs.exitRecommendation: findings-report-only` | **Auto-advance §6** findings report → auto-advance §7 |
+| `outputs.fixStatus: verified` + `outputs.exitRecommendation: blocked` | **Auto-advance §6** findings report → auto-advance §7 |
 | `outputs.fixStatus: verified` + missing or ambiguous `outputs.exitRecommendation` | USER_CHECKPOINT — **§4** post-fix exit selection on the leader lane |
-| `outputs.fixStatus: blocked` or `failed` | **Auto-advance §6** findings report — no repeat §3 spawn without developer pick at §4/§7 |
+| `outputs.fixStatus: blocked` or `failed` (any or missing exit) | **Auto-advance §6** findings report — no repeat §3 spawn without developer pick at §7 |
 | `outputs.fixStatus: partial` | USER_CHECKPOINT — pick next step when debug child reports partial status |
 | Missing required `outputs` | USER_CHECKPOINT — collect missing fields or retry per **`debug-and-fix/SKILL.md`** **`## Completion (spawned)`** |
 
@@ -196,8 +200,8 @@ USER_CHECKPOINT — pick next step when brainstorm child reports failure or part
   - `inputs` — validated fields above.
   - `warmUpRules` — skill frontmatter defaults plus mission context paths when needed.
   - `initiatingPrompt` — protocol step, symptom, and any user decisions from step 2.
-- `expected output`: Child **`mission_control_send_agent_result`** with `outputs.fixStatus`, `outputs.worktreePath`, `outputs.worktreeName`, `outputs.hostingRoot`, `outputs.exitRecommendation` (`code-promotion` | `ad-hoc-prd` | `findings-report-only` | `blocked`), `outputs.fixSummary`, `outputs.testEvidence`.
-- `next-step resolution`: Emit spawn → **#external-wait** before turn end; on child terminal apply **§3 resume** (auto-advance §5/§5c/§6 per `exitRecommendation` when `fixStatus: verified`; §6 when `blocked`/`failed`; USER_CHECKPOINT when `partial` or verified with missing exit).
+- `expected output`: Child **`mission_control_send_agent_result`** with `outputs.fixStatus`, `outputs.worktreePath`, `outputs.worktreeName`, `outputs.hostingRoot`, `outputs.exitRecommendation` (`code-promotion` | `ad-hoc-prd` | `findings-report-only` | `blocked`), optional `outputs.abandonMission`, `outputs.fixSummary`, `outputs.testEvidence`.
+- `next-step resolution`: Emit spawn → **#external-wait** before turn end; on child terminal apply **§3 resume** (confirmed exits are binding auto-approval: abandon → propose **`abandoned`**; `code-promotion` → §5; `ad-hoc-prd` → §5c; `findings-report-only` / `blocked` / `failed` → §6; USER_CHECKPOINT only when `partial` or verified with missing exit).
 - **Agent session closure**: Child emits one parseable **`mission_control_send_agent_result`** line per skill **`## Completion (spawned)`**. Squad Leader waits for host delivery before continuing (**#external-wait**).
 
 USER_CHECKPOINT — pick next step when debug child reports partial status.
@@ -206,7 +210,7 @@ USER_CHECKPOINT — pick next step when debug child reports partial status.
 ### 4. Post-fix exit selection
 
 - `type`: Branching logic.
-- `intent`: Resolve **exactly one** post-fix path when `outputs.fixStatus` is `verified`. Under Checkpoint trust, when the §3 debug child already confirmed an exit at terminal (**`debug-and-fix/SKILL.md`** step 7), **`outputs.exitRecommendation`** is binding — Squad Leader **auto-advances** per **§3 resume** without repeating this gate.
+- `intent`: Resolve **exactly one** post-fix path when `outputs.fixStatus` is `verified` and no confirmed exit was already delivered. Under Checkpoint trust, when the §3 debug child already confirmed an exit at terminal (**`debug-and-fix/SKILL.md`** step 7) — including code promotion, Ad-Hoc PRD, findings report, blocked, or abandon — that confirmation is **Squad Leader auto-approval**; **skip** this gate and **auto-advance** per **§3 resume**.
 - `inputs`: Child `outputs.exitRecommendation`, `outputs.fixSummary`, `outputs.testEvidence`, `outputs.worktreePath`, `outputs.worktreeName`, `outputs.hostingRoot`.
 - `expected output`: Exit label `code-promotion`, `ad-hoc-prd`, or `findings-report-only`.
 - `next-step resolution`:
