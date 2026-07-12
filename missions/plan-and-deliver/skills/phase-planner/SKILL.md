@@ -441,7 +441,7 @@ Leave the dual-title **numbered list** under § 5 as `_TBD_` until inline **`del
 
 ### Inline handoff — **phase-planner** → **`delivery-phases`** / **`pr-breakdown`** (Step 5b)
 
-When the developer approves route in Step **5**, run the chosen skill **inline on this lane** — **do not** emit **`mission_control_spawn_agent`** for **`delivery-phases`** or **`pr-breakdown`**. Load the target **`SKILL.md`**, construct inline context from the tables below, follow that skill’s steps, and merge **`## Completion (inline)`** into this skill’s ledger (`spawnedPlans`, `activeLanes`, `openLedgerEntries`, `remainingTasks`). Those skills run **`new-plan`** inline and may still spawn **`phase-planner`** or **`coding-session`** per their contracts.
+When the developer approves route in Step **5**, run the chosen skill **inline on this lane** — **do not** emit **`mission_control_spawn_agent`** for **`delivery-phases`** or **`pr-breakdown`**. Load the target **`SKILL.md`**, construct inline context from the tables below, follow that skill’s steps, and merge **`## Completion (inline)`** into this skill’s ledger (`spawnedPlans`, `activeLanes`, `openLedgerEntries`, `remainingTasks`). Those skills run **`new-plan`** inline and may still spawn **`phase-planner`** or **`coding-session`** per their contracts. Inline **`delivery-phases`** USER_CHECKPOINT gates (Step **4** route, Step **6** list approval) run **on this lane** per **`delivery-phases/SKILL.md`** § *Checkpoint turn UX (skill-local)* — not on a separate tab.
 
 **`delivery-phases`** on **this phase plan**:
 
