@@ -90,9 +90,25 @@ Gates use **AskQuestion**, **`mission_control_present_structured_choice`** per *
 
 Under Checkpoint trust (`trustLevel: checkpoint`), auto-advance scripted happy-path steps; emit structured choice only at **USER_CHECKPOINT** markers in this section, implicit external-wait surfaces, or exception paths. **No cross-skill inheritance** — gate defaults here apply only to **`create-pr`**; other ship-chain skills document their own markers.
 
-**Real-dispatch test loop (binding):** After merge, run one full inline **`create-pr`** on a **`coding-session`** Checkpoint dispatch through [Pre-gh authorization gate](#pre-gh-authorization-gate-binding) and collect a developer verdict before the parent phase advances **`pr-review`** PR 5 — per **Ship-chain skills UX** § *Single-concern strategy*.
+**Real-dispatch test loop (binding):** After merge, run one full inline **`create-pr`** on a **`coding-session`** Checkpoint dispatch through [Checkpoint — auto-advance `authorize-create-pr`](#checkpoint--auto-advance-authorize-create-pr-binding) (clean path) or [Pre-gh authorization gate](#pre-gh-authorization-gate-binding) (exception), then verify **`coding-session`** [Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate) opens same turn without idle-handoff prose — collect a developer verdict before the parent phase advances **`pr-review`** PR 5 — per **Ship-chain skills UX** § *Single-concern strategy*.
 
 Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md).
+
+### Developer input vs external-wait (Checkpoint)
+
+Under Checkpoint trust, **happy-path** inline steps ([Gate](#gate) validation **1–4**, push when pre-authorized, [Checkpoint — auto-advance `authorize-create-pr`](#checkpoint--auto-advance-authorize-create-pr-binding) → **`gh pr create`** on the **same** turn) **auto-advance without a turn-end modal**. **Developer-input** surfaces below are **USER_CHECKPOINT** — **not** rule **2** external-wait.
+
+| Situation | Normative gate / owner |
+|-----------|------------------------|
+| Branch not on remote; push not pre-authorized | [Push authorization gate](#push-authorization-gate-binding) — **this skill** |
+| Pre-PR clean; push satisfied; Checkpoint auto-advance criteria pass | [Checkpoint — auto-advance `authorize-create-pr`](#checkpoint--auto-advance-authorize-create-pr-binding) — **no** Pre-gh modal |
+| Pre-gh needed (non-Checkpoint, push unauthorized, defer/revise/emit-prompt, or follow-up append unresolved) | [Pre-gh authorization gate](#pre-gh-authorization-gate-binding) — **this skill** (exception / non-Checkpoint only) |
+| **`gh pr create`** succeeded — next ship action | [Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate) — **`coding-session`** same turn — **not** this skill |
+| Developer returns after GitHub review / idle open PR | **`coding-session`** post-create-pr or **`pr-review`** disposition — developer-input |
+
+**Forbidden:** prose-only PR URL, *review on GitHub*, *tell me when*, *come back when*, *waiting for PR review*, or *I'll open the PR* without **`mission_control_present_structured_choice`** at [Pre-gh authorization gate](#pre-gh-authorization-gate-binding) (when that gate applies) or without handing off to **`coding-session`** [Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate) on the **same turn** **`gh pr create`** completes. **Forbidden:** treating GitHub CI/check completion or third-party reviewer activity as **external-wait** that skips the post-create-pr modal — **lane continuation** requires a developer pick on **`coding-session`**. **Forbidden on Checkpoint clean path:** opening Pre-gh / *Create the pull request now?* when [Checkpoint — auto-advance `authorize-create-pr`](#checkpoint--auto-advance-authorize-create-pr-binding) criteria pass.
+
+**Implicit external-wait (not this skill):** host-delivered **`pre-pr-review`** child result on the parent lane — **`coding-session`** still owns the next-step modal before StreamFinal when the skill requires it. **`create-pr`** does **not** classify parent wait-for-reviewer as permission to end at PR URL prose alone.
 
 | Step | Checkpoint behavior | Gate |
 |------|---------------------|------|
