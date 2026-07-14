@@ -21,10 +21,12 @@ On every R&D ship lane (**`coding-session`**, **`plan-reconcile`** §5 fallback,
 
 | # | Precondition |
 |---|--------------|
-| **1** | **This pass** ran center **`worktree-setup.sh`** for that absolute path (layer 2 worktree-open on **`coding-session`**, or mission-owned git on this lane). |
-| **2** | **`WORKTREE_ROOT`** is the **exact** path from that step — **not** inferred from **`git worktree list`**, plan sidecar **`worktrees[]`**, or “stale” entries alone. |
-| **3** | **`sedea_remove_worktree_folder`** runs **only** when **this pass** called **`sedea_add_worktree_folder`** for **that same** path. |
+| **1** | **This pass** ran center **`worktree-setup.sh`** for that absolute path (layer 2 worktree-open on **`coding-session`**, or mission-owned git on this lane) — **or** spawn/handoff [Inherited worktree ownership](missions/plan-and-deliver/skills/coding-session/SKILL.md#inherited-worktree-ownership-upstream-handoff-binding) (`worktreeOwnership: inherited` + absolute **`worktreePath`** from the upstream creator, e.g. **`debug-and-fix`**). |
+| **2** | **`WORKTREE_ROOT`** is the **exact** path from that setup step **or** the inherited **`inputs.worktreePath`** — **not** inferred from **`git worktree list`**, plan sidecar **`worktrees[]`**, or “stale” entries alone. |
+| **3** | **`sedea_remove_worktree_folder`** runs **only** when **this pass** called **`sedea_add_worktree_folder`** for **that same** path — **or** inherited handoff set **`mountedViaMcp: true`** (upstream already mounted) **or** this pass attached that same inherited path once. |
 | **4** | The developer confirmed **this** PR merged **or** explicitly approved removing **this** path (structured choice or clear wording in the **same** message). |
+
+**Inherited handoff:** When precondition **1** is satisfied via inheritance, treat cleanup auto-apply the same as create-own Path A for **that path only**. **Forbidden:** treating remount-only reuse of an inherited path as “ownership unclear.”
 
 **Forbidden (agent failure):**
 

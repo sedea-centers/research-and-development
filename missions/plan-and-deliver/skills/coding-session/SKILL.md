@@ -52,13 +52,39 @@ inputs:
     type: string
     description: Optional explicit worktree name; otherwise derive from plan slug and Sedea rule 7 / rule 20 naming.
     required: false
+  worktreePath:
+    type: string
+    description: >-
+      Absolute existing WORKTREE_ROOT when an upstream lane already created the worktree
+      (for example debug-and-fix code-promotion). When set with worktreeOwnership inherited,
+      skip duplicate worktree-setup.sh and treat cleanup ownership as handed off.
+    required: false
+  worktreeOwnership:
+    type: string
+    description: >-
+      When "inherited", this lane received cleanup ownership of worktreePath from an upstream
+      creator (worktreeCreatedByUpstream). Authorizes post-merge auto-cleanup without this pass
+      running worktree-setup.sh. Omit or other values = create-own path.
+    required: false
+  worktreeCreatedByUpstream:
+    type: string
+    description: >-
+      Skill slug that created and (usually) mounted the worktree (e.g. debug-and-fix). Required
+      when worktreeOwnership is inherited.
+    required: false
+  mountedViaMcp:
+    type: boolean
+    description: >-
+      When true with inherited ownership, upstream already called sedea_add_worktree_folder for
+      worktreePath. When false, this lane may attach once without creating a new worktree.
+    required: false
   ledgerParent:
     type: string
     description: Ledger parent slug/path copied from the upstream planning agent.
     required: false
   upstreamSkill:
     type: string
-    description: Optional context label (developer dispatch, snapshot, pr-plan spawn, planning skill).
+    description: Optional context label (developer dispatch, snapshot, pr-plan spawn, planning skill, debug-and-fix).
     required: false
   planningHandoffMode:
     type: string
@@ -209,7 +235,30 @@ Three **sequential** agent steps on the **`coding-session`** lane after the [Wor
 
 **Not a conflict:** center setup creates the directory and runs overlay bootstrap; **`sedea_add_worktree_folder`** adds that path to the Mission Control / editor workspace.
 
-**Removal is the mirror:** post-merge detach/remove applies **only** to the **`WORKTREE_ROOT`** from steps 1–3 on **this pass** — see § *Post-merge workspace cleanup* and rule **20** § *Worktree removal ownership (binding)*. **Do not remove worktrees you do not own.**
+**Removal is the mirror:** post-merge detach/remove applies **only** to the **`WORKTREE_ROOT`** from steps 1–3 on **this pass** **or** the exact absolute path when [Inherited worktree ownership](#inherited-worktree-ownership-upstream-handoff-binding) applies — see § *Post-merge workspace cleanup* and rule **20** § *Worktree removal ownership (binding)*. **Do not remove worktrees you do not own.**
+
+## Inherited worktree ownership (upstream handoff — binding)
+
+When spawn **`inputs`** (or a clear invoker handoff) include **all** of:
+
+| Field | Rule |
+|-------|------|
+| **`worktreePath`** | Absolute existing **`WORKTREE_ROOT`** on disk |
+| **`worktreeOwnership: "inherited"`** | Upstream creator / mount lane passed cleanup ownership to this spawn |
+| **`worktreeCreatedByUpstream`** | Non-empty skill slug (for example **`debug-and-fix`**) |
+| **`worktreeName`** | Matching worktree / branch name when known |
+
+…then **this lane owns cleanup** for that exact path even though **this** pass did **not** run **`worktree-setup.sh`**.
+
+| Phase | Behavior |
+|-------|----------|
+| **Setup** | **Skip** center **`worktree-setup.sh`**. Set **`WORKTREE_ROOT`** / **`outputs.worktreePath`** from **`inputs.worktreePath`**. Set **`outputs.bootstrapStatus: success`** when the directory exists and prior bootstrap was success-class (or re-map from documented skip). |
+| **Attach** | When **`mountedViaMcp: true`**, skip duplicate MCP attach if the folder is already mounted; when **`false`** or not mounted, call **`sedea_add_worktree_folder`** once for that absolute path — **do not** create a new worktree. |
+| **Ship / cleanup** | Treat Path A / rule **20** “this pass” setup **and** “this pass” MCP attach preconditions as **satisfied via inheritance** for **that path only**. Post-merge **auto-apply** cleanup — **no** ownership-unclear modal for remount-only reuse. Cleanup attestation: **`--ownership-path a`**, **`--created-this-pass`**, **`--mounted-via-mcp`** when attach ran on this lane or upstream (`mountedViaMcp: true`). |
+
+**Forbidden:** classifying **`worktreeOwnership: inherited`** + matching absolute **`WORKTREE_ROOT`** as unclear ownership because setup was not re-run on this lane; inventing a second worktree; removing any other path.
+
+**Detection helpers:** Also treat as inherited when **`upstreamSkill === "debug-and-fix"`** and absolute **`inputs.worktreePath`** exists, even if a parent omitted the string **`inherited`** — still require the path to match the debug seed exactly; prefer parents that set the full field set (**`pr-plan` §5d**).
 
 ## Hard rules — git worktree vs workbench attach (binding)
 
@@ -217,12 +266,12 @@ Agents repeatedly call **`sedea_add_worktree_folder`** instead of **`git worktre
 
 | Step | Required | Forbidden |
 |------|----------|-----------|
-| **1 — Center setup** | **`.sedea/centers/sedea/scripts/worktree-setup.sh`** from **`HOSTING_ROOT`** with **`--hosting-root`**, **`--worktree-path`**, **`--worktree-name`**, optional **`--base-ref`** | **`sedea_add_worktree_folder`** (MCP does **not** run git — it only mounts an **existing** folder), inline **`git worktree add`** on the default path, `git clone`, manual checkout/mkdir |
-| **3 — Mount in Sedea workbench** | MCP **`sedea_add_worktree_folder`** with **absolute** `path` (optional `name`) when setup hint **`nextAction: attach-required`** | VS Code / Cursor **Add Folder to Workspace**, hand-edited **`.code-workspace`** as the attach mechanism on Mission Control lanes, assuming step 1 made the worktree appear in the explorer |
+| **1 — Center setup** | **`.sedea/centers/sedea/scripts/worktree-setup.sh`** from **`HOSTING_ROOT`** with **`--hosting-root`**, **`--worktree-path`**, **`--worktree-name`**, optional **`--base-ref`** — **except** [Inherited worktree ownership](#inherited-worktree-ownership-upstream-handoff-binding) (reuse existing absolute path) | **`sedea_add_worktree_folder`** (MCP does **not** run git — it only mounts an **existing** folder), inline **`git worktree add`** on the default path, `git clone`, manual checkout/mkdir |
+| **3 — Mount in Sedea workbench** | MCP **`sedea_add_worktree_folder`** with **absolute** `path` (optional `name`) when setup hint **`nextAction: attach-required`** **or** inherited handoff with **`mountedViaMcp: false`** / not yet mounted | VS Code / Cursor **Add Folder to Workspace**, hand-edited **`.code-workspace`** as the attach mechanism on Mission Control lanes, assuming step 1 made the worktree appear in the explorer |
 
-**Fixed order:** center setup (step **1**) → sidecar (step **2**) → MCP attach (step **3**). Never call **`sedea_add_worktree_folder`** before **`worktree-setup.sh`** exits **0**. Never skip step **3** because the directory exists on disk.
+**Fixed order (create-own path):** center setup (step **1**) → sidecar (step **2**) → MCP attach (step **3**). Never call **`sedea_add_worktree_folder`** before **`worktree-setup.sh`** exits **0** on the create-own path. Never skip step **3** because the directory exists on disk — **unless** [Inherited worktree ownership](#inherited-worktree-ownership-upstream-handoff-binding) with **`mountedViaMcp: true`** and the folder is already in the workbench.
 
-**Squad Leader vs this lane:** **20_efficient-pr-shipping.mdc** § *Squad Leader on HOSTING_ROOT* may run center setup and call **`sedea_add_worktree_folder`** before spawning **`coding-session`**. When this skill runs [Generic flow](#generic-flow-single-repo) on a **spawned implementation lane**, **this lane** owns setup → sidecar → attach end-to-end unless the leader already completed attach and passed absolute **`WORKTREE_ROOT`** in spawn `inputs` — then skip duplicate setup / MCP only when the worktree path already exists **and** is already mounted in the workbench.
+**Squad Leader vs this lane:** **20_efficient-pr-shipping.mdc** § *Squad Leader on HOSTING_ROOT* may run center setup and call **`sedea_add_worktree_folder`** before spawning **`coding-session`**. When this skill runs [Generic flow](#generic-flow-single-repo) on a **spawned implementation lane**, **this lane** owns setup → sidecar → attach end-to-end unless the leader (or **inherited upstream** such as **`debug-and-fix`**) already completed attach and passed absolute **`WORKTREE_ROOT`** in spawn `inputs` — then skip duplicate setup / MCP only when the worktree path already exists **and** is already mounted in the workbench, and apply [Inherited worktree ownership](#inherited-worktree-ownership-upstream-handoff-binding) for cleanup.
 
 ## Center worktree scripts (binding)
 
@@ -1775,7 +1824,7 @@ Under Checkpoint trust, after a **clean** rebase (or Checkpoint conflict resolve
 
 Run on this lane **after** `prState: merged` **and before** [After deploy deploy-walk handoff](#after-deploy-deploy-walk-handoff). Normative entry: [Act after post-create-pr pick](#act-after-post-create-pr-pick) (**`spawn-after-deploy-walk`** or **`check-pr-status`** → merged), explicit developer message (*pull main*, *remove worktree*, *post-merge cleanup*), or **auto-apply** when merge is confirmed and ownership preconditions pass.
 
-**Auto-apply (default):** When `prState: merged` and § *Worktree removal ownership* preconditions hold for **this pass’s** **`WORKTREE_ROOT`**, run detect → dry-run recap (one line or **`displayMarkdown`** when long) → MCP detach → **`--apply`** on the **next** turn **without** a cleanup authorization modal. Label the action in recap as *Run post-merge worktree cleanup now* when reporting to the developer.
+**Auto-apply (default):** When `prState: merged` and § *Worktree removal ownership* preconditions hold for **this pass’s** **`WORKTREE_ROOT`** **or** [Inherited worktree ownership](#inherited-worktree-ownership-upstream-handoff-binding) authorizes that exact path, run detect → dry-run recap (one line or **`displayMarkdown`** when long) → MCP detach → **`--apply`** on the **next** turn **without** a cleanup authorization modal. Label the action in recap as *Run post-merge worktree cleanup now* when reporting to the developer.
 
 **Modal required only when:**
 
@@ -1787,7 +1836,7 @@ Run on this lane **after** `prState: merged` **and before** [After deploy deploy
 
 **Legacy cleanup authorization modal** (`cleanup-apply` / `cleanup-skip` pick before **`--apply`**) is **obsolete** when auto-apply preconditions pass. Do not block After deploy on a cleanup modal when detect + ownership authorize apply.
 
-**Worktree removal ownership (binding).** **Do not remove worktrees you do not own.** Apply **`sedea_remove_worktree_folder`**, center **`worktree-cleanup.sh`**, and any cleanup **`--apply`** **only** to **this pass’s** **`WORKTREE_ROOT`** when **all** preconditions in [`.sedea/centers/sedea/rules/0_hosting-repo.mdc`](.sedea/centers/sedea/rules/0_hosting-repo.mdc) § *Worktree ownership* and [`.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`](.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc) § *Worktree removal ownership (binding)* hold. **`WORKTREE_ROOT`** must be the exact path from **this pass’s** center setup hint **`worktreeRoot`** — **not** inferred from **`git worktree list`**, sidecar **`worktrees[]`**, or stale entries alone. **Forbidden:** repo-wide **`git worktree prune`**; removing paths another developer, dispatch, lane, or session created; **`git worktree remove`** on **`HOSTING_ROOT`**; hand-deleting directories while still mounted. **`git worktree list` is read-only** when ownership is unclear — stop and use structured choice. Center **`worktree-cleanup.sh`** removes **only** candidates from **`detect-stale-workspaces`** for **this plan/session** after the gate above.
+**Worktree removal ownership (binding).** **Do not remove worktrees you do not own.** Apply **`sedea_remove_worktree_folder`**, center **`worktree-cleanup.sh`**, and any cleanup **`--apply`** **only** to **this pass’s** **`WORKTREE_ROOT`** when **all** preconditions in [`.sedea/centers/sedea/rules/0_hosting-repo.mdc`](.sedea/centers/sedea/rules/0_hosting-repo.mdc) § *Worktree ownership* and [`.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`](.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc) § *Worktree removal ownership (binding)* hold — **or** when [Inherited worktree ownership](#inherited-worktree-ownership-upstream-handoff-binding) applies to that exact absolute path (inherited handoff **satisfies** the “this pass ran setup / this pass MCP-mounted” bars for cleanup attestation). **`WORKTREE_ROOT`** must be the exact path from **this pass’s** center setup hint **`worktreeRoot`** **or** spawn **`inputs.worktreePath`** under inherited ownership — **not** inferred from **`git worktree list`**, sidecar **`worktrees[]`**, or stale entries alone. **Forbidden:** repo-wide **`git worktree prune`**; removing paths another developer, dispatch, lane, or session created; treating remount-only reuse of an **inherited** path as unclear ownership; **`git worktree remove`** on **`HOSTING_ROOT`**; hand-deleting directories while still mounted. **`git worktree list` is read-only** when ownership is unclear — stop and use structured choice. Center **`worktree-cleanup.sh`** removes **only** candidates from **`detect-stale-workspaces`** for **this plan/session** after the gate above.
 
 **Purpose:** Sync **`HOSTING_ROOT`** with **`origin/main`**, detach/remove **this session’s** worktree from Mission Control and git, drop the local worktree name ref when eligible, and run optional **post-merge host rebuild** on **`HOSTING_ROOT`** per **`.cursor/rules/dot-sedea.mdc`** when documented — then **Developer: Reload Window** before After deploy verification — not from a stale worktree with **`main` behind**.
 
