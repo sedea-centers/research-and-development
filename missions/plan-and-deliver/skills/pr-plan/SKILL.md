@@ -619,8 +619,17 @@ Run only when the developer chose **`start-coding-session`** and §5a readiness 
  - `name`: `PR{parentIndex}-{semantic title}` when **`parentIndex`** is known — semantic title from §1 single concern or **`targetPlanSlug`**; otherwise `PR-{semantic title}` — **not** generic "Coding session" alone (≤64 chars; truncate semantic title if needed). Prefix per [rule **50**](../../../../rules/50_mission-control-display-metadata-discipline.mdc) § *Lane title prefix conventions*
  - `slug`: `coding-session-<targetPlanSlug>` (unique per dispatch)
  - `description`: one-line implementation scope (for example *Worktree and implementation for PR N …*)
- - `inputs`: `targetPlanPath`, `targetPlanSlug`, `readyForImplementation`, `planningHandoffApproved: true` (only when `readyForImplementation: true`), `planningHandoffMode: "sections-1-4-complete"` (required when `readyForImplementation: true`), `repoPath`, `ledgerParent`, `upstreamSkill: "pr-plan"`; include `parentPlanPath`, `parentPlanSlug`, `parentIndex` when known
+ - `inputs`: `targetPlanPath`, `targetPlanSlug`, `readyForImplementation`, `planningHandoffApproved: true` (only when `readyForImplementation: true`), `planningHandoffMode: "sections-1-4-complete"` (required when `readyForImplementation: true`), `repoPath`, `ledgerParent`, `upstreamSkill: "pr-plan"` (or **`"debug-and-fix"`** when this lane’s invoker / seed is **`upstreamSkill: debug-and-fix`** — see **Reuse worktree ownership** below); include `parentPlanPath`, `parentPlanSlug`, `parentIndex` when known
  - Optional `warmUpRules`: merge **`.sedea/centers/research-and-development/rules/20_efficient-pr-shipping.mdc`** if not already loaded from skill frontmatter
+ - **Reuse worktree ownership (binding — debug / inherited handoff):** When this lane received an absolute existing hosting-repo **`worktreePath`** (and usually **`worktreeName`**) from an upstream debug or similar seed — especially **`inputs.upstreamSkill === "debug-and-fix"`** or debug handover in **`initiatingPrompt`** — **and** that path already exists on disk, §5d **must** forward ownership onto the **`coding-session`** spawn, not only path/name:
+   - `worktreePath` / `worktreeName` — exact absolute path and branch name from the seed
+   - `worktreeOwnership: "inherited"`
+   - `worktreeCreatedByUpstream` — creating skill slug (e.g. **`debug-and-fix`**)
+   - `mountedViaMcp: true` when upstream already ran **`sedea_add_worktree_folder`** for that path; otherwise `false` (child may attach once — still **no** new **`worktree-setup.sh`** for ownership)
+   - `developerApprovedImplementation: true` when the invoker already authorized reuse (debug code-promotion path)
+   - Set **`upstreamSkill: "debug-and-fix"`** when the seed’s upstream was debug-and-fix (overrides default **`pr-plan`** label for that spawn)
+   - **`initiatingPrompt`** must state: inherit cleanup ownership for this path; post-merge auto-cleanup is authorized; remount-only reuse is **not** unclear ownership
+   - **Forbidden:** spawn **`coding-session`** with only `worktreePath` / `worktreeName` after inheriting ownership yourself; telling the child ownership is unclear because **this** §5d lane did not run **`worktree-setup.sh`**
 
 4. Emit **`mission_control_spawn_agent`**, announce waiting for the **`coding-session`** child result, and close the turn with structured choice per [`.sedea/centers/sedea/rules/2_ask-question-instructions.mdc`](.sedea/centers/sedea/rules/2_ask-question-instructions.mdc) § **Turn completion invariant** — no second spawn in the same turn; do not prose-only stop.
 5. Set `implementationHandoffStatus: "spawned-coding-session"` and record `spawnCorrelationId` matching the spawn request until the child terminal arrives.
