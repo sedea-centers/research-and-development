@@ -111,6 +111,8 @@ When run **inline** on **`coding-session`** (pre-merge **Before deploy** or post
 
 Under Checkpoint trust (`trustLevel: checkpoint`), auto-advance scripted happy-path steps; emit structured choice only at **USER_CHECKPOINT** markers in this section, implicit external-wait surfaces, or exception paths. **No cross-skill inheritance** — gate defaults here apply only to **`deploy-walk`**; other ship-chain skills document their own markers.
 
+**Parent yield gate:** Mid-ship StreamFinal without same-turn Act on the invoker **`coding-session`** lane is governed by **`coding-session/SKILL.md`** § [Yield gate (Checkpoint — binding)](../coding-session/SKILL.md#yield-gate-checkpoint--binding). This skill must **not** authorize recap-only “Act next turn” exits that leave the parent without a resume modal.
+
 **Real-dispatch test loop (binding):** After merge, run one full inline **`deploy-walk`** on a **`coding-session`** Checkpoint dispatch through [Manual step await gate](#manual-step-await-gate-binding) / [Step 4 — Step presentation contract](#step-4--step-presentation-contract) and collect a developer verdict before the parent phase advances **`create-pr`** PR 4 — per **Ship-chain skills UX** § *Single-concern strategy*.
 
 Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md).
