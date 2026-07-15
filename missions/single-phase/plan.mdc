@@ -116,6 +116,8 @@ Per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea
 
 Under Checkpoint trust (`trustLevel: checkpoint`), auto-advance scripted happy-path steps on the **Squad Leader** lane; emit structured choice only at **USER_CHECKPOINT** markers in protocol steps below, **#external-wait** spawn-and-wait surfaces, or exception paths. **No cross-skill inheritance** — gate defaults here apply only to this mission **`plan.mdc`**; child skills document their own markers.
 
+**Ship lanes:** Checkpoint UX for shared **`coding-session`** (and sibling ship skills under **`plan-and-deliver`**) includes the **Yield gate** — mid-ship StreamFinal without same-turn Act requires structured choice (`missions/plan-and-deliver/skills/coding-session/SKILL.md` § *Yield gate*). Leader-lane Checkpoint happy-path above is unchanged.
+
 Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md).
 
 | Protocol § | Checkpoint behavior | Gate |

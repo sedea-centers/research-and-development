@@ -325,6 +325,8 @@ Child spawns must satisfy the same README table for the target skill role (skill
 
 Under Checkpoint trust (`trustLevel: checkpoint`), auto-advance scripted happy-path steps on the **Squad Leader** lane; emit structured choice only at **USER_CHECKPOINT** markers in protocol steps below, **#external-wait** spawn-and-wait surfaces, or exception paths. **No cross-skill inheritance** — gate defaults here apply only to this mission **`plan.mdc`**; child skills document their own markers.
 
+**Ship lanes:** Checkpoint UX for shared **`coding-session`** (and sibling ship skills under **`plan-and-deliver`**) includes the **Yield gate** — mid-ship StreamFinal without same-turn Act requires structured choice (`coding-session/SKILL.md` § *Yield gate*). Leader-lane Checkpoint happy-path above is unchanged.
+
 Marker syntax: [`.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md`](.sedea/centers/sedea/docs/user-checkpoint-marker-syntax.md).
 
 | Protocol § | Checkpoint behavior | Gate |
