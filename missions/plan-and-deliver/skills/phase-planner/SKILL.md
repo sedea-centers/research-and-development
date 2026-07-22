@@ -111,6 +111,7 @@ Per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea
 - Run **`../README.md`** § *MCP notify preflight* (rows N1–N8) before every **`mission_control_notify_child_lanes`** call — cross-ref **`.sedea/centers/sedea/rules/4_mission.mdc`** § *MCP notify protocol*.
 - **`laneRules`:** rely on this skill's frontmatter **`laneRules`**; MCP spawn schema omits **`laneRules`** on the wire (Phase 1 stub).
 - Inline skills (**`delivery-phases`**, **`pr-breakdown`**, inline **`pr-plan`**, inline **`new-plan`**) stay **inline-only** — no spawn wire change.
+- **Relevant Links (post-write):** After each Write/StrReplace that **creates or materially edits** this phase plan (or child ops plans written on this lane), call MCP **`mission_control_update_relevant_documents`** with absolute path(s) (`kind: plan`) — same turn preferred. **Skip** read-only loads, warm-up paths, and unchanged already-registered paths. Does **not** replace terminal plan path outputs. See **`../README.md`** § *Relevant Links — post-write registration*.
 
 ### Plan-change notify — emit-when (`mission_control_notify_child_lanes`)
 

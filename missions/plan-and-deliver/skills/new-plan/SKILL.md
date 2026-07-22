@@ -116,6 +116,7 @@ Per [`.sedea/centers/sedea/docs/lane-manifest-contract.md`](.sedea/centers/sedea
 
 - Run **`../README.md`** § *MCP spawn preflight* (rows M1–M8) before every MCP spawn; **forbidden** host-resolved identity keys in MCP args (`correlationId`, `dispatchId`, `slotId`, … — see README § *Host-resolved identity*).
 - Inline skills on this mission stay **inline-only** — no spawn wire change unless the protocol step explicitly spawns a child lane.
+- **Relevant Links (post-write):** After scaffolding or materially editing `.plan.md` / `.state.yaml` under the plans union, call MCP **`mission_control_update_relevant_documents`** with the absolute plan path (`kind: plan`) — same turn preferred. **Skip** read-only loads and unchanged already-registered paths. Does **not** replace terminal `planPath` / `planSlug` outputs. See **`../README.md`** § *Relevant Links — post-write registration*.
 
 
 ## Triggers

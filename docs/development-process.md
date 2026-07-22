@@ -275,6 +275,7 @@ Normative field semantics: [`.sedea/centers/sedea/rules/8_plan-board-contract.md
 | **Squad Leader** renames a **child** agent tab via dispatch MCP or prose | **Forbidden** — leader uses **`mission_control_update_dispatch_display`** for dispatch title/hover; child lane self-service via lane MCP — rule **9** § *Forbidden* |
 | **Chat-only** tab rename ("call it X in the UI") with no MCP on owning lane | **Stop** — durable labels persist through governed MCP; see [`.sedea/centers/research-and-development/docs/mission-control-display-metadata-host-spec.md`](mission-control-display-metadata-host-spec.md) § *Stale tab title recovery* |
 | Tab title stale after reload | **Orientation** — re-read spawn context; owning lane runs correct MCP per role — not Alignment Safeguard; rule **50** + host-spec doc § *Stale tab title recovery* |
+| Prose-only “add this to Relevant Links” / register warm-up or every read path | **Stop** — call **`mission_control_update_relevant_documents`** for **authored/material edits only**; see **`missions/plan-and-deliver/skills/README.md`** § *Relevant Links — post-write registration*; rule **50** § *Relevant Links (documents)* |
 
 **Host spec (additive fields):** [`.sedea/centers/research-and-development/docs/mission-control-display-metadata-host-spec.md`](mission-control-display-metadata-host-spec.md) — bundle field names, max lengths, hosting-repo implementation pointers. Authority table remains [`.sedea/centers/sedea/rules/9_display-metadata-authority.mdc`](.sedea/centers/sedea/rules/9_display-metadata-authority.mdc) only.
 
