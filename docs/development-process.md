@@ -258,10 +258,15 @@ Normative field semantics: [`.sedea/centers/sedea/rules/8_plan-board-contract.md
 
 **Operations write location:** Plan and sidecar edits target the **main hosting clone** only — see [`.sedea/centers/sedea/rules/0_hosting-repo.mdc`](.sedea/centers/sedea/rules/0_hosting-repo.mdc) § *Operations persistence (main hosting root only)*.
 
+### GitHub issue dispatch closure
+
+When a delivery dispatch binds a **GitHub issue URL** (Hub intake note or URL in the opening message), the Squad Leader must update that issue at **`mission_control_propose_dispatch_resolution`** so the issue does not linger. Normative contract: [`.sedea/centers/research-and-development/rules/60_github-issue-dispatch-closure.mdc`](../rules/60_github-issue-dispatch-closure.mdc) — bind at §1/§2 intake; apply status map immediately **before** each resolution proposal (**`resolved`** → comment + close; **`partial`** / **`abandoned`** / **`aborted`** → comment, leave open).
+
 ### Agent UX pitfalls (easy mis-runs)
 
 | Pitfall | Correct surface |
 |---------|-----------------|
+| Bound GitHub issue left open after dispatch resolve | Rule **60** — run status map **before** **`mission_control_propose_dispatch_resolution`**; child lanes do not close issues |
 | **Squad Leader §6** shows decomposition menus | **Forbidden** — only **Master Plan agent** Step 7 (**`planner/SKILL.md`**) offers §6 routes; leader **ack only** (**`plan.mdc`** §6) |
 | **`pr-review`** as its own Mission Control dispatch | **Stop** — inline on active **`coding-session`** only (**`pr-review/SKILL.md`** § *Standalone dispatch*) |
 | **Commit and push cadence** step 3 | Rule **20** step 3 = **`pr-review` Step 5 — GitHub only** after push when Steps 1–4 already ran — not a second full triage |
