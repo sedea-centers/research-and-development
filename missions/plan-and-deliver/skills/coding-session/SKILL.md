@@ -1585,7 +1585,7 @@ Construct inline context:
 |----------------------|--------|
 | `targetPlanPath` / `targetPlanSlug` | From coding-session state when plan-anchored |
 | `worktreePath`, `worktreeName`, `baseRef`, `repoUrl` | From worktree / git |
-| `diffSummary` | Commits, files, changes since base |
+| `diffSummary` | Same **object** shape as [Review handoff inputs](#review-handoff-inputs) (not a prose string) |
 | `prePrReviewRecommendation` | `"go"` |
 | `prePrReviewFlags`, `followUpsAppended` | From **`pre-pr-review`** outputs; **`followUpsAppended: false`** unless developer later chooses follow-up append at [Create-PR handoff after go](#create-pr-handoff-after-go) |
 | `ledgerParent` | From coding-session ledger when present |
