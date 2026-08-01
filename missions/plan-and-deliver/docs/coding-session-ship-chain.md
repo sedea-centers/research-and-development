@@ -935,6 +935,9 @@ Under Checkpoint trust, after a **clean** rebase (or Checkpoint conflict resolve
 | **`check-pr-status`** / **`merged-pr-proceed`** when merge confirmed | Same verify-only invocation |
 | Start of [Post-merge Checkpoint chain](#post-merge-checkpoint-chain-binding) step **1** prep (before cleanup **`--apply`**) | `--hosting-root "$HOSTING_ROOT"` `--pr-number <n>` **`--apply`** when developer consent for pull already granted on this chain |
 | Deploy / CI smoke (Before deploy step 2) | **`--dry-run`** only |
+| **Center-submodule PR** (worktree on `sedea-centers/software-development` or other center repo — hosting `origin` is not the PR repo) | Add **`--repo sedea-centers/software-development`** (or the center's `ORG/REPO`) so `gh pr view` targets the merged PR's repository |
+
+**Center-submodule PRs (binding):** When the merged PR lives on a **center repo** (not the hosting repo), `gh pr view` defaults to hosting **`origin`** unless **`--repo ORG/REPO`** is passed. Always supply **`--repo`** for center worktree dogfood and merge-procedure step **6** refresh.
 
 **Invocation (from `HOSTING_ROOT`):**
 
@@ -945,8 +948,11 @@ cd "$HOSTING_ROOT"
   .sedea/centers/software-development/missions/plan-and-deliver/scripts/post-merge-ship-mechanics.mjs \
   --hosting-root "$HOSTING_ROOT" \
   --pr-number <number> \
+  [--repo sedea-centers/software-development] \
   [--apply]
 ```
+
+**Verify-only step 6 `shipPhase`:** When **`--apply`** is omitted, expect **`shipPhase: pr-merged`** (not **`post-merge-cleanup`**) — cleanup phase follows the **`--apply`** pull in [Post-merge Checkpoint chain](#post-merge-checkpoint-chain-binding).
 
 **Stdout:** one JSON object. Merge into coding-session `outputs`:
 

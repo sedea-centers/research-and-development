@@ -17,6 +17,7 @@
  * Exit 0 on success (stdout = one JSON line). Exit 1 on failure (stderr message, optional JSON).
  */
 
+import fsSync from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { spawn, execFileSync } from 'node:child_process';
@@ -273,7 +274,8 @@ async function detectCenterPinDrift(hostingRoot) {
 
 function mapPrStateToShipPhase(prState, mainPullStatus) {
   if (prState === 'merged') {
-    if (mainPullStatus === 'success' || mainPullStatus === 'skipped') return 'post-merge-cleanup';
+    // Verify-only (mainPullStatus skipped) stays pr-merged until --apply pull succeeds.
+    if (mainPullStatus === 'success') return 'post-merge-cleanup';
     return 'pr-merged';
   }
   return 'pr-open';
