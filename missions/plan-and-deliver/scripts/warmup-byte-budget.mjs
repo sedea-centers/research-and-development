@@ -23,6 +23,7 @@ export const SPAWN_ROLE_CATEGORY = {
   'pr-breakdown': 'planning',
   'delivery-phases': 'planning',
   'new-plan': 'planning',
+  // quick-fix-plan lives under missions/quick-fix/skills/ — not scanned by --table
   'quick-fix-plan': 'planning',
   'coding-session': 'ship',
   'pre-pr-review': 'ship',
