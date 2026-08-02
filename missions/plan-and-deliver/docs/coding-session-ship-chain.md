@@ -730,7 +730,7 @@ When inline **`create-pr`** completes with a PR URL/number (or the developer ret
 
 **Rule 6 supersession (binding):** While **`prState: open`**, option ordering, presence, and inspect-before-mutate for agent approve+merge on this gate follow [`.sedea/centers/sedea/rules/6_git-commit-push-gate.mdc`](.sedea/centers/sedea/rules/6_git-commit-push-gate.mdc) § *PR approve-merge structured choice* and § *Merge inspect procedure*, cross-referenced by [`.sedea/centers/software-development/rules/20_efficient-pr-shipping.mdc`](.sedea/centers/software-development/rules/20_efficient-pr-shipping.mdc) § *PR approve-merge and merge inspect*. This gate's option tables implement that contract — not a parallel vocabulary.
 
-**Binding — Checkpoint and non-Checkpoint:** When **`prState`** is **`open`** (or just created this turn) and **`prState`** is not **`merged`**, **same assistant turn** must close with **`mission_control_present_structured_choice`** post-create-pr **`options`** — not prose-only PR URL, *Next: inline pr-review*, or idle handoff. **`defaultOptionId: approve-merge-pr`** when agent merge is in scope, required CI is **`passing`** or **`pending`**, and the developer did not name **`defer-ship`**, **`submit-manual-review`**, **`rebase-onto-main-and-resolve-conflicts`** (including legacy **`rebase-onto-main`**), or a review-only path in the **same** message.
+**Binding — Checkpoint and non-Checkpoint:** When **`prState`** is **`open`** (or just created this turn) and **`prState`** is not **`merged`**, **same assistant turn** must close with **`mission_control_present_structured_choice`** post-create-pr **`options`** — not prose-only PR URL, *Next: inline pr-review*, or idle handoff. **`defaultOptionId: approve-merge-pr`** when agent merge is in scope, required CI is **`passing`** or **`pending`**, and the developer did not name **`defer-ship`**, **`submit-manual-review`**, **`rebase-onto-main-and-resolve-conflicts`**, or a review-only path in the **same** message.
 
 USER_CHECKPOINT — pick next ship action after PR creation on this lane.
 
@@ -743,7 +743,7 @@ Under Checkpoint trust, set **`defaultOptionId: approve-merge-pr`** on the post-
 1. `prState` is **`open`** (or just created this turn).
 2. Agent merge is in scope on this modal (rule **6** § *PR approve-merge structured choice* — **`approve-merge-pr`** listed).
 3. Required CI is **`passing`** or **`pending`** (not failing without an in-progress fix path).
-4. Developer did **not** name **`defer-ship`**, **`submit-manual-review`**, **`rebase-onto-main-and-resolve-conflicts`** (including legacy **`rebase-onto-main`**), or a review-only path (**`start-pr-review`** without merge) in the **same** message.
+4. Developer did **not** name **`defer-ship`**, **`submit-manual-review`**, **`rebase-onto-main-and-resolve-conflicts`**, or a review-only path (**`start-pr-review`** without merge) in the **same** message.
 5. When `prState` is already **`merged`**, skip this gate — run [Post-merge Checkpoint chain](#post-merge-checkpoint-chain-binding) instead.
 
 **Retain `start-pr-review-delegate-merge` as `defaultOptionId` only when** the developer did **not** authorize the merge path in the **same** message (for example they named **`start-pr-review`** or review-only intent explicitly) — otherwise **`approve-merge-pr`** is the Checkpoint default.
