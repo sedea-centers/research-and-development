@@ -89,9 +89,9 @@ When **`coding-session`** or an **`implementation-session`** invoker sets **`bat
 | **2** — Filter handled comments | Auto-advance | — |
 | **3** — Validate and classify | Auto-advance — report prep only; no edits | — |
 | **3a** — Propose follow-ups | Auto-advance (handoff only; no plan mutation) | — |
-| **3b** / **4** — Report + disposition | **Gate** — mandatory developer pick before any Act | [Disposition gate](#step-4--report-and-disposition-gate) |
+| **3b** / **4** — Report + disposition | **Gate** — mandatory developer pick before any Act — **skip when **`batchShipAuthorized`** | [Disposition gate](#step-4--report-and-disposition-gate) |
 | **Approved fix pass** | Auto-advance through edits until commit/push required | exception: blocking tool/git failure |
-| **Post-fix commit/push** | **Gate** before `git commit` / `git push` when fixes landed | [Post-fix commit/push gate](#post-fix-commitpush-gate-binding) |
+| **Post-fix commit/push** | **Gate** before `git commit` / `git push` when fixes landed — **skip when **`batchShipAuthorized`** | [Post-fix commit/push gate](#post-fix-commitpush-gate-binding) |
 | **5** — GitHub reconciliation | Auto-advance **same turn** as push or skipped-only disposition pick | exception: stale Step **1** payloads → re-fetch first |
 | **Cycle resume** — wait for reviewers / new comments | Developer-input on **`coding-session`** — **not** external-wait prose | **`coding-session`** [Post-create-pr handoff gate](../coding-session/SKILL.md#post-create-pr-handoff-gate) |
 
