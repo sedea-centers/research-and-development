@@ -55,6 +55,29 @@ inputs:
     type: string
     description: PR description seed from parent ### PR list item N Single concern sub-bullet; copy verbatim to ## 1. Single concern.
     required: false
+  requirementsRef:
+    type: string
+    description: Intake or domain doc path for null-parent mode (when parentPlanSlug wire is "null").
+    required: false
+  domainDocPaths:
+    type: array
+    description: Optional split domain documents for null-parent intake-driven mode.
+    required: false
+    default: []
+  structureManifest:
+    type: object
+    description: Leader-inferred structure from approved intake (null-parent mode).
+    required: false
+  cursorGovernancePresent:
+    type: boolean
+    description: When false in null-parent mode, omit cleanup/analyze implementSteps in §3.
+    required: false
+    default: false
+  postIntakeAutoAdvance:
+    type: boolean
+    description: When true, skip §5c handoff modal (null-parent / governed-repo flows).
+    required: false
+    default: false
   skipPrPlanHandoffModal:
     type: boolean
     description: When true (pr-breakdown approve-list auto-chain), skip §5c modal after §§1–4; report inline completion with prPlanHandoffSkipped.
@@ -70,9 +93,16 @@ warmUpRules:
   - ".sedea/centers/software-development/rules/30_planning-target-resolution.mdc"
 ---
 
-# PR plan: §§ 1–4 from the parent plan
+# PR plan: §§ 1–4 from the parent plan or intake (null-parent)
 
-**Normative execution (plan and deliver):** **Inline only** on the invoker lane — **`new-plan`** step 4 with **`parentAgentRole: "new-plan-agent"`**. Report **`## Completion (inline)`**; do **not** emit **`mission_control_send_agent_result`** for **`pr-plan`**. **Exception:** §5d may emit **`mission_control_spawn_agent`** for **`coding-session`** on a **new** child lane. A standalone spawned **`pr-plan`** child is non-default. See **`../README.md`** § *Normative execution mode*.
+**Two modes:**
+
+| Mode | When | §§1–4 source |
+|------|------|----------------|
+| **Master Plan row (default)** | Sidecar `parent:` resolves to a plan with **`PR breakdown`** | Parent §6/§5 **`### PR list`** row **N** |
+| **Null-parent (intake-driven)** | Spawn inputs wire `parentPlanSlug: "null"` (string) **and** `requirementsRef` is set | **`requirementsRef`**, **`domainDocPaths[]`**, **`structureManifest`** |
+
+**Normative execution (plan and deliver):** **Inline only** on the invoker lane — **`new-plan`** step 4 with **`parentAgentRole: "new-plan-agent"`**. Report **`## Completion (inline)`**; do **not** emit **`mission_control_send_agent_result`** for **`pr-plan`**. **Exception:** §5d may emit **`mission_control_spawn_agent`** for **`coding-session`** on a **new** child lane. A standalone spawned **`pr-plan`** child is non-default. **Null-parent spawned mode** is allowed for **`sedea-governed-repo-setup`** and similar intake-driven single-PR flows. See **`../README.md`** § *Normative execution mode*.
 
 This skill drives the **per-PR planning move** under Sedea's New Feature Development Process: take a freshly-spawned PR plan stub (indexed child from the parent's **`### PR list`** under **`PR breakdown`**, typically right after the **`new-plan`** protocol branch) and populate §§ **1–4** of the **per-PR template** — Single concern, Background, Change scope, Reasoning. §§ **5–8** and the § 7 deploy scaffold stay **`_TBD_`** for **`coding-session`** and later turns unless the **developer** explicitly asks for a **fill** sketch here.
 
@@ -296,7 +326,15 @@ If the **new-plan** stub sections carry **non-stub user content**, merge it into
 
 Read the target plan's sidecar `<slug>.state.yaml` for `parent:`.
 
-- `parent: null` (or sidecar missing) → **stop:** PR plans require a parent under **`PR breakdown`**. Fix via **`plan-reconcile`** or by hand, or use **`master-planner`** if this file should be a Master Plan.
+**Null-parent mode (binding):** When spawn **`inputs.parentPlanSlug`** is the wire string **`"null"`** (never JSON `null`) **and** **`requirementsRef`** is non-empty:
+
+- Treat sidecar `parent: null` (or missing) as **valid** — proceed to **Step 2** then **Step 3-null** (skip Master Plan row matching).
+- Acknowledge: *"Null-parent intake mode; proceeding from `requirementsRef`."*
+- **Forbidden:** requiring **`pr-breakdown`** or a Master Plan parent in this mode.
+
+**Master Plan row mode (default):**
+
+- `parent: null` (or sidecar missing) **without** null-parent spawn inputs → **stop:** PR plans require a parent under **`PR breakdown`**. Fix via **`plan-reconcile`** or by hand, or use **`master-planner`** if this file should be a Master Plan.
 - `parent:` does not resolve to an existing `.plan.md` under the same `.sedea/operations/.../plans/` tree → **stop:** fix sidecar before drafting.
 - Parent is a **roadmap topic** grouping plan → **stop:** children should be Master Plans, not PR plans; fix sidecar or use **`master-planner`**.
 - Parent resolves; read parent's dual-title block (`## 6. …` Master, `## 5. …` Phase):
@@ -314,7 +352,26 @@ Read `.sedea/centers/software-development/docs/development-process.md` with the 
 
 Re-read every invocation; do not rely on session memory.
 
+## Step 3-null — Read intake sources (null-parent mode only)
+
+When **Step 1b** entered null-parent mode:
+
+1. Read **`requirementsRef`** in full.
+2. Read each path in **`domainDocPaths[]`** when present.
+3. Merge with **`structureManifest`** when supplied.
+4. Draft §§1–4 from intake/domain content (not a parent PR list row):
+   - §1 Single concern — one sentence for this PR scope
+   - §2 Background — from intake/domain docs
+   - §3 Change scope — concrete files + **`implementSteps`** when **`cursorGovernancePresent`** or governed-repo manifest dictates
+   - §4 Reasoning — unambiguous for implement agents
+5. Set **`parentIndex: 1`**, **`parentPlanLinkStatus: "linked"`** (intake-anchored), **`ledgerParent: null`** in outputs.
+6. When **`postIntakeAutoAdvance: true`**, set **`skipPrPlanHandoffModal: true`** and proceed to Step 5.
+
+Then continue at **Step 5** (skip Step 3 Master Plan row matching).
+
 ## Step 3 — Read the parent plan and find the PR row
+
+**Skip when Step 3-null ran.**
 
 Read the parent plan in full. Locate **`## 6. PR breakdown`** (Master parent) or **`## 5. PR breakdown`** (Phase parent). Inside: **`### Single-concern strategy`**, **`### Sequencing`**, **`### PR list`**.
 
